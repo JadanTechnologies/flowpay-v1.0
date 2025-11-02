@@ -8,10 +8,10 @@ import { useAppContext } from '../../contexts/AppContext';
 interface ReturnModalProps {
     salesHistory: Sale[];
     onClose: () => void;
-    onProcessRefund: (returnedItems: CartItem[], originalSale: Sale) => void;
+    onRequestReturn: (returnedItems: CartItem[], originalSale: Sale) => void;
 }
 
-const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onProcessRefund }) => {
+const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onRequestReturn }) => {
     const [saleIdSearch, setSaleIdSearch] = useState('');
     const [searchedSale, setSearchedSale] = useState<Sale | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -68,7 +68,7 @@ const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onProc
             return;
         }
 
-        onProcessRefund(returnedItems, searchedSale);
+        onRequestReturn(returnedItems, searchedSale);
     };
 
     return (
@@ -127,7 +127,7 @@ const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onProc
                             disabled={totalRefund <= 0}
                             className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-700 disabled:text-text-secondary disabled:cursor-not-allowed"
                         >
-                            Process Refund
+                            Request Manager Approval
                         </button>
                     </div>
                 </div>

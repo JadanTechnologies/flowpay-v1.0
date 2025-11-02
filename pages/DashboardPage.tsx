@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import SalesChart from '../components/dashboard/SalesChart';
 import TopProductsChart from '../components/dashboard/TopProductsChart';
 import RecentSalesTable from '../components/dashboard/RecentSalesTable';
-import { DollarSign, ShoppingCart, Users, Activity, Handshake, CreditCard } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, Activity, Handshake, CreditCard, RotateCcw, ShieldCheck } from 'lucide-react';
 // FIX: Remove `recentSales` from this import as it's now coming from AppContext
 import { salesData, topProducts, branchPerformance } from '../data/mockData';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -11,8 +11,9 @@ import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 import { useTranslation } from '../hooks/useTranslation';
 import Skeleton from '../components/ui/Skeleton';
-import { ProductVariant, Sale } from '../types';
+import { ProductVariant, Sale, InventoryAdjustmentLog } from '../types';
 import CashierSalesDetailModal from '../components/dashboard/CashierSalesDetailModal';
+import ReturnApprovalModal from '../components/dashboard/ReturnApprovalModal';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -31,10 +32,94 @@ const DashboardCardSkeleton: React.FC = () => (
 
 
 const DashboardPage: React.FC = () => {
-    const { session, currency, recentSales, products, currentBranchId } = useAppContext();
+    const { 
+        session, currency, recentSales, setRecentSales, products, setProducts, 
+        currentBranchId, pendingReturns, setPendingReturns, addNotification, 
+        setInventoryAdjustmentLogs
+    } = useAppContext();
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [modalData, setModalData] = useState<{ title: string; sales: Sale[], type: 'general' | 'credit' } | null>(null);
+    const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+
+    const returnsForApproval = useMemo(() => 
+        pendingReturns.filter(req => req.branchId === currentBranchId && req.status === 'pending'),
+    [pendingReturns, currentBranchId]);
+
+    const handleApproveReturn = (requestId: string) => {
+        const request = pendingReturns.find(r => r.id === requestId);
+        if (!request) {
+            addNotification({ message: 'Return request not found.', type: 'error' });
+            return;
+        }
+
+        const { itemsToReturn, originalSale, branchId, totalRefundAmount, cashierName } = request;
+
+        // 1. Update stock
+        setProducts(currentProducts => {
+            return currentProducts.map(p => {
+                const newVariants = p.variants.map(v => {
+                    const returnedItem = itemsToReturn.find(item => item.id === v.id);
+                    if (returnedItem) {
+                        const newStockByBranch = { ...v.stockByBranch };
+                        newStockByBranch[branchId] = (newStockByBranch[branchId] || 0) + returnedItem.quantity;
+                        return { ...v, stockByBranch: newStockByBranch };
+                    }
+                    return v;
+                });
+                return { ...p, variants: newVariants };
+            });
+        });
+
+        // 2. Create log
+        const newLog: InventoryAdjustmentLog = {
+            id: `adj_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            user: session?.user?.name || 'Manager',
+            branchId: branchId,
+            type: 'Sale Return',
+            referenceId: originalSale.id,
+            items: itemsToReturn.map(item => ({
+                productId: item.productId,
+                productName: item.name,
+                change: item.quantity
+            }))
+        };
+        setInventoryAdjustmentLogs(prev => [newLog, ...prev]);
+
+        // 3. Create refund sale record
+        const refundSale: Sale = {
+            id: `refund_${Date.now()}`,
+            customerName: originalSale.customerName,
+            customerId: originalSale.customerId,
+            cashierName: cashierName,
+            date: new Date().toISOString(),
+            amount: -totalRefundAmount,
+            status: 'Refunded',
+            branch: originalSale.branch,
+            items: itemsToReturn.map(item => ({...item, price: -item.price})),
+            payments: [{ method: 'Cash', amount: -totalRefundAmount }],
+        };
+        setRecentSales(prev => [refundSale, ...prev]);
+        
+        // 4. Remove from pending
+        setPendingReturns(prev => prev.filter(r => r.id !== requestId));
+        
+        // 5. Notify
+        addNotification({ message: `Return for sale ${originalSale.id} approved.`, type: 'success' });
+        if (returnsForApproval.length - 1 === 0) {
+            setIsApprovalModalOpen(false);
+        }
+    };
+    
+    const handleRejectReturn = (requestId: string) => {
+        const request = pendingReturns.find(r => r.id === requestId);
+        setPendingReturns(prev => prev.filter(r => r.id !== requestId));
+        addNotification({ message: `Return request from ${request?.cashierName} was rejected.`, type: 'warning' });
+        if (returnsForApproval.length - 1 === 0) {
+            setIsApprovalModalOpen(false);
+        }
+    };
 
 
     useEffect(() => {
@@ -164,11 +249,13 @@ const DashboardPage: React.FC = () => {
     }
 
     const totalRevenue = recentSales.reduce((acc, sale) => acc + sale.amount, 0);
+    const isManagerOrAdmin = session?.user?.role === 'Manager' || session?.user?.role === 'Admin';
+
 
     return (
         <div className="space-y-8">
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 <DashboardCard 
                     title="Total Revenue" 
                     value={formatCurrency(totalRevenue, currency)} 
@@ -193,6 +280,15 @@ const DashboardPage: React.FC = () => {
                     change="2 online" 
                     icon={<Activity className="text-red-500" />} 
                 />
+                 {isManagerOrAdmin && (
+                    <DashboardCard
+                        title="Pending Returns"
+                        value={returnsForApproval.length.toString()}
+                        change={returnsForApproval.length > 0 ? "requires approval" : "No pending requests"}
+                        icon={<ShieldCheck className={returnsForApproval.length > 0 ? "text-orange-500 animate-pulse" : "text-orange-500/50"} />}
+                        onClick={() => returnsForApproval.length > 0 && setIsApprovalModalOpen(true)}
+                    />
+                )}
             </div>
             
             {/* Main content grid */}
@@ -238,6 +334,15 @@ const DashboardPage: React.FC = () => {
                     <TopProductsChart data={topProducts} />
                 </div>
              </div>
+
+             {isApprovalModalOpen && (
+                <ReturnApprovalModal
+                    requests={returnsForApproval}
+                    onClose={() => setIsApprovalModalOpen(false)}
+                    onApprove={handleApproveReturn}
+                    onReject={handleRejectReturn}
+                />
+             )}
         </div>
     );
 };

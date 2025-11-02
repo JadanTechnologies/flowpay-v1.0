@@ -2,11 +2,13 @@
 
 
 
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link } from 'react-router-dom';
 import { Truck, PlusCircle, MoreVertical, Edit, Trash2, CheckCircle, ArrowLeft, Filter } from 'lucide-react';
-import { PurchaseOrder, InventoryAdjustmentLog } from '../../types';
+import { PurchaseOrder, InventoryAdjustmentLog, Product, ProductVariant } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import PurchaseOrderModal from '../../components/inventory/PurchaseOrderModal';
 import ReceivePOModal from '../../components/inventory/ReceivePOModal';
@@ -121,10 +123,18 @@ const PurchaseOrdersPage: React.FC = () => {
         });
         
         const logItems = stockUpdates.map(update => {
-            const poItem = updatedPO.items.find(i => i.productId === update.productId);
+            let productName = 'Unknown Product';
+            for (const p of products) {
+                const v = p.variants.find(v => v.id === update.productId);
+                if (v) {
+                    const variantName = Object.values(v.options).join(' ');
+                    productName = variantName ? `${p.name} - ${variantName}` : p.name;
+                    break;
+                }
+            }
             return {
                 productId: 'N/A', // In a real system you'd link this to the parent product
-                productName: poItem?.name || 'Unknown',
+                productName: productName,
                 change: update.quantity,
             };
         });

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { StockTransfer, Product, ProductVariant } from '../../types';
 import Modal from '../ui/Modal';
@@ -151,7 +152,7 @@ const StockTransferModal: React.FC<StockTransferModalProps> = ({ onClose, onSave
                             </div>
                             <div>
                                 <label className="text-xs text-text-secondary">Qty</label>
-                                <input type="number" value={newItem.quantity} onChange={e => setNewItem({ ...newItem, quantity: e.target.value })} min="1" className="w-24 text-sm bg-surface border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"/>
+                                <input type="number" value={newItem.quantity} onChange={e => setNewItem({ ...newItem, quantity: e.target.value })} min="1" className="w-24 text-sm bg-surface border border-border rounded-md p-1.5"/>
                             </div>
                             <button type="button" onClick={handleAddItem} className="p-2 bg-primary/20 hover:bg-primary/40 text-primary rounded-md"><PlusCircle size={20}/></button>
                         </div>

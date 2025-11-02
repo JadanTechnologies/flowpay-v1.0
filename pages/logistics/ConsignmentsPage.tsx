@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Truck, PlusCircle, MoreVertical, Edit, CheckCircle, DollarSign, FileText, Send } from 'lucide-react';
 import { Consignment, Customer, Sale, Invoice, Product, ProductVariant } from '../../types';

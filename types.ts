@@ -1,13 +1,114 @@
 
+// Basic types
+export type Language = 'en' | 'es' | 'fr';
+export type Currency = 'USD' | 'EUR' | 'NGN';
 
+// From `components/landing/FaqSection.tsx`
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
 
+// From `AppContext.tsx`
+export interface Notification {
+  id: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  duration?: number;
+}
+export type UserRole = 'Admin' | 'Manager' | 'Accountant' | 'Cashier' | 'super_admin';
 
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  tenantId?: string;
+}
 
+export interface Session {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+// From `App.tsx` and other places
+export type ModuleId =
+  | 'dashboard'
+  | 'pos'
+  | 'inventory'
+  | 'logistics'
+  | 'branches'
+  | 'staff'
+  | 'automations'
+  | 'invoicing'
+  | 'credit_management'
+  | 'activityLog'
+  | 'reports';
+
+export type TenantPermission =
+  | 'manage_pos'
+  | 'manage_inventory'
+  | 'manage_staff'
+  | 'manage_branches'
+  | 'view_reports'
+  | 'access_settings'
+  | 'manage_logistics'
+  | 'manage_invoicing'
+  | 'manage_credit'
+  | 'view_activity_log'
+  | 'manage_automations'
+  | 'process_returns';
+
+// Sales and POS
+export interface SalesDataPoint {
+  name: string;
+  sales: number;
+}
+
+export interface ProductVariant {
+  id: string;
+  sku: string;
+  price: number;
+  costPrice: number;
+  stockByBranch: Record<string, number>;
+  lowStockThreshold: number;
+  options: Record<string, string>;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category: string;
+  supplier: string;
+  imageUrl: string;
+  isFavorite: boolean;
+  variantOptions: { name: string; values: string[] }[];
+  variants: ProductVariant[];
+}
+
+export interface CartItem {
+    id: string; // variant id
+    productId: string;
+    name: string;
+    sku: string;
+    price: number;
+    costPrice: number;
+    imageUrl?: string;
+    quantity: number;
+    stock: number;
+    discount?: number;
+}
+
+export interface Payment {
+    method: 'Card' | 'Cash' | 'Transfer' | 'Credit';
+    amount: number;
+}
 
 export interface Sale {
   id: string;
   customerName: string;
-  customerId?: string; // Optional customer ID
+  customerId?: string;
   cashierName: string;
   date: string;
   amount: number;
@@ -17,49 +118,6 @@ export interface Sale {
   payments: Payment[];
 }
 
-// NEW type for product variants
-export interface ProductVariant {
-    id: string; // Unique ID for this variant, e.g., prod_123_1
-    sku: string;
-    price: number;
-    costPrice: number;
-    stockByBranch: { [branchId: string]: number };
-    lowStockThreshold: number;
-    options: { [optionName: string]: string }; // e.g., { "Size": "Small", "Color": "Red" }
-}
-
-// MODIFIED Product type
-export interface Product {
-    id: string;
-    name: string;
-    category: string;
-    supplier: string;
-    imageUrl: string;
-    isFavorite?: boolean;
-    
-    // Defines the structure of variants, e.g., [{ name: "Size", values: ["S", "M"] }]
-    variantOptions: { name: string; values: string[] }[]; 
-    
-    // The list of actual sellable items. For simple products, this has one entry.
-    variants: ProductVariant[];
-}
-
-
-// MODIFIED CartItem type
-export interface CartItem {
-    id: string; // This will be the variantId for uniqueness in the cart
-    productId: string; // ID of parent product
-    name: string; // Combined name, e.g., "T-Shirt - Small, Red"
-    sku: string;
-    price: number;
-    costPrice: number;
-    imageUrl: string;
-    quantity: number;
-    discount?: number;
-    stock: number; // Stock of this variant in current branch
-}
-
-
 export interface HeldSale {
   id: string;
   items: CartItem[];
@@ -67,31 +125,25 @@ export interface HeldSale {
   total: number;
 }
 
-export interface SalesDataPoint {
-  name: string;
-  sales: number;
-}
-
-export interface BranchPerformance {
-    name: string;
-    value: number;
-}
-
-// Tenant Type
-export interface Tenant {
+export interface PendingReturnRequest {
   id: string;
-  companyName: string;
-  email: string;
-  plan: string;
-  status: 'active' | 'suspended';
-  joinedDate: string;
-  subscriptionExpires?: string;
+  timestamp: string;
+  cashierId: string;
+  cashierName: string;
+  branchId: string;
+  originalSale: Sale;
+  itemsToReturn: CartItem[];
+  totalRefundAmount: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
-// NEW - Type for enabled modules
-export type ModuleId = 'dashboard' | 'pos' | 'inventory' | 'logistics' | 'branches' | 'staff' | 'automations' | 'invoicing' | 'credit_management' | 'activityLog' | 'reports';
+// Dashboard
+export interface BranchPerformance {
+  name: string;
+  value: number;
+}
 
-// Billing and Subscription Types
+// Subscriptions & Billing
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -104,25 +156,25 @@ export interface SubscriptionPlan {
 }
 
 export interface UserSubscription {
-  planId: 'basic' | 'pro' | 'premium';
+  planId: string;
   status: 'active' | 'trial' | 'cancelled';
   trialEnds: string | null;
-  nextBillingDate?: string;
+  nextBillingDate: string | null;
   currentUsers: number;
   currentBranches: number;
   billingCycle: 'monthly' | 'yearly';
   recurringPayment: {
-      enabled: boolean;
-      paymentMethodId?: string;
+    enabled: boolean;
+    paymentMethodId: string;
   };
-  paymentMethod?: {
-      id: string;
-      type: 'card';
-      last4: string;
-      expiryMonth: number;
-      expiryYear: number;
-      brand: string;
-  };
+  paymentMethod: {
+    id: string;
+    type: 'card' | 'bank';
+    last4: string;
+    expiryMonth: number;
+    expiryYear: number;
+    brand: string;
+  } | null;
 }
 
 export interface PaymentHistory {
@@ -133,260 +185,26 @@ export interface PaymentHistory {
   status: 'Paid' | 'Failed' | 'Pending';
 }
 
-// NEW - For Super Admin Subscriptions Page
-export interface ActiveSubscription {
-    // FIX: Add id property to be compatible with the generic Table component which requires an id for keys.
+// Tenant data
+export interface Branch {
     id: string;
-    tenantId: string;
-    tenantName: string;
-    planName: string;
-    status: 'active' | 'trial' | 'expired';
-    mrr: number;
-    nextBillingDate: string | null;
-}
-
-// Logistics Types
-
-export interface Truck {
-  id: string;
-  licensePlate: string;
-  model: string;
-  capacity: number; // in kg
-  status: 'Idle' | 'Loading' | 'On Route' | 'Maintenance';
-}
-
-export interface Driver {
-  id: string;
-  name: string;
-  assignedTruckId?: string;
-  licenseNumber: string;
-  phone: string;
-  status: 'Idle' | 'On Route' | 'On Break' | 'In Shop';
-}
-
-export interface ConsignmentItem {
-  variantId: string;
-  quantity: number;
-}
-
-export interface Consignment {
-  id: string;
-  truckId: string;
-  driverId: string;
-  originBranchId: string;
-  destinationAddress: string;
-  items: ConsignmentItem[];
-  status: 'Pending' | 'Dispatched' | 'In Transit' | 'Delivered' | 'Sold';
-  dispatchDate: string | null;
-  deliveryDate: string | null;
-  waybillId?: string;
-  invoiceId?: string;
-  soldToCustomerId?: string;
-  notes?: string;
-}
-
-export interface Delivery {
-  id: string;
-  orderId: string;
-  customerName: string;
-  destination: string;
-  driverId: string;
-  status: 'Pending' | 'In Transit' | 'Delayed' | 'Delivered';
-}
-
-
-// System Settings & Payment Gateway Types
-export type PaymentGatewayId = 'stripe' | 'paypal' | 'paystack' | 'flutterwave' | 'monnify' | 'wise' | 'googlepay' | 'payoneer' | '2checkout' | 'manual';
-
-export interface PaymentGateway {
-  id: PaymentGatewayId;
-  name: string;
-  enabled: boolean;
-  apiKey: string;
-  secretKey: string;
-  webhookUrl: string;
-}
-
-export interface EmailSettings {
-  provider: 'smtp' | 'resend';
-  apiKey?: string; // For Resend
-  host?: string;
-  port?: number;
-  user?: string;
-  pass?: string;
-}
-
-export interface NotificationService {
-  twilioSid: string;
-  twilioToken: string;
-  oneSignalAppId: string;
-  oneSignalApiKey: string;
-  firebaseServerKey: string;
-}
-
-export type TrackerProvider = 'teltonika' | 'ruptela' | 'queclink' | 'calamp' | 'meitrack' | 'manual';
-
-export interface TrackerIntegrationSettings {
-  provider: TrackerProvider;
-  enableWeightSensors: boolean;
-  apiUrl: string;
-  apiKey: string;
-}
-
-
-export interface LandingNavItem {
-  name: string;
-  href: string;
-}
-
-export interface Testimonial {
-  quote: string;
-  name: string;
-  title: string;
-  avatar: string;
-}
-
-export interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-export interface FooterLink {
     name: string;
-    href: string;
-}
-export interface FooterLinkSection {
-    title: string;
-    links: FooterLink[];
-}
-export interface BrandingSettings {
-  platformName: string;
-  logoUrl: string;
-  faviconUrl: string;
-  
-  // Landing Page Content
-  landingNavItems: LandingNavItem[];
-  signInButtonText: string;
-  mainCtaText: string;
-  mobileMenuCtaText: string;
-  mobileMenuExistingCustomerText: string;
-
-  heroTitle: string;
-  heroSubtitle: string;
-  heroMainCtaText: string;
-  heroSecondaryCtaText: string;
-  heroStats: {
-      value: string;
-      label: string;
-  }[];
-
-  featuresSectionTitle: string;
-  featuresSectionSubtitle: string;
-  features: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-
-  pricingSectionTitle: string;
-  pricingSectionSubtitle: string;
-  popularPlanBadgeText: string;
-  contactSalesButtonText: string;
-
-  testimonialsSectionTitle: string;
-  testimonialsSectionSubtitle: string;
-  testimonials: Testimonial[];
-  
-  faqSectionTitle: string;
-  faqSectionSubtitle: string;
-  faqItems: FaqItem[];
-  
-  mobileAppSectionTitle: string;
-  mobileAppSectionSubtitle: string;
-
-  footerDescription: string;
-  footerLinkSections: FooterLinkSection[];
-  aboutUsContent: string;
-  blogContent: string;
-  contactUsContent: string;
-}
-
-export interface IpGeolocationSettings {
-    provider: 'ip-api' | 'ipinfo';
-    apiKey?: string;
-}
-
-export interface SystemSettings {
-  id: number;
-  isMaintenanceMode: boolean;
-  maintenanceMessage: string;
-  inactivityLogoutTimer: number; // in minutes
-  paymentGateways: PaymentGateway[];
-  email: EmailSettings,
-  notifications: NotificationService;
-  ipGeolocation: IpGeolocationSettings;
-  branding: BrandingSettings;
-  featureFlags: { [key in ModuleId]?: boolean };
-  footerCredits: string;
-  termsContent: string;
-  privacyContent: string;
-  refundContent: string;
-}
-
-// NEW - Business Profile for Tenant Invoicing
-export interface BusinessProfile {
-    companyName: string;
     address: string;
     phone: string;
-    email: string;
-    logoUrl?: string;
-    taxId?: string;
+    managerIds: string[];
+    status: 'active' | 'inactive';
 }
 
-export interface TenantSettings {
-    id: string;
-    tenantId: string;
-    trackerIntegration: TrackerIntegrationSettings;
-    inactivityLogoutTimer?: number; // Tenant-specific override in minutes
-    businessProfile: BusinessProfile;
-}
-
-// Branch Type
-export interface Branch {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  managerIds: string[];
-  status: 'active' | 'inactive';
-}
-
-// Staff Type
 export interface Staff {
-  id: string;
-  name: string;
-  email: string;
-  username: string;
-  password?: string;
-  roleId: string;
-  branch: string; // branch name
-  status: 'active' | 'on-leave';
+    id: string;
+    name: string;
+    email: string;
+    username: string;
+    password?: string;
+    roleId: string;
+    branch: string;
+    status: 'active' | 'inactive' | 'on-leave';
 }
-
-// NEW - Tenant Roles & Permissions
-export type TenantPermission =
-  | 'manage_pos'
-  | 'manage_inventory'
-  | 'manage_staff'
-  | 'manage_branches'
-  | 'manage_automations'
-  | 'view_reports'
-  | 'process_returns'
-  | 'access_settings'
-  | 'manage_logistics'
-  | 'manage_invoicing'
-  | 'manage_credit'
-  | 'view_activity_log';
 
 export interface TenantRole {
     id: string;
@@ -394,23 +212,6 @@ export interface TenantRole {
     permissions: TenantPermission[];
 }
 
-// Invoice Type
-export interface Invoice {
-  id: string;
-  customerName: string;
-  issueDate: string;
-  dueDate: string;
-  amount: number;
-  status: 'Paid' | 'Due' | 'Overdue';
-}
-
-// New Type for Payments within a sale
-export interface Payment {
-  method: 'Cash' | 'Card' | 'Transfer' | 'Credit';
-  amount: number;
-}
-
-// New Type for Customers with credit
 export interface Customer {
     id: string;
     name: string;
@@ -419,42 +220,104 @@ export interface Customer {
     creditBalance: number;
 }
 
-// New Type for Credit Transactions
+export interface Invoice {
+    id: string;
+    customerName: string;
+    issueDate: string;
+    dueDate: string;
+    amount: number;
+    status: 'Paid' | 'Due' | 'Overdue';
+}
+
 export interface CreditTransaction {
     id: string;
     customerId: string;
     date: string;
-    type: 'Sale' | 'Payment';
-    amount: number; // Positive for sale, negative for payment
+    type: 'Sale' | 'Payment' | 'Refund';
+    amount: number;
     saleId?: string;
 }
 
-// New Type for Activity Logs
 export interface ActivityLog {
     id: string;
     tenantId: string;
     timestamp: string;
     user: string;
-    userRole: 'Admin' | 'Manager' | 'Cashier';
+    userRole: string;
     action: string;
     details: string;
     branch: string;
 }
 
-// NEW - Revised Type for Inventory Adjustment Logging (replaces old simple one)
-export interface InventoryAdjustmentLogItem {
-  productId: string;
-  productName: string;
-  change: number; // e.g., +10 or -5
+// Inventory
+export interface Supplier {
+    id: string;
+    name: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    address: string;
+    paymentTerms: 'Net 15' | 'Net 30' | 'Net 60' | 'Due on Receipt';
+}
+
+export interface PurchaseOrderItem {
+    productId: string; // This is the variant ID
+    name: string;
+    sku: string;
+    quantity: number;
+    costPrice: number;
+    quantityReceived: number;
+}
+
+export interface PurchaseOrder {
+    id: string;
+    supplierId: string;
+    supplierName: string;
+    deliveryBranchId: string;
+    createdDate: string;
+    expectedDate: string;
+    status: 'Pending' | 'Partial' | 'Received' | 'Cancelled';
+    items: PurchaseOrderItem[];
+    totalCost: number;
+    notes?: string;
+}
+
+export interface StockCountItem {
+    productId: string;
+    productName: string;
+    sku: string;
+    expectedQuantity: number;
+    countedQuantity: number | null;
+}
+
+export interface StockCount {
+    id: string;
+    branchId: string;
+    date: string;
+    status: 'In Progress' | 'Completed';
+    items: StockCountItem[];
+    notes?: string;
+}
+
+export interface StockTransfer {
+    id: string;
+    fromBranchId: string;
+    toBranchId: string;
+    createdDate: string;
+    dispatchDate?: string;
+    completedDate?: string | null;
+    status: 'Pending' | 'In Transit' | 'Completed';
+    items: { variantId: string, quantity: number }[];
+    notes?: string;
 }
 
 export type InventoryAdjustmentLogType = 
-  | 'Manual Adjustment' | 
-  | 'Purchase Order Receipt' | 
-  | 'Sale Return' | 
-  | 'Stock Count' | 
-  | 'Stock Transfer Out' | 
-  | 'Stock Transfer In';
+    | 'Manual Adjustment'
+    | 'Purchase Order Receipt'
+    | 'Sale Return'
+    | 'Stock Count'
+    | 'Stock Transfer In'
+    | 'Stock Transfer Out';
 
 export interface InventoryAdjustmentLog {
     id: string;
@@ -462,93 +325,165 @@ export interface InventoryAdjustmentLog {
     user: string;
     branchId: string;
     type: InventoryAdjustmentLogType;
-    referenceId?: string; // PO number, Sale ID, Stock Count ID, etc.
-    items: InventoryAdjustmentLogItem[];
+    referenceId: string;
+    items: { productId: string; productName: string; change: number }[];
 }
 
-
-// New Types for Purchase Orders
-export interface Supplier {
-  id: string;
-  name: string;
-  contactPerson: string;
-  email: string;
-  phone: string;
-  address: string;
-  paymentTerms: string; // e.g., 'Net 30', 'Due on Receipt'
-}
-
-export interface PurchaseOrderItem {
-  productId: string; // This will now be the variantId
-  name: string; // denormalized for easy display
-  sku: string; // denormalized
-  quantity: number;
-  costPrice: number; // Cost per item for this specific PO
-  quantityReceived?: number;
-}
-
-export interface PurchaseOrder {
-  id: string; // e.g., 'PO-2024-001'
-  supplierId: string;
-  supplierName: string; // denormalized
-  deliveryBranchId: string;
-  createdDate: string;
-  expectedDate: string;
-  status: 'Pending' | 'Partial' | 'Received' | 'Cancelled';
-  items: PurchaseOrderItem[];
-  notes?: string;
-  totalCost: number;
-}
-
-// New Types for Stock Counts
-export interface StockCountItem {
-  productId: string; // parent product ID
-  productName: string; // denormalized variant name
-  sku: string;
-  expectedQuantity: number;
-  countedQuantity: number | null;
-}
-
-export interface StockCount {
-  id: string;
-  branchId: string;
-  date: string;
-  status: 'In Progress' | 'Completed';
-  items: StockCountItem[];
-  notes?: string;
-}
-
-// New Type for Stock Transfers
-export interface StockTransfer {
+// Logistics
+export interface Truck {
     id: string;
-    fromBranchId: string;
-    toBranchId: string;
-    createdDate: string;
-    completedDate?: string;
-    status: 'Pending' | 'In Transit' | 'Completed';
-    items: {
-        variantId: string;
-        quantity: number;
-    }[];
+    licensePlate: string;
+    model: string;
+    capacity: number;
+    status: 'Idle' | 'On Route' | 'Loading' | 'Maintenance';
+}
+
+export interface Driver {
+    id: string;
+    name: string;
+    assignedTruckId?: string;
+    licenseNumber: string;
+    phone: string;
+    status: 'Idle' | 'On Route' | 'On Break' | 'In Shop';
+}
+
+export interface ConsignmentItem {
+    variantId: string;
+    quantity: number;
+}
+
+export interface Consignment {
+    id: string;
+    truckId: string;
+    driverId: string;
+    originBranchId: string;
+    destinationAddress: string;
+    items: ConsignmentItem[];
+    status: 'Pending' | 'In Transit' | 'Delivered' | 'Dispatched' | 'Sold';
+    dispatchDate: string | null;
+    deliveryDate: string | null;
     notes?: string;
+    soldToCustomerId?: string;
+    invoiceId?: string;
 }
 
-// NEW - Notification Type
-export interface Notification {
+export interface Delivery {
+    id: string;
+    orderId: string;
+    customerName: string;
+    destination: string;
+    driverId: string;
+    status: 'Pending' | 'In Transit' | 'Delivered' | 'Delayed';
+}
+
+// Super Admin
+export interface Tenant {
   id: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  duration?: number;
+  companyName: string;
+  email: string;
+  plan: string;
+  status: 'active' | 'suspended' | 'trial';
+  joinedDate: string;
+  subscriptionExpires?: string;
 }
 
-// SUPER ADMIN - Platform Management Types
+export interface ActiveSubscription {
+    id: string;
+    tenantId: string;
+    tenantName: string;
+    planName: string;
+    status: 'active' | 'trial' | 'expired';
+    mrr: number;
+    nextBillingDate: string;
+}
+
+export type PaymentGatewayId = 'stripe' | 'paypal' | 'paystack' | 'flutterwave' | 'manual' | '2checkout' | 'googlepay' | 'monnify' | 'wise' | 'payoneer';
+
+export interface PaymentGateway {
+    id: PaymentGatewayId;
+    name: string;
+    enabled: boolean;
+    apiKey: string;
+    secretKey: string;
+    webhookUrl: string;
+}
+
+export interface BrandingSettings {
+  platformName: string;
+  logoUrl: string;
+  faviconUrl: string;
+  landingNavItems: { name: string; href: string }[];
+  signInButtonText: string;
+  mainCtaText: string;
+  mobileMenuCtaText: string;
+  mobileMenuExistingCustomerText: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroMainCtaText: string;
+  heroSecondaryCtaText: string;
+  heroStats: { value: string; label: string }[];
+  featuresSectionTitle: string;
+  featuresSectionSubtitle: string;
+  features: { icon: string; title: string; description: string }[];
+  pricingSectionTitle: string;
+  pricingSectionSubtitle: string;
+  popularPlanBadgeText: string;
+  contactSalesButtonText: string;
+  testimonialsSectionTitle: string;
+  testimonialsSectionSubtitle: string;
+  testimonials: { quote: string; name: string; title: string; avatar: string }[];
+  faqSectionTitle: string;
+  faqSectionSubtitle: string;
+  faqItems: FaqItem[];
+  mobileAppSectionTitle: string;
+  mobileAppSectionSubtitle: string;
+  footerDescription: string;
+  footerLinkSections: { title: string; links: { name: string; href: string }[] }[];
+  aboutUsContent: string;
+  blogContent: string;
+  contactUsContent: string;
+}
+
+export interface SystemSettings {
+    id: number;
+    isMaintenanceMode: boolean;
+    maintenanceMessage: string;
+    inactivityLogoutTimer: number;
+    paymentGateways: PaymentGateway[];
+    email: {
+        provider: 'smtp' | 'resend';
+        apiKey: string;
+        host: string;
+        port: number;
+        user: string;
+        pass: string;
+    };
+    notifications: {
+        twilioSid: string;
+        twilioToken: string;
+        oneSignalAppId: string;
+        oneSignalApiKey: string;
+        firebaseServerKey: string;
+    };
+    ipGeolocation: {
+        provider: 'ip-api' | 'ipinfo';
+        apiKey: string;
+    };
+    branding: BrandingSettings;
+    featureFlags: Record<ModuleId, boolean>;
+    footerCredits: string;
+    termsContent: string;
+    privacyContent: string;
+    refundContent: string;
+}
+
 export interface PlatformPayment {
     id: string;
     tenantId: string;
     tenantName: string;
     amount: number;
     plan: string;
-    gateway: PaymentGatewayId;
+    gateway: string;
     transactionId: string;
     date: string;
     status: 'Success' | 'Failed' | 'Refunded';
@@ -558,10 +493,19 @@ export interface Announcement {
     id: string;
     title: string;
     content: string;
-    type: 'info' | 'warning' | 'success';
+    type: 'info' | 'success' | 'warning';
     publishDate: string;
-    status: 'draft' | 'published';
+    status: 'published' | 'draft';
 }
+
+export type Permission = 
+    | 'manage_tenants' 
+    | 'manage_billing' 
+    | 'manage_payments' 
+    | 'system_settings' 
+    | 'manage_team' 
+    | 'view_reports' 
+    | 'post_announcements';
 
 export interface SuperAdminStaff {
     id: string;
@@ -572,15 +516,6 @@ export interface SuperAdminStaff {
     status: 'active' | 'disabled';
 }
 
-export type Permission = 
-  | 'manage_tenants' 
-  | 'manage_billing' 
-  | 'manage_payments'
-  | 'system_settings' 
-  | 'manage_team'
-  | 'view_reports' 
-  | 'post_announcements';
-
 export interface SuperAdminRole {
     id: string;
     name: string;
@@ -590,7 +525,7 @@ export interface SuperAdminRole {
 export interface EmailSmsTemplate {
     id: string;
     name: string;
-    subject?: string; // For email
+    subject?: string;
     body: string;
     type: 'email' | 'sms';
 }
@@ -605,42 +540,60 @@ export interface CronJob {
     status: 'OK' | 'Failed' | 'Running';
 }
 
-// NEW - Tenant Automations/Scheduled Jobs
 export type ScheduledJobTaskType = 'email_report' | 'low_stock_alert' | 'data_backup' | 'credit_reminder';
 
 export interface ScheduledJobConfig {
-  recipientEmail?: string;
-  reportType?: 'daily_sales' | 'inventory_summary';
-  attachmentFormat?: 'csv' | 'pdf';
-  backupLocation?: 's3_bucket' | 'google_drive' | 'local_storage';
-  backupFormat?: 'json' | 'csv' | 'sql';
+    recipientEmail?: string;
+    reportType?: 'daily_sales' | 'inventory_summary';
+    attachmentFormat?: 'csv' | 'pdf';
+    backupLocation?: 's3_bucket' | 'google_drive' | 'local_storage';
+    backupFormat?: 'json' | 'csv' | 'sql';
 }
 
 export interface ScheduledJob {
-  id: string;
-  tenantId: string;
-  name: string;
-  taskType: ScheduledJobTaskType;
-  schedule: string; // cron string
-  lastRun: string | null;
-  nextRun: string;
-  status: 'active' | 'paused' | 'error';
-  config: ScheduledJobConfig;
+    id: string;
+    tenantId: string;
+    name: string;
+    taskType: ScheduledJobTaskType;
+    schedule: string;
+    lastRun: string | null;
+    nextRun: string;
+    status: 'active' | 'paused' | 'error';
+    config: ScheduledJobConfig;
 }
-
-// NEW - Super Admin Access Control
-export type BlockRuleType = 'ip' | 'country' | 'region' | 'os' | 'browser' | 'device_type';
 
 export interface BlockRule {
-  id: string;
-  type: BlockRuleType;
-  value: string; // e.g., '192.168.1.1', 'China', 'Android', 'Chrome'
-  reason: string;
-  createdAt: string;
-  expiresAt?: string;
+    id: string;
+    type: 'ip' | 'country' | 'region' | 'browser' | 'os' | 'device_type';
+    value: string;
+    reason: string;
+    createdAt: string;
 }
 
-// NEW - Tenant Device Access Control
+// Tenant Settings
+export interface BusinessProfile {
+    companyName: string;
+    address: string;
+    phone: string;
+    email: string;
+    logoUrl: string;
+    taxId: string;
+}
+
+export type TrackerProvider = 'teltonika' | 'ruptela' | 'queclink' | 'calamp' | 'meitrack' | 'manual';
+
+export interface TenantSettings {
+    id: string;
+    tenantId: string;
+    trackerIntegration: {
+        provider: TrackerProvider;
+        enableWeightSensors: boolean;
+        apiUrl: string;
+        apiKey: string;
+    };
+    businessProfile: BusinessProfile;
+}
+
 export interface Device {
     id: string;
     staffName: string;
@@ -651,21 +604,4 @@ export interface Device {
     lastLogin: string;
     location?: string;
     isp?: string;
-}
-
-// Simplified User and Session types for API-based auth
-export type UserRole = 'Admin' | 'Manager' | 'Cashier' | 'super_admin';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  tenantId?: string;
-}
-
-export interface Session {
-  access_token: string;
-  token_type: string;
-  user: User;
 }

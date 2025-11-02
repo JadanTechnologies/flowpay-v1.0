@@ -1,6 +1,6 @@
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
 // FIX: Add Sale type to import
-import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale } from '../types';
+import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest } from '../types';
 // FIX: Import recentSales mock data
 import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaffData, recentSales as mockRecentSales } from '../data/mockData';
 
@@ -86,6 +86,8 @@ interface AppContextType {
   // FIX: Add recentSales to context to make it available to DashboardPage and other components
   recentSales: Sale[];
   setRecentSales: React.Dispatch<React.SetStateAction<Sale[]>>;
+  pendingReturns: PendingReturnRequest[];
+  setPendingReturns: React.Dispatch<React.SetStateAction<PendingReturnRequest[]>>;
 }
 
 
@@ -141,6 +143,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // FIX: Add recentSales state management
   const [recentSales, setRecentSales] = useState<Sale[]>(() => getInitialState('flowpay_recentSales', mockRecentSales));
+  const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>(() => getInitialState('flowpay_pendingReturns', []));
 
   const [language, setLanguage] = useState<Language>(() => getInitialState('flowpay_language', 'en'));
   const [currency, setCurrency] = useState<Currency>(() => getInitialState('flowpay_currency', 'USD'));
@@ -171,6 +174,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { localStorage.setItem('flowpay_consignments', JSON.stringify(consignments)); }, [consignments]);
   // FIX: Add useEffect for recentSales
   useEffect(() => { localStorage.setItem('flowpay_recentSales', JSON.stringify(recentSales)); }, [recentSales]);
+  useEffect(() => { localStorage.setItem('flowpay_pendingReturns', JSON.stringify(pendingReturns)); }, [pendingReturns]);
   useEffect(() => { localStorage.setItem('flowpay_language', JSON.stringify(language)); }, [language]);
   useEffect(() => { localStorage.setItem('flowpay_currency', JSON.stringify(currency)); }, [currency]);
   useEffect(() => { localStorage.setItem('flowpay_notificationPrefs', JSON.stringify(notificationPrefs)); }, [notificationPrefs]);
@@ -426,8 +430,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // FIX: Provide recentSales and its setter in the context
       recentSales,
       setRecentSales,
+      pendingReturns,
+      setPendingReturns,
     }),
-    [session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff, recentSales]
+    [session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff, recentSales, pendingReturns]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

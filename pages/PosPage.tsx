@@ -1,7 +1,7 @@
 
 import React, { useState, useReducer, useMemo, useEffect, useCallback } from 'react';
 import { Search, Loader, UserPlus, Barcode, Star, Layers } from 'lucide-react';
-import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant, InventoryAdjustmentLog } from '../types';
+import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant, InventoryAdjustmentLog, PendingReturnRequest } from '../types';
 import Cart from '../components/pos/Cart';
 import ProductCard from '../components/pos/ProductCard';
 import PaymentModal from '../components/pos/PaymentModal';
@@ -93,9 +93,9 @@ const PosPage: React.FC = () => {
     customers,
     setCustomers,
     setInventoryAdjustmentLogs,
-    // FIX: Get recentSales and its setter from context
     recentSales,
     setRecentSales,
+    setPendingReturns,
   } = useAppContext();
   
   const [cart, dispatch] = useReducer(cartReducer, []);
@@ -219,7 +219,6 @@ const PosPage: React.FC = () => {
         payments: finalPayments,
     };
     
-    // FIX: Update recentSales in context
     setRecentSales(prev => [newSale, ...prev]);
 
     if (finalStatus === 'Credit' && customer.id !== 'cust_4' && amountAddedToCredit > 0) {
@@ -253,59 +252,28 @@ const PosPage: React.FC = () => {
     setSaleSuccessInfo(newSale);
   }
   
-  const handleProcessRefund = (returnedItems: CartItem[], originalSale: Sale) => {
-    setProducts(currentProducts => {
-        return currentProducts.map(p => {
-            const newVariants = p.variants.map(v => {
-                 const returnedItem = returnedItems.find(item => item.id === v.id);
-                 if (returnedItem) {
-                    const newStockByBranch = { ...v.stockByBranch };
-                    newStockByBranch[currentBranchId] = (newStockByBranch[currentBranchId] || 0) + returnedItem.quantity;
-                    return { ...v, stockByBranch: newStockByBranch };
-                 }
-                 return v;
-            });
-            return { ...p, variants: newVariants };
-        });
-    });
+  const handleRequestReturn = (returnedItems: CartItem[], originalSale: Sale) => {
+    const cashierName = session?.user?.name || 'Unknown';
+    const cashierId = session?.user?.id || 'unknown';
 
     const totalRefundAmount = returnedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const cashierName = session?.user?.name || session?.user?.email || 'System';
 
-    const newLog: InventoryAdjustmentLog = {
-      id: `adj_${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      user: cashierName,
-      branchId: currentBranchId,
-      type: 'Sale Return',
-      referenceId: originalSale.id,
-      items: returnedItems.map(item => ({
-        productId: item.productId,
-        productName: item.name,
-        change: item.quantity
-      }))
-    };
-    setInventoryAdjustmentLogs(prev => [newLog, ...prev]);
-
-    const refundSale: Sale = {
-        id: `refund_${Date.now()}`,
-        customerName: originalSale.customerName,
-        customerId: originalSale.customerId,
+    const newRequest: PendingReturnRequest = {
+        id: `ret_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        cashierId,
         cashierName,
-        date: new Date().toISOString(),
-        amount: -totalRefundAmount,
-        status: 'Refunded',
-        branch: currentBranchName,
-        items: returnedItems.map(item => ({...item, price: -item.price})),
-        payments: [{ method: 'Cash', amount: -totalRefundAmount }],
+        branchId: currentBranchId,
+        originalSale,
+        itemsToReturn: returnedItems,
+        totalRefundAmount,
+        status: 'pending',
     };
 
-    // FIX: Add refund transaction to recent sales
-    setRecentSales(prev => [refundSale, ...prev]);
-
+    setPendingReturns(prev => [...prev, newRequest]);
     setIsReturnModalOpen(false);
-    addNotification({ message: `Refund of ${formatCurrency(totalRefundAmount, currency)} processed successfully.`, type: 'success' });
-};
+    addNotification({ message: `Return request for ${formatCurrency(totalRefundAmount, currency)} submitted for approval.`, type: 'info' });
+  };
 
   const handleHoldSale = () => {
     if (cart.length === 0) {
@@ -555,7 +523,7 @@ const PosPage: React.FC = () => {
             <ReturnModal
                 salesHistory={recentSales}
                 onClose={() => setIsReturnModalOpen(false)}
-                onProcessRefund={handleProcessRefund}
+                onRequestReturn={handleRequestReturn}
             />
            )}
 
