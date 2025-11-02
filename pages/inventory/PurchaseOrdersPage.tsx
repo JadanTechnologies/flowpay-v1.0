@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link } from 'react-router-dom';
@@ -131,7 +133,7 @@ const PurchaseOrdersPage: React.FC = () => {
             const newLog: InventoryAdjustmentLog = {
                 id: `adj_${Date.now()}`,
                 timestamp: new Date().toISOString(),
-                user: session?.user?.user_metadata?.name || 'Admin User',
+                user: session?.user?.name || 'Admin User',
                 branchId: updatedPO.deliveryBranchId,
                 type: 'Purchase Order Receipt',
                 referenceId: updatedPO.id,

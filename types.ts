@@ -649,16 +649,14 @@ export interface Device {
 }
 
 // Simplified User and Session types for API-based auth
+export type UserRole = 'Admin' | 'Manager' | 'Cashier' | 'super_admin';
+
 export interface User {
   id: string;
-  email?: string;
-  app_metadata: {
-    role?: string;
-    [key: string]: any;
-  };
-  user_metadata: {
-    [key: string]: any;
-  };
+  email: string;
+  name: string;
+  role: UserRole;
+  tenantId?: string;
 }
 
 export interface Session {

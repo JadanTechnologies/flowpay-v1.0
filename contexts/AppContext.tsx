@@ -2,8 +2,10 @@
 
 
 
+
+
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
-import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant } from '../types';
+import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole } from '../types';
 import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaff } from '../data/mockData';
 
 
@@ -127,64 +129,6 @@ const loadMockData = (setters: any) => {
     setters.setConsignments(mockConsignments);
 };
 
-// --- API Functions for cPanel/PHP Backend ---
-const fetchDataFromApi = async (setters: any) => {
-    console.log("Fetching data from custom API...");
-    const token = localStorage.getItem('flowpay_token');
-    if (!token) return; // Don't fetch if not logged in
-
-    try {
-        // Example: Fetch products
-        // const res = await fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } });
-        // const productsData = await res.json();
-        // setters.setProducts(productsData);
-
-        // For now, we continue to load mock data for simplicity
-        loadMockData(setters);
-
-    } catch (error) {
-        console.error("Failed to fetch data from API:", error);
-    }
-};
-
-const loginWithApi = async (email: string, pass: string, setSession: Function, setUser: Function) => {
-    const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pass }),
-    });
-
-    if (!response.ok) {
-        let errorMessage = `Login failed with status: ${response.status}`;
-        try {
-            // Try to parse a JSON error response from the backend
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-            // If parsing fails, it means the response was not JSON (e.g., HTML 404 page).
-            // The default error message is sufficient.
-            console.error("Could not parse error response as JSON.");
-        }
-        throw new Error(errorMessage);
-    }
-    
-    const data = await response.json();
-    
-    localStorage.setItem('flowpay_token', data.token);
-
-    // Create a session object that resembles the structure our app expects
-    const session: Session = {
-        access_token: data.token,
-        token_type: 'bearer',
-        user: data.user,
-    };
-    
-    setSession(session);
-    setUser(data.user);
-
-    return { data: { session: session }, error: null };
-};
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMaintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState(
@@ -232,17 +176,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setLoading(true);
         const setters = { setProducts, setSuppliers, setPurchaseOrders, setStockCounts, setBranches, setStaff, setStockTransfers, setInventoryAdjustmentLogs, setScheduledJobs, setSettings, setTenantSettings, setBlockRules, setTenantRoles, setApprovedDevices, setPendingDevices, setUserSubscription, setSubscriptionPlans, setCustomers, setTrucks, setDrivers, setConsignments };
 
-        console.log("Running in API-only mode.");
         const token = localStorage.getItem('flowpay_token');
         if (token) {
             // In a real app, you'd verify the token with the backend and get user info.
-            // Here, we'll just re-create a mock session.
-            const mockUser: User = { id: 'user_2', email: 'admin@flowpay.com', app_metadata: { role: 'Admin', tenant_id: 'tnt_2' }, user_metadata: { name: 'Admin User' }};
+            // Here, we'll just re-create a mock session based on a simplified structure.
+            const mockUser: User = { id: 'stf_5', email: 'admin@flowpay.com', name: 'Admin User', role: 'Admin', tenantId: 'tnt_2' };
             const mockSession: Session = { access_token: token, token_type: 'bearer', user: mockUser };
             setSession(mockSession);
             setUser(mockUser);
+            loadMockData(setters);
         }
-        fetchDataFromApi(setters);
         setLoading(false);
     };
 
@@ -258,7 +201,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (staffMember) {
             const role = tenantRoles.find(r => r.id === staffMember.roleId);
             if (role) setCurrentUserPermissions(new Set(role.permissions as TenantPermission[]));
-        } else if (session.user.app_metadata.role === 'Admin') {
+        } else if (session.user.role === 'Admin') {
             const adminRole = tenantRoles.find(r => r.name === 'Admin');
             if (adminRole) setCurrentUserPermissions(new Set(adminRole.permissions as TenantPermission[]));
         }
@@ -268,9 +211,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [session, staff, tenantRoles]);
 
   
-  const login = async (email: string, pass: string) => {
-    return await loginWithApi(email, pass, setSession, setUser);
-  };
+  const login = async (email: string, pass: string): Promise<{ data: { session: Session | null }, error: Error | null }> => {
+    // This is a mock login function.
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+    if (pass !== '12345') { // Mock password for all users
+        const error = new Error("Invalid credentials.");
+        return { data: { session: null }, error };
+    }
+
+    let user: User | null = null;
+    if (email === 'superadmin@flowpay.com') {
+        user = {
+            id: 'sa_1',
+            email: 'superadmin@flowpay.com',
+            name: 'Super Admin',
+            role: 'super_admin'
+        };
+    } else {
+        const staffMember = mockStaff.find(s => s.email === email);
+        if (staffMember) {
+            const role = mockTenantRoles.find(r => r.id === staffMember.roleId);
+            user = {
+                id: staffMember.id,
+                email: staffMember.email,
+                name: staffMember.name,
+                role: (role?.name as UserRole) || 'Cashier',
+                tenantId: 'tnt_2' // Mock tenant ID
+            };
+        }
+    }
+
+    if (!user) {
+        const error = new Error("User not found.");
+        return { data: { session: null }, error };
+    }
+    
+    const token = `mock_token_${Date.now()}`;
+    localStorage.setItem('flowpay_token', token);
+
+    const session: Session = {
+        access_token: token,
+        token_type: 'bearer',
+        user: user,
+    };
+    
+    setSession(session);
+    setUser(user);
+    
+    // After login, load all mock data
+    const setters = { setProducts, setSuppliers, setPurchaseOrders, setStockCounts, setBranches, setStaff, setStockTransfers, setInventoryAdjustmentLogs, setScheduledJobs, setSettings, setTenantSettings, setBlockRules, setTenantRoles, setApprovedDevices, setPendingDevices, setUserSubscription, setSubscriptionPlans, setCustomers, setTrucks, setDrivers, setConsignments };
+    loadMockData(setters);
+
+    return { data: { session: session }, error: null };
+};
 
   const logout = async () => {
     localStorage.removeItem('flowpay_token');

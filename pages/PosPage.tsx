@@ -1,3 +1,4 @@
+
 import React, { useState, useReducer, useMemo, useEffect, useCallback } from 'react';
 import { Search, Loader, UserPlus, Barcode, Star, Layers } from 'lucide-react';
 import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant, InventoryAdjustmentLog } from '../types';
@@ -190,7 +191,7 @@ const PosPage: React.FC = () => {
   };
   
   const handleSuccessfulPayment = (payments: Payment[], finalStatus: Sale['status'], customer: Customer) => {
-    const cashierName = session?.user?.user_metadata?.name || session?.user?.email || 'System';
+    const cashierName = session?.user?.name || session?.user?.email || 'System';
     
     let finalPayments = [...payments];
     let amountAddedToCredit = 0;
@@ -266,7 +267,7 @@ const PosPage: React.FC = () => {
     });
 
     const totalRefundAmount = returnedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const cashierName = session?.user?.user_metadata?.name || session?.user?.email || 'System';
+    const cashierName = session?.user?.name || session?.user?.email || 'System';
 
     const newLog: InventoryAdjustmentLog = {
       id: `adj_${Date.now()}`,

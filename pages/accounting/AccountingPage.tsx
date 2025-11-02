@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
 import { Sale, Payment } from '../../types';
@@ -27,7 +29,6 @@ const getStatusBadge = (status: Sale['status']) => {
   }
 };
 
-// FIX: Define missing report components to resolve compilation errors.
 const CreditSalesReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
     return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">Credit Sales Report coming soon.</div>;
 };
@@ -54,8 +55,8 @@ const AccountingPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          setSales(mockSales);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setSales(mockSales);
       } catch (err: any) {
         setError('Failed to fetch sales data. Displaying mock data.');
         setSales(mockSales);

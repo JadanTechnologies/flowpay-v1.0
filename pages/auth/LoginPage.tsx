@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
             if (authError) throw authError;
 
             // Redirect based on user role
-            if (data.session?.user.app_metadata.role === 'super_admin') {
+            if (data.session?.user.role === 'super_admin') {
                 navigate('/admin/dashboard', { replace: true });
             } else {
                  // Default redirect for any other tenant role

@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState } from 'react';
 import { Search, Bell, ChevronDown, LogOut, User, Settings, Calculator as CalculatorIcon, Store, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
@@ -49,8 +51,8 @@ const Header: React.FC = () => {
   }
 
   const currentBranch = branches.find(b => b.id === currentBranchId);
-  const userName = session?.user?.user_metadata?.name || session?.user?.email;
-  const userRole = session?.user?.app_metadata?.role?.replace(/_/g, ' ') || 'User';
+  const userName = session?.user?.name || session?.user?.email;
+  const userRole = session?.user?.role?.replace(/_/g, ' ') || 'User';
 
   return (
     <>

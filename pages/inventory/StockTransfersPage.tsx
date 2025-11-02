@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link } from 'react-router-dom';
@@ -20,7 +16,7 @@ const getStatusBadge = (status: StockTransfer['status']) => {
 };
 
 const StockTransfersPage: React.FC = () => {
-    const { stockTransfers, setStockTransfers, branches, products, setProducts, setInventoryAdjustmentLogs, session } = useAppContext();
+    const { stockTransfers, setStockTransfers, branches, products, setProducts, setInventoryAdjustmentLogs, session, addNotification } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleStartNewTransfer = () => {
@@ -68,9 +64,9 @@ const StockTransfersPage: React.FC = () => {
                 });
 
                 const newLog: InventoryAdjustmentLog = {
-                    id: `adj_${Date.now()}`,
+                    id: `adj_con_out_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.user_metadata?.name || 'Admin User',
+                    user: session?.user?.name || 'Admin User',
                     branchId: transfer.fromBranchId,
                     type: 'Stock Transfer Out',
                     referenceId: transfer.id,
@@ -81,8 +77,9 @@ const StockTransfersPage: React.FC = () => {
 
             // 3. Update transfer status to 'In Transit'
             setStockTransfers(prev => prev.map(t =>
-                t.id === transferId ? { ...t, status: 'In Transit' } : t
+                t.id === transferId ? { ...t, status: 'In Transit', dispatchDate: new Date().toISOString() } : t
             ));
+            addNotification({ message: `Stock transfer ${transferId} has been dispatched.`, type: 'info'});
         }
     };
 
@@ -124,7 +121,7 @@ const StockTransfersPage: React.FC = () => {
                 const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.user_metadata?.name || 'Admin User',
+                    user: session?.user?.name || 'Admin User',
                     branchId: transfer.toBranchId,
                     type: 'Stock Transfer In',
                     referenceId: transfer.id,
@@ -138,6 +135,7 @@ const StockTransfersPage: React.FC = () => {
             setStockTransfers(prev => prev.map(t =>
                 t.id === transferId ? { ...t, status: 'Completed', completedDate: new Date().toISOString().split('T')[0] } : t
             ));
+            addNotification({ message: `Stock transfer ${transferId} has been received.`, type: 'success'});
         }
     };
     
@@ -187,23 +185,22 @@ const StockTransfersPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                     <Link to="/app/inventory" className="p-2 rounded-md hover:bg-surface">
+                    <Link to="/app/inventory" className="p-2 rounded-md hover:bg-surface">
                         <ArrowLeft size={24} />
                     </Link>
                     <h1 className="text-3xl font-bold text-text-primary">Stock Transfers</h1>
                 </div>
                 <button onClick={handleStartNewTransfer} className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-                    <PlusCircle size={16} /> New Transfer
+                    <PlusCircle size={16} /> Create Transfer
                 </button>
             </div>
             <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
                 <Table columns={columns} data={stockTransfers} />
             </div>
-
             {isModalOpen && (
-                <StockTransferModal
-                    onClose={() => setIsModalOpen(false)}
+                <StockTransferModal 
                     onSave={handleSaveTransfer}
+                    onClose={() => setIsModalOpen(false)}
                 />
             )}
         </div>

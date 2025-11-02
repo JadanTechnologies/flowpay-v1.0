@@ -1,3 +1,5 @@
+
+
 import React, { useMemo, useState, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -68,7 +70,7 @@ const TenantLayout: React.FC = () => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  if (session.user.app_metadata.role === 'super_admin') {
+  if (session.user.role === 'super_admin') {
     return <Navigate to="/admin/dashboard" replace />;
   }
   

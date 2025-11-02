@@ -1,5 +1,7 @@
 
 
+
+
 import React from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
@@ -23,11 +25,8 @@ const SuperAdminLayout: React.FC = () => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  // It's good practice to check for a specific super admin role.
-  // Assuming 'super_admin' role is set in Supabase user app_metadata.
-  if (session.user.app_metadata.role !== 'super_admin') {
+  if (session.user.role !== 'super_admin') {
       console.warn("User is not a super admin, redirecting.");
-      // This could also be a silent sign out + redirect
       return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
