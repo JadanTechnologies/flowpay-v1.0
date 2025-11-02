@@ -1,6 +1,5 @@
 
 
-import { Session } from '@supabase/supabase-js';
 
 export interface Sale {
   id: string;
@@ -344,14 +343,15 @@ export interface SystemSettings {
   branding: BrandingSettings;
   mobileApp: MobileAppSettings;
   featureFlags: { [key in ModuleId]?: boolean };
+  // FIX: Add missing properties to align with mock data.
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  supabaseBucket: string;
+  isSupabaseConfigured: boolean;
   footerCredits: string;
   termsUrl: string;
   privacyUrl: string;
   refundUrl: string;
-  supabaseUrl?: string;
-  supabaseAnonKey?: string;
-  supabaseBucket?: string;
-  isSupabaseConfigured?: boolean;
 }
 
 // NEW - Business Profile for Tenant Invoicing
@@ -563,14 +563,6 @@ export interface Notification {
 }
 
 // SUPER ADMIN - Platform Management Types
-
-export interface ImpersonationState {
-    active: boolean;
-    originalSession: Session | null;
-    targetName: string | null;
-    returnPath: string;
-}
-
 export interface PlatformPayment {
     id: string;
     tenantId: string;
@@ -680,4 +672,23 @@ export interface Device {
     lastLogin: string;
     location?: string;
     isp?: string;
+}
+
+// Simplified User and Session types for API-based auth
+export interface User {
+  id: string;
+  email?: string;
+  app_metadata: {
+    role?: string;
+    [key: string]: any;
+  };
+  user_metadata: {
+    [key: string]: any;
+  };
+}
+
+export interface Session {
+  access_token: string;
+  token_type: string;
+  user: User;
 }

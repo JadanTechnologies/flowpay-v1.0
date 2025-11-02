@@ -1,9 +1,9 @@
 
 
+
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link } = ReactRouterDOM;
+import { Link } from 'react-router-dom';
 import { Shuffle, PlusCircle, ArrowLeft, MoreVertical, Edit, CheckCircle, Truck } from 'lucide-react';
 import { StockTransfer, Product, ProductVariant } from '../../types';
 import Table, { Column } from '../../components/ui/Table';

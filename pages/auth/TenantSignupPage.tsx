@@ -1,10 +1,10 @@
 
+
+
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link, useNavigate } = ReactRouterDOM;
+import { Link, useNavigate } from 'react-router-dom';
 import { Zap, UserPlus } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 
 const TenantSignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -20,34 +20,23 @@ const TenantSignupPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        if (isSupabaseConfigured) {
-            const { data, error: authError } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        company_name: companyName,
-                        full_name: 'Admin User' // The edge function can use this
-                    }
-                }
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, companyName }),
             });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Registration failed.');
+            }
+            setSuccess(true);
+             setTimeout(() => {
+                navigate('/login');
+            }, 3000);
 
-            if (authError) {
-                setError(authError.message);
-            } else {
-                setSuccess(true);
-            }
-        } else {
-            // Mock signup logic for demo mode
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            if (email.includes('error')) {
-                setError('This email address is already in use.');
-            } else {
-                setSuccess(true);
-                setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
-            }
+        } catch (err: any) {
+            setError(err.message);
         }
         setLoading(false);
     }
@@ -68,10 +57,7 @@ const TenantSignupPage: React.FC = () => {
              <div className="p-4 bg-green-900/50 text-green-300 rounded-md text-center">
                 <h3 className="font-bold">Account Created!</h3>
                 <p className="text-sm">
-                    {isSupabaseConfigured 
-                        ? "Please check your email for a confirmation link to activate your account."
-                        : "You will be redirected to the login page shortly."
-                    }
+                    You will be redirected to the login page shortly.
                 </p>
             </div>
         ) : (

@@ -1,9 +1,9 @@
 
 
+
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link, useNavigate, useLocation } = ReactRouterDOM;
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Zap, LogIn, Home } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 

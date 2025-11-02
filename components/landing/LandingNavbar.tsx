@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Zap, Menu, X } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link } = ReactRouterDOM;
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 
 const LandingNavbar: React.FC = () => {

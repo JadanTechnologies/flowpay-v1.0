@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { Outlet, Navigate, useLocation, useNavigate } = ReactRouterDOM;
+import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import useInactivityLogout from '../hooks/useInactivityLogout';
@@ -11,7 +10,7 @@ import NotificationContainer from '../components/ui/NotificationContainer';
 import SubscriptionWarningBanner from '../components/ui/SubscriptionWarningBanner';
 
 const TenantLayout: React.FC = () => {
-  const { session, loading, settings, tenantSettings, impersonation, stopImpersonation, userSubscription, addNotification } = useAppContext();
+  const { session, loading, settings, tenantSettings, userSubscription, addNotification } = useAppContext();
   
   const inactivityTimeout = tenantSettings?.inactivityLogoutTimer ?? settings?.inactivityLogoutTimer ?? 15;
   useInactivityLogout(inactivityTimeout * 60 * 1000, !!session); 
@@ -57,10 +56,6 @@ const TenantLayout: React.FC = () => {
     }
   }, [subscriptionWarning, addNotification, warningNotifSent]);
 
-  const handleStopImpersonation = () => {
-      stopImpersonation(navigate);
-  }
-
   if (loading) {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -73,8 +68,7 @@ const TenantLayout: React.FC = () => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  // Do not redirect super_admin during an active impersonation session
-  if (session.user.app_metadata.role === 'super_admin' && !impersonation.active) {
+  if (session.user.app_metadata.role === 'super_admin') {
     return <Navigate to="/admin/dashboard" replace />;
   }
   
@@ -82,16 +76,6 @@ const TenantLayout: React.FC = () => {
     <div className="flex h-screen bg-background text-text-primary font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        {impersonation.active && (
-            <div className="bg-secondary text-background font-bold p-2 flex items-center justify-center gap-4 text-sm z-50 no-print">
-                <ShieldAlert size={20}/>
-                <span>You are impersonating <span className="underline">{impersonation.targetName}</span>.</span>
-                <button onClick={handleStopImpersonation} className="flex items-center gap-1.5 bg-background/20 hover:bg-background/40 px-3 py-1 rounded-md">
-                    <LogOut size={14} />
-                    Return to Admin
-                </button>
-            </div>
-        )}
         {subscriptionWarning && showSubscriptionWarning && (
             <SubscriptionWarningBanner 
                 daysLeft={subscriptionWarning.daysLeft}

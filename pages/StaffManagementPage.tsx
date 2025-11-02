@@ -6,8 +6,7 @@ import Modal from '../../components/ui/Modal';
 import { staff as mockStaff, branches as mockBranches } from '../../data/mockData';
 import { useAppContext } from '../../contexts/AppContext';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { useNavigate } = ReactRouterDOM;
+import { useNavigate } from 'react-router-dom';
 import Tabs from '../../components/ui/Tabs';
 import TenantRoleModal from '../../components/tenant/TenantRoleModal';
 

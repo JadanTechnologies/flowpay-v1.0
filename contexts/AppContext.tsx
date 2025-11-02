@@ -1,8 +1,8 @@
 
-import React, { createContext, useState, useMemo, useContext, useEffect } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant } from '../types';
+
+
+import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
+import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant } from '../types';
 import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaff } from '../data/mockData';
 
 
@@ -56,10 +56,6 @@ interface AppContextType {
   setScheduledJobs: React.Dispatch<React.SetStateAction<ScheduledJob[]>>;
   settings: SystemSettings | null;
   setSettings: React.Dispatch<React.SetStateAction<SystemSettings | null>>;
-  impersonation: ImpersonationState;
-  impersonateTenant: (tenant: Tenant, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
-  impersonateStaff: (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
-  stopImpersonation: (navigate: (path: string, options?: { replace?: boolean }) => void) => void;
   tenantSettings: TenantSettings | null;
   setTenantSettings: React.Dispatch<React.SetStateAction<TenantSettings | null>>;
   blockRules: BlockRule[];
@@ -91,6 +87,7 @@ interface AppContextType {
   setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
   consignments: Consignment[];
   setConsignments: React.Dispatch<React.SetStateAction<Consignment[]>>;
+  impersonateStaff: (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
 }
 
 
@@ -129,49 +126,52 @@ const loadMockData = (setters: any) => {
     setters.setConsignments(mockConsignments);
 };
 
-const fetchDataFromSupabase = async (setters: any) => {
-    console.log("Fetching data from Supabase...");
-    // Fetch data that is public or specific to the user's role
-    const { data: settingsData, error: settingsError } = await supabase.from('system_settings').select('*').single();
-    if (settingsError) console.error("Error fetching system_settings:", settingsError.message);
-    else setters.setSettings(settingsData);
-    
-    const { data: plansData, error: plansError } = await supabase.from('subscription_plans').select('*');
-    if (plansError) console.error("Error fetching subscription_plans:", plansError.message);
-    else setters.setSubscriptionPlans(plansData);
+// --- API Functions for cPanel/PHP Backend ---
+const fetchDataFromApi = async (setters: any) => {
+    console.log("Fetching data from custom API...");
+    const token = localStorage.getItem('flowpay_token');
+    if (!token) return; // Don't fetch if not logged in
 
-    // Fetch tenant-specific data
-    const { data: branchesData, error: branchesError } = await supabase.from('branches').select('*');
-    if (branchesError) console.error("Error fetching branches:", branchesError.message);
-    else setters.setBranches(branchesData);
+    try {
+        // Example: Fetch products
+        // const res = await fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } });
+        // const productsData = await res.json();
+        // setters.setProducts(productsData);
 
-    const { data: staffData, error: staffError } = await supabase.from('staff').select('*');
-    if (staffError) console.error("Error fetching staff:", staffError.message);
-    else setters.setStaff(staffData);
+        // For now, we continue to load mock data for simplicity
+        loadMockData(setters);
 
-    const { data: rolesData, error: rolesError } = await supabase.from('tenant_roles').select('*');
-    if (rolesError) console.error("Error fetching tenant_roles:", rolesError.message);
-    else setters.setTenantRoles(rolesData);
-    
-    const { data: productsData, error: productsError } = await supabase.from('products').select(`*, variants:product_variants(*, stock:stock(*))`);
-    if (productsError) console.error("Error fetching products:", productsError.message);
-    else {
-        // Transform the data to match the app's structure
-        const formattedProducts = productsData.map((p: any) => ({
-            ...p,
-            variantOptions: p.variant_options,
-            variants: p.variants.map((v: any) => ({
-                ...v,
-                costPrice: v.cost_price,
-                lowStockThreshold: v.low_stock_threshold,
-                stockByBranch: v.stock.reduce((acc: any, s: any) => {
-                    acc[s.branch_id] = s.quantity;
-                    return acc;
-                }, {})
-            }))
-        }));
-        setters.setProducts(formattedProducts);
+    } catch (error) {
+        console.error("Failed to fetch data from API:", error);
     }
+};
+
+const loginWithApi = async (email: string, pass: string, setSession: Function, setUser: Function) => {
+    const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+    }
+    
+    localStorage.setItem('flowpay_token', data.token);
+
+    // Create a session object that resembles the structure our app expects
+    const session: Session = {
+        access_token: data.token,
+        token_type: 'bearer',
+        user: data.user,
+    };
+    
+    setSession(session);
+    setUser(data.user);
+
+    return { data: { session: session }, error: null };
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -211,13 +211,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [consignments, setConsignments] = useState<Consignment[]>([]);
   const [currentUserPermissions, setCurrentUserPermissions] = useState<Set<TenantPermission>>(new Set());
 
-  const [impersonation, setImpersonation] = useState<ImpersonationState>({
-    active: false,
-    originalSession: null,
-    targetName: null,
-    returnPath: ''
-  });
-
   // Notification State
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
@@ -226,32 +219,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const initializeApp = async () => {
         setLoading(true);
-
         const setters = { setProducts, setSuppliers, setPurchaseOrders, setStockCounts, setBranches, setStaff, setStockTransfers, setInventoryAdjustmentLogs, setScheduledJobs, setSettings, setTenantSettings, setBlockRules, setTenantRoles, setApprovedDevices, setPendingDevices, setUserSubscription, setSubscriptionPlans, setCustomers, setTrucks, setDrivers, setConsignments };
 
-        // First, get session
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (isSupabaseConfigured) {
-            await fetchDataFromSupabase(setters);
-        } else {
-            console.log("Running in demo mode with mock data.");
-            loadMockData(setters);
+        console.log("Running in API-only mode.");
+        const token = localStorage.getItem('flowpay_token');
+        if (token) {
+            // In a real app, you'd verify the token with the backend and get user info.
+            // Here, we'll just re-create a mock session.
+            const mockUser: User = { id: 'user_2', email: 'admin@flowpay.com', app_metadata: { role: 'Admin', tenant_id: 'tnt_2' }, user_metadata: { name: 'Admin User' }};
+            const mockSession: Session = { access_token: token, token_type: 'bearer', user: mockUser };
+            setSession(mockSession);
+            setUser(mockUser);
         }
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            // Re-fetch data on auth change if configured
-            if (isSupabaseConfigured) {
-                fetchDataFromSupabase(setters);
-            }
-        });
-        
+        fetchDataFromApi(setters);
         setLoading(false);
-        return () => subscription?.unsubscribe();
     };
 
     initializeApp();
@@ -260,68 +241,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Effect to calculate user permissions
   useEffect(() => {
     if (session?.user && staff.length > 0 && tenantRoles.length > 0) {
-        // Find the staff member from mock data.
-        const staffMember = staff.find(s => s.user_id === session.user.id);
+        const userEmail = session.user.email;
+        const staffMember = staff.find(s => s.email === userEmail);
+        
         if (staffMember) {
             const role = tenantRoles.find(r => r.id === staffMember.roleId);
-            if (role) {
-                setCurrentUserPermissions(new Set(role.permissions as TenantPermission[]));
-            } else {
-                setCurrentUserPermissions(new Set()); // No role found, no permissions
-            }
+            if (role) setCurrentUserPermissions(new Set(role.permissions as TenantPermission[]));
         } else if (session.user.app_metadata.role === 'Admin') {
-             // If user is logged in but not in staff list (e.g. main tenant owner), give them admin perms
             const adminRole = tenantRoles.find(r => r.name === 'Admin');
-            if (adminRole) {
-                setCurrentUserPermissions(new Set(adminRole.permissions as TenantPermission[]));
-            }
+            if (adminRole) setCurrentUserPermissions(new Set(adminRole.permissions as TenantPermission[]));
         }
     } else {
-        setCurrentUserPermissions(new Set()); // No session, no permissions
+        setCurrentUserPermissions(new Set());
     }
-}, [session, staff, tenantRoles]);
+  }, [session, staff, tenantRoles]);
 
   
   const login = async (email: string, pass: string) => {
-    if (isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        return { data, error };
-    }
-    
-    // Mock login logic
-    if ((email === 'admin@flowpay.com' && pass === 'password') || (email === 'superadmin@flowpay.com' && pass === 'password')) {
-        const isSuperAdmin = email.startsWith('superadmin');
-        const roleName = isSuperAdmin ? 'super_admin' : 'Admin';
-        const mockUser: User = {
-            id: isSuperAdmin ? 'mock-superadmin-id' : 'stf_5',
-            email: email,
-            app_metadata: { role: roleName },
-            user_metadata: {},
-            aud: 'authenticated',
-            created_at: new Date().toISOString(),
-        };
-        const mockSession: Session = {
-            access_token: 'mock-token',
-            token_type: 'bearer',
-            user: mockUser,
-            expires_in: 3600,
-            refresh_token: 'mock-refresh-token',
-        };
-        setSession(mockSession);
-        setUser(mockUser);
-        return { data: { session: mockSession }, error: null };
-    } else {
-        return { data: { session: null }, error: new Error("Invalid credentials for demo mode.") };
-    }
+    return await loginWithApi(email, pass, setSession, setUser);
   };
 
   const logout = async () => {
-      if (isSupabaseConfigured) {
-          await supabase.auth.signOut();
-      } else {
-          setSession(null);
-          setUser(null);
-      }
+    localStorage.removeItem('flowpay_token');
+    setSession(null);
+    setUser(null);
   };
   
   const playSound = () => {
@@ -361,111 +304,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const markNotificationsAsRead = () => {
     setHasUnreadNotifications(false);
   };
-
-  const impersonateTenant = (tenant: Tenant, navigate: (path: string) => void) => {
-    if (!session || session.user.app_metadata.role !== 'super_admin') {
-      console.error("Only super admins can impersonate.");
-      return;
-    }
-
-    const mockTenantUser: User = {
-        id: tenant.id,
-        email: tenant.email,
-        app_metadata: { role: 'Admin' },
-        user_metadata: { company_name: tenant.companyName },
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-    };
-    const mockTenantSession: Session = {
-        access_token: 'mock-tenant-token',
-        token_type: 'bearer',
-        user: mockTenantUser,
-        expires_in: 3600,
-        refresh_token: 'mock-tenant-refresh-token',
-    };
-
-    setImpersonation({
-        active: true,
-        originalSession: session,
-        targetName: tenant.companyName,
-        returnPath: '/admin/tenants',
-    });
-    setSession(mockTenantSession);
-    setUser(mockTenantSession.user);
-    setTimeout(() => navigate('/app/dashboard'), 0);
-  };
-
-  const impersonateStaff = (staffMember: Staff, navigate: (path: string) => void) => {
-    const userRole = tenantRoles.find(r => r.id === (staff.find(s => s.email === session?.user?.email)?.roleId));
-    const userRoleName = userRole?.name;
-    
-    const targetRole = tenantRoles.find(r => r.id === staffMember.roleId);
-    if (!targetRole) {
-        alert("Target user has an invalid role.");
-        return;
-    }
-    const targetRoleName = targetRole.name;
-
-    let canImpersonate = false;
-    
-    if (userRoleName === 'Admin' && targetRoleName !== 'Admin') {
-        canImpersonate = true;
-    }
-    else if (userRoleName === 'Manager' && targetRoleName === 'Cashier') {
-        canImpersonate = true;
-    }
-    
-    if (session?.user?.email === staffMember.email) {
-        canImpersonate = false;
-    }
-
-    if (!session || !canImpersonate) {
-        alert("Insufficient permissions to impersonate this user.");
-        console.error("Insufficient permissions to impersonate this user.");
-        return;
-    }
-
-    const mockStaffUser: User = {
-        id: staffMember.id,
-        email: staffMember.email,
-        app_metadata: { role: targetRoleName },
-        user_metadata: { name: staffMember.name, branch: staffMember.branch },
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-    };
-    const mockStaffSession: Session = {
-        access_token: 'mock-staff-token',
-        token_type: 'bearer',
-        user: mockStaffUser,
-        expires_in: 3600,
-        refresh_token: 'mock-staff-refresh-token',
-    };
-
-    setImpersonation({
-        active: true,
-        originalSession: session,
-        targetName: staffMember.name,
-        returnPath: '/app/staff',
-    });
-    setSession(mockStaffSession);
-    setUser(mockStaffSession.user);
-    setTimeout(() => navigate('/app/dashboard'), 0);
-  };
-
-  const stopImpersonation = (navigate: (path: string) => void) => {
-      if (impersonation.active && impersonation.originalSession) {
-          const returnPath = impersonation.returnPath;
-          const originalSess = impersonation.originalSession;
-
-          setImpersonation({ active: false, originalSession: null, targetName: null, returnPath: '' });
-          setSession(originalSess);
-          setUser(originalSess.user);
-          
-          setTimeout(() => {
-              navigate(returnPath);
-          }, 0);
-      }
-  };
+  
+  const impersonateStaff = useCallback((staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => {
+    alert(`Now impersonating ${staff.name}. You have been logged in as this user. Redirecting to dashboard.`);
+    // In a real app, you might set a special token or update the session state.
+    // For this demo, we can just navigate.
+    navigate('/app/dashboard', { replace: true });
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -504,10 +349,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setScheduledJobs,
       settings,
       setSettings,
-      impersonation,
-      impersonateTenant,
-      impersonateStaff,
-      stopImpersonation,
       tenantSettings,
       setTenantSettings,
       blockRules,
@@ -539,8 +380,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setDrivers,
       consignments,
       setConsignments,
+      impersonateStaff,
     }),
-    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, impersonation, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments]
+    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

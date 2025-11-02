@@ -1,7 +1,6 @@
 import React from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { NavLink, Outlet } = ReactRouterDOM;
+import { NavLink, Outlet } from 'react-router-dom';
 import { User, CreditCard, Bell, Shield, Puzzle, TabletSmartphone, FileText, ListChecks } from 'lucide-react';
 
 const settingsNav = [

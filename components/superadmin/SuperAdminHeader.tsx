@@ -1,9 +1,9 @@
 
+
 import React from 'react';
 import { Search, Bell, ChevronDown, LogOut, Settings, Power } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link, useNavigate } = ReactRouterDOM;
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import NetworkStatusIndicator from '../ui/NetworkStatusIndicator';
 

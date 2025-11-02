@@ -1,10 +1,10 @@
 
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { CreditCard, PlusCircle, Edit, Trash2, Loader, DollarSign, Users } from 'lucide-react';
 import { SubscriptionPlan, ActiveSubscription } from '../../types';
 import SubscriptionPlanModal from '../../components/superadmin/SubscriptionPlanModal';
-import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { subscriptionPlans as mockPlans, activeSubscriptions as mockActiveSubscriptions } from '../../data/mockData';
 import Tabs from '../../components/ui/Tabs';
 import Table, { Column } from '../../components/ui/Table';
@@ -65,19 +65,8 @@ const PlanManagementTab: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-        if (!isSupabaseConfigured) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          setPlans(mockPlans);
-        } else {
-          const { data, error } = await supabase.from('subscription_plans').select('*').order('price');
-          if (error) throw error;
-          const formattedData = data.map(p => ({
-              ...p,
-              branchLimit: p.branch_limit,
-              userLimit: p.user_limit,
-          }));
-          setPlans(formattedData);
-        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setPlans(mockPlans);
     } catch (err) {
         setError('Failed to fetch subscription plans.');
         console.error(err);
@@ -106,49 +95,17 @@ const PlanManagementTab: React.FC = () => {
   };
   
   const handleSavePlan = async (plan: SubscriptionPlan) => {
-    if (isSupabaseConfigured) {
-      const planPayload = {
-          name: plan.name,
-          price: plan.price,
-          description: plan.description,
-          features: plan.features,
-          branch_limit: plan.branchLimit,
-          user_limit: plan.userLimit
-      };
-      if (editingPlan) {
-        const { error } = await supabase.from('subscription_plans').update(planPayload).eq('id', plan.id);
-        if (error) {
-            alert('Failed to update plan: ' + error.message);
-            return;
-        }
-      } else {
-        const { error } = await supabase.from('subscription_plans').insert(planPayload);
-        if (error) {
-            alert('Failed to create plan: ' + error.message);
-            return;
-        }
-      }
-      fetchPlans();
+    if (editingPlan) {
+      setPlans(plans.map(p => p.id === plan.id ? plan : p));
     } else {
-      if (editingPlan) {
-        setPlans(plans.map(p => p.id === plan.id ? plan : p));
-      } else {
-        const newPlan = { ...plan, id: `plan_${new Date().getTime()}` };
-        setPlans([...plans, newPlan].sort((a,b) => a.price - b.price));
-      }
+      const newPlan = { ...plan, id: `plan_${new Date().getTime()}` };
+      setPlans([...plans, newPlan].sort((a,b) => a.price - b.price));
     }
     closeModal();
   };
   
   const handleDeletePlan = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this subscription plan?')) {
-        if (isSupabaseConfigured) {
-            const { error } = await supabase.from('subscription_plans').delete().eq('id', id);
-            if (error) {
-                alert('Failed to delete plan.');
-                return;
-            }
-        }
         setPlans(plans.filter(p => p.id !== id));
     }
   }

@@ -1,7 +1,7 @@
 // Define cache names. A new version will clear old caches.
 const STATIC_CACHE_NAME = 'flowpay-static-cache-v1';
 const DATA_CACHE_NAME = 'flowpay-data-cache-v1';
-const SUPABASE_URL_PART = 'supabase.co'; // A string to identify API calls
+const API_URL_PART = '/api/'; // A string to identify API calls
 
 // List of essential assets to be pre-cached.
 const STATIC_ASSETS = [
@@ -17,7 +17,6 @@ const STATIC_ASSETS = [
   'https://aistudiocdn.com/react-dom@^19.2.0',
   'https://aistudiocdn.com/lucide-react@^0.552.0',
   'https://aistudiocdn.com/react-router-dom@^7.9.5',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/+esm'
 ];
 
 // Install event: Cache static assets.
@@ -67,7 +66,7 @@ self.addEventListener('fetch', event => {
   
   // Strategy 1: API calls (Network First, then Cache)
   // This ensures data is fresh but available offline.
-  if (url.hostname.includes(SUPABASE_URL_PART)) {
+  if (url.pathname.startsWith(API_URL_PART)) {
     event.respondWith(
       fetch(request)
         .then(networkResponse => {

@@ -1,8 +1,10 @@
 
+
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
-import { Sale, Payment } from '../types';
-import { recentSales as mockSales } from '../data/mockData';
+import { Sale, Payment } from '../../types';
+import { recentSales as mockSales } from '../../data/mockData';
 import Table, { Column } from '../components/ui/Table';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import { useAppContext } from '../contexts/AppContext';
@@ -46,14 +48,13 @@ const AccountingPage: React.FC = () => {
 
   const [reportData, setReportData] = useState<Sale[] | null>(null);
 
-  // FIX: Removed supabase logic to align with mock data setup and fix module import error.
   useEffect(() => {
     const fetchSales = async () => {
       setLoading(true);
       setError(null);
       try {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setSales(mockSales);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          setSales(mockSales);
       } catch (err: any) {
         setError('Failed to fetch sales data. Displaying mock data.');
         setSales(mockSales);

@@ -4,7 +4,6 @@ import { SystemSettings, PaymentGatewayId, PaymentGateway, BrandingSettings } fr
 import Tabs from '../../components/ui/Tabs';
 import ToggleSwitch from '../../components/ui/ToggleSwitch';
 import { useAppContext } from '../../contexts/AppContext';
-import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 
 const SystemSettingsPage: React.FC = () => {
     const { settings: contextSettings, setSettings: setContextSettings } = useAppContext();
@@ -13,7 +12,6 @@ const SystemSettingsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('general');
     const [showPass, setShowPass] = useState(false);
-    const [showSupabaseKeys, setShowSupabaseKeys] = useState(false);
 
     useEffect(() => {
         if (contextSettings) {
@@ -27,30 +25,9 @@ const SystemSettingsPage: React.FC = () => {
 
     const handleSaveSettings = async () => {
         if (!localSettings) return;
-
-        const settingsToSave = JSON.parse(JSON.stringify(localSettings)); // Deep copy
-
-        // If the Supabase form was editable, check if it should be locked upon saving
-        if (!settingsToSave.isSupabaseConfigured) {
-            if (settingsToSave.supabaseUrl && settingsToSave.supabaseAnonKey && settingsToSave.supabaseBucket) {
-                settingsToSave.isSupabaseConfigured = true;
-            }
-        }
-        
-        if (isSupabaseConfigured) {
-            // NOTE: In a real app, you would not destructure and reconstruct like this.
-            // This is just to match the mock data shape. You'd update the specific table row.
-            const { id, ...supabaseSettingsToSave } = settingsToSave;
-            const { error } = await supabase.from('system_settings').update(supabaseSettingsToSave).eq('id', id);
-            if (error) {
-                alert('Failed to save settings: ' + error.message);
-                return;
-            }
-        }
         
         // Update context with local changes
-        setContextSettings(settingsToSave);
-        setLocalSettings(settingsToSave);
+        setContextSettings(localSettings);
         alert('Settings saved successfully!');
     };
 
@@ -421,72 +398,6 @@ const SystemSettingsPage: React.FC = () => {
                                         />
                                     </div>
                                 )}
-                            </div>
-                        </div>
-
-                         <div className="bg-background p-4 rounded-lg border border-border">
-                            <div className="flex justify-between items-center">
-                                <h3 className="font-bold text-text-primary flex items-center gap-2">
-                                    <Database size={20} />
-                                    Supabase Configuration
-                                </h3>
-                                {localSettings.isSupabaseConfigured ? (
-                                    <button onClick={() => handleInputChange('topLevel', 'isSupabaseConfigured', false)} className="flex items-center gap-2 text-sm bg-blue-600/20 text-blue-400 font-semibold py-1 px-3 rounded-lg hover:bg-blue-600/40">
-                                        <Edit size={14} /> Edit
-                                    </button>
-                                ) : (
-                                    <button type="button" onClick={() => setShowSupabaseKeys(!showSupabaseKeys)} className="p-2 text-text-secondary hover:text-text-primary">
-                                        {showSupabaseKeys ? <EyeOff size={16}/> : <Eye size={16}/>}
-                                    </button>
-                                )}
-                            </div>
-                            <p className="text-sm text-text-secondary mt-1 mb-4">
-                                Enter your Supabase credentials here. Once saved, these settings will be locked and used to initialize the database connection on app startup.
-                            </p>
-
-                            <div className="space-y-4">
-                                {/* Supabase URL */}
-                                <div>
-                                    <label className="text-sm text-text-secondary block mb-1">Supabase Project URL</label>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type={showSupabaseKeys || !localSettings.isSupabaseConfigured ? 'text' : 'password'}
-                                            value={localSettings.supabaseUrl || ''}
-                                            onChange={e => handleInputChange('topLevel', 'supabaseUrl', e.target.value)}
-                                            readOnly={localSettings.isSupabaseConfigured}
-                                            className="w-full bg-surface border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm read-only:bg-surface/50 read-only:text-text-secondary"
-                                        />
-                                        <button type="button" onClick={() => copyToClipboard(localSettings.supabaseUrl || '')} className="p-2 bg-border rounded-md hover:bg-border/70"><Copy size={16} /></button>
-                                    </div>
-                                </div>
-                                {/* Supabase Anon Key */}
-                                <div>
-                                    <label className="text-sm text-text-secondary block mb-1">Supabase Anon (Public) Key</label>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type={showSupabaseKeys || !localSettings.isSupabaseConfigured ? 'text' : 'password'}
-                                            value={localSettings.supabaseAnonKey || ''}
-                                            onChange={e => handleInputChange('topLevel', 'supabaseAnonKey', e.target.value)}
-                                            readOnly={localSettings.isSupabaseConfigured}
-                                            className="w-full bg-surface border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm read-only:bg-surface/50 read-only:text-text-secondary"
-                                        />
-                                        <button type="button" onClick={() => copyToClipboard(localSettings.supabaseAnonKey || '')} className="p-2 bg-border rounded-md hover:bg-border/70"><Copy size={16} /></button>
-                                    </div>
-                                </div>
-                                {/* Supabase Bucket */}
-                                <div>
-                                    <label className="text-sm text-text-secondary block mb-1">Supabase Storage Bucket Name</label>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type={showSupabaseKeys || !localSettings.isSupabaseConfigured ? 'text' : 'password'}
-                                            value={localSettings.supabaseBucket || ''}
-                                            onChange={e => handleInputChange('topLevel', 'supabaseBucket', e.target.value)}
-                                            readOnly={localSettings.isSupabaseConfigured}
-                                            className="w-full bg-surface border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm read-only:bg-surface/50 read-only:text-text-secondary"
-                                        />
-                                        <button type="button" onClick={() => copyToClipboard(localSettings.supabaseBucket || '')} className="p-2 bg-border rounded-md hover:bg-border/70"><Copy size={16} /></button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

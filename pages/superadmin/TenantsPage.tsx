@@ -1,20 +1,17 @@
 
 
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-const { useNavigate } = ReactRouterDOM;
-import { Users, UserPlus, Search, MoreVertical, Edit, Trash2, ShieldOff, Shield, Loader, UserCheck, History } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, UserPlus, Search, MoreVertical, Edit, Trash2, ShieldOff, Shield, Loader, History } from 'lucide-react';
 import { Tenant } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import Modal from '../../components/ui/Modal';
-import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { tenants as mockTenants } from '../../data/mockData';
-import { useAppContext } from '../../contexts/AppContext';
 
 const TenantsPage: React.FC = () => {
-    const { impersonateTenant } = useAppContext();
     const navigate = useNavigate();
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,23 +24,8 @@ const TenantsPage: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            if (!isSupabaseConfigured) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                setTenants(mockTenants);
-            } else {
-                const { data, error } = await supabase.from('tenants').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-                const formattedData = data.map(t => ({
-                    id: t.id,
-                    companyName: t.company_name,
-                    email: t.email,
-                    plan: t.plan,
-                    status: t.status,
-                    joinedDate: new Date(t.created_at).toLocaleDateString(),
-                    subscriptionExpires: t.subscription_expires,
-                }));
-                setTenants(formattedData);
-            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            setTenants(mockTenants);
         } catch (err: any) {
             setError('Failed to fetch tenants.');
             console.error(err);
@@ -70,69 +52,31 @@ const TenantsPage: React.FC = () => {
         const actionPastTense = status === 'active' ? 'suspended' : 'activated';
 
         if (window.confirm(`Are you sure you want to ${action} the tenant "${companyName}"?`)) {
-            try {
-                if (isSupabaseConfigured) {
-                    const { error } = await supabase.from('tenants').update({ status: newStatus }).eq('id', id);
-                    if (error) {
-                        throw error;
-                    }
-                }
-                // If successful (or in demo mode), update the local state
-                setTenants(tenants.map(t => (t.id === id ? { ...t, status: newStatus } : t)));
-                alert(`Tenant "${companyName}" has been successfully ${actionPastTense}.`);
-            } catch (err: any) {
-                alert(`Failed to ${action} tenant: ${err.message || 'An unknown error occurred.'}`);
-            }
+            setTenants(tenants.map(t => (t.id === id ? { ...t, status: newStatus } : t)));
+            alert(`Tenant "${companyName}" has been successfully ${actionPastTense}.`);
         }
     };
 
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this tenant? This action cannot be undone.')) {
-            if (isSupabaseConfigured) {
-                const { error } = await supabase.from('tenants').delete().eq('id', id);
-                if (error) {
-                    alert('Failed to delete tenant.');
-                    return;
-                }
-            }
             setTenants(tenants.filter(t => t.id !== id));
         }
     };
 
     const handleAddTenant = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (isSupabaseConfigured) {
-            const { error } = await supabase.from('tenants').insert({
-                company_name: newTenant.companyName,
-                email: newTenant.email,
-                plan: newTenant.plan,
-            }).select();
-             if (error) {
-                alert('Failed to add tenant: ' + error.message);
-                return;
-            }
-            fetchTenants(); // Refetch to get the new tenant with DB id
-        } else {
-            // Mock adding tenant
-            const mockNewTenant: Tenant = {
-                id: `tnt_${new Date().getTime()}`,
-                companyName: newTenant.companyName,
-                email: newTenant.email,
-                plan: newTenant.plan,
-                status: 'active',
-                joinedDate: new Date().toLocaleDateString()
-            };
-            setTenants([mockNewTenant, ...tenants]);
-        }
+        const mockNewTenant: Tenant = {
+            id: `tnt_${new Date().getTime()}`,
+            companyName: newTenant.companyName,
+            email: newTenant.email,
+            plan: newTenant.plan,
+            status: 'active',
+            joinedDate: new Date().toLocaleDateString()
+        };
+        setTenants([mockNewTenant, ...tenants]);
         
         setIsModalOpen(false);
         setNewTenant({ companyName: '', email: '', plan: 'Basic' });
-    };
-
-    const handleImpersonate = (tenant: Tenant) => {
-        if (window.confirm(`Are you sure you want to impersonate ${tenant.companyName}? This will log you in as one of their administrators.`)) {
-            impersonateTenant(tenant, navigate);
-        }
     };
 
     const columns: Column<Tenant>[] = [
@@ -206,9 +150,6 @@ const TenantsPage: React.FC = () => {
                  <div className="group relative">
                     <button className="p-1.5 rounded-md hover:bg-border"><MoreVertical size={16}/></button>
                     <div className="absolute right-0 mt-1 w-48 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">
-                        <button onClick={() => handleImpersonate(row)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-background">
-                            <UserCheck size={14} /> Impersonate
-                        </button>
                         <button onClick={() => navigate(`/admin/tenants/${row.id}/activity`)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-background">
                             <History size={14} /> Activity Log
                         </button>
