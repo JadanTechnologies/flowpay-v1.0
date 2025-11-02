@@ -349,6 +349,10 @@ export const systemSettings: SystemSettings = {
             ]
         },
       ],
+// FIX: Add missing properties to the branding object to match the BrandingSettings type.
+aboutUsContent: "This is the About Us page content. It can be edited from the system settings.",
+blogContent: "This is the Blog page content. It can be edited from the system settings.",
+contactUsContent: "This is the Contact Us page content. It can be edited from the system settings.",
     },
     featureFlags: {
         'dashboard': true,
@@ -364,9 +368,9 @@ export const systemSettings: SystemSettings = {
         'reports': true,
     },
     footerCredits: '© 2024 FlowPay Inc. All rights reserved.',
-    termsUrl: '#',
-    privacyUrl: '#',
-    refundUrl: '#',
+    termsContent: 'This is placeholder content for the Terms of Service. Please replace this with your actual terms.',
+    privacyContent: 'This is placeholder content for the Privacy Policy. Please replace this with your actual policy.',
+    refundContent: 'This is placeholder content for the Refund Policy. Please replace this with your actual policy.',
 };
 
 // Tenant-specific settings

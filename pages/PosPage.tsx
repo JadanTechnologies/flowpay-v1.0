@@ -11,7 +11,6 @@ import BarcodeScannerModal from '../components/pos/BarcodeScannerModal';
 import ProductDetailsModal from '../components/pos/ProductDetailsModal';
 import ReturnModal from '../components/pos/ReturnModal';
 import SaleSuccessModal from '../components/pos/SaleSuccessModal';
-import { recentSales as mockSalesHistory } from '../data/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 import Receipt from '../components/pos/Receipt';
@@ -93,7 +92,10 @@ const PosPage: React.FC = () => {
     session,
     customers,
     setCustomers,
-    setInventoryAdjustmentLogs
+    setInventoryAdjustmentLogs,
+    // FIX: Get recentSales and its setter from context
+    recentSales,
+    setRecentSales,
   } = useAppContext();
   
   const [cart, dispatch] = useReducer(cartReducer, []);
@@ -217,7 +219,8 @@ const PosPage: React.FC = () => {
         payments: finalPayments,
     };
     
-    console.log("Sale completed:", newSale);
+    // FIX: Update recentSales in context
+    setRecentSales(prev => [newSale, ...prev]);
 
     if (finalStatus === 'Credit' && customer.id !== 'cust_4' && amountAddedToCredit > 0) {
         setCustomers(currentCustomers =>
@@ -297,7 +300,8 @@ const PosPage: React.FC = () => {
         payments: [{ method: 'Cash', amount: -totalRefundAmount }],
     };
 
-    console.log("Refund Processed: ", refundSale);
+    // FIX: Add refund transaction to recent sales
+    setRecentSales(prev => [refundSale, ...prev]);
 
     setIsReturnModalOpen(false);
     addNotification({ message: `Refund of ${formatCurrency(totalRefundAmount, currency)} processed successfully.`, type: 'success' });
@@ -549,7 +553,7 @@ const PosPage: React.FC = () => {
            
           {isReturnModalOpen && (
             <ReturnModal
-                salesHistory={mockSalesHistory}
+                salesHistory={recentSales}
                 onClose={() => setIsReturnModalOpen(false)}
                 onProcessRefund={handleProcessRefund}
             />

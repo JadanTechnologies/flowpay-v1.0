@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -15,6 +17,7 @@ import SuperAdminLayout from './layouts/SuperAdminLayout';
 // Public Pages
 import LandingPage from './pages/LandingPage';
 import MaintenancePage from './pages/MaintenancePage';
+import ContentPage from './pages/ContentPage';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -161,6 +164,12 @@ const AppRoutes: React.FC = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/terms" element={<ContentPage title="Terms of Service" contentKey="termsContent" settingsKey="settings" />} />
+      <Route path="/privacy" element={<ContentPage title="Privacy Policy" contentKey="privacyContent" settingsKey="settings" />} />
+      <Route path="/refund" element={<ContentPage title="Refund Policy" contentKey="refundContent" settingsKey="settings" />} />
+      <Route path="/about" element={<ContentPage title="About Us" contentKey="aboutUsContent" settingsKey="branding" />} />
+      <Route path="/blog" element={<ContentPage title="Blog" contentKey="blogContent" settingsKey="branding" />} />
+      <Route path="/contact" element={<ContentPage title="Contact Us" contentKey="contactUsContent" settingsKey="branding" />} />
 
       {/* Auth Routes */}
       <Route path="/login" element={<LoginPage />} />

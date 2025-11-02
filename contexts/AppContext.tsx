@@ -1,12 +1,8 @@
-
-
-
-
-
-
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
-import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole } from '../types';
-import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaffData } from '../data/mockData';
+// FIX: Add Sale type to import
+import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale } from '../types';
+// FIX: Import recentSales mock data
+import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaffData, recentSales as mockRecentSales } from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -46,7 +42,7 @@ interface AppContextType {
   branches: Branch[];
   setBranches: React.Dispatch<React.SetStateAction<Branch[]>>;
   currentBranchId: string;
-  setCurrentBranchId: React.Dispatch<React.SetStateAction<string>>;
+  setCurrentBranchId: (branchId: string) => void;
   stockTransfers: StockTransfer[];
   setStockTransfers: React.Dispatch<React.SetStateAction<StockTransfer[]>>;
   inventoryAdjustmentLogs: InventoryAdjustmentLog[];
@@ -87,6 +83,9 @@ interface AppContextType {
   consignments: Consignment[];
   setConsignments: React.Dispatch<React.SetStateAction<Consignment[]>>;
   impersonateStaff: (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
+  // FIX: Add recentSales to context to make it available to DashboardPage and other components
+  recentSales: Sale[];
+  setRecentSales: React.Dispatch<React.SetStateAction<Sale[]>>;
 }
 
 
@@ -140,10 +139,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [drivers, setDrivers] = useState<Driver[]>(() => getInitialState('flowpay_drivers', mockDrivers));
   const [consignments, setConsignments] = useState<Consignment[]>(() => getInitialState('flowpay_consignments', mockConsignments));
 
+  // FIX: Add recentSales state management
+  const [recentSales, setRecentSales] = useState<Sale[]>(() => getInitialState('flowpay_recentSales', mockRecentSales));
+
   const [language, setLanguage] = useState<Language>(() => getInitialState('flowpay_language', 'en'));
   const [currency, setCurrency] = useState<Currency>(() => getInitialState('flowpay_currency', 'USD'));
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(() => getInitialState('flowpay_notificationPrefs', defaultNotificationPrefs));
-  const [currentBranchId, setCurrentBranchId] = useState<string>(() => getInitialState('flowpay_currentBranchId', 'br_1'));
+  const [currentBranchId, _setCurrentBranchId] = useState<string>(() => getInitialState('flowpay_currentBranchId', 'br_1'));
 
   // Auto-save to localStorage on change
   useEffect(() => { localStorage.setItem('flowpay_products', JSON.stringify(products)); }, [products]);
@@ -167,6 +169,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { localStorage.setItem('flowpay_trucks', JSON.stringify(trucks)); }, [trucks]);
   useEffect(() => { localStorage.setItem('flowpay_drivers', JSON.stringify(drivers)); }, [drivers]);
   useEffect(() => { localStorage.setItem('flowpay_consignments', JSON.stringify(consignments)); }, [consignments]);
+  // FIX: Add useEffect for recentSales
+  useEffect(() => { localStorage.setItem('flowpay_recentSales', JSON.stringify(recentSales)); }, [recentSales]);
   useEffect(() => { localStorage.setItem('flowpay_language', JSON.stringify(language)); }, [language]);
   useEffect(() => { localStorage.setItem('flowpay_currency', JSON.stringify(currency)); }, [currency]);
   useEffect(() => { localStorage.setItem('flowpay_notificationPrefs', JSON.stringify(notificationPrefs)); }, [notificationPrefs]);
@@ -268,6 +272,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const error = new Error("User not found.");
         return { data: { session: null }, error };
     }
+
+    // Set branch for cashier
+    if (loggedInUser.role === 'Cashier') {
+        const staffMember = mockStaffData.find(s => s.id === loggedInUser!.id);
+        const branch = mockBranches.find(b => b.name === staffMember?.branch);
+        if (branch) {
+            _setCurrentBranchId(branch.id);
+        }
+    }
     
     const token = `mock_token_${Date.now()}`;
     localStorage.setItem('flowpay_token', token);
@@ -324,6 +337,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTimeout(() => {
         removeNotification(id);
     }, duration);
+  };
+
+  const setCurrentBranchId = (branchId: string) => {
+      if (session?.user?.role === 'Cashier') {
+          addNotification({ message: "Cashiers are locked to their assigned branch.", type: 'warning' });
+          return;
+      }
+      _setCurrentBranchId(branchId);
   };
 
   const markNotificationsAsRead = () => {
@@ -402,8 +423,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       consignments,
       setConsignments,
       impersonateStaff,
+      // FIX: Provide recentSales and its setter in the context
+      recentSales,
+      setRecentSales,
     }),
-    [session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff]
+    [session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff, recentSales]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

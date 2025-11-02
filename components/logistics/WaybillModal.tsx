@@ -3,7 +3,7 @@ import { Consignment, Sale, CartItem } from '../../types';
 import Modal from '../ui/Modal';
 import Waybill from './Waybill';
 import { useAppContext } from '../../contexts/AppContext';
-import { Printer } from 'lucide-react';
+import { Printer, FileDown } from 'lucide-react';
 
 interface WaybillModalProps {
     consignment: Consignment;
@@ -57,32 +57,62 @@ const WaybillModal: React.FC<WaybillModalProps> = ({ consignment, onClose }) => 
     }, [consignment, products, customers]);
     
     const handlePrint = () => {
-        // This is a simplified print method that leverages browser printing and CSS.
-        // It hides non-printable elements and then triggers the print dialog.
-        const printContents = document.querySelector('.printable-report-wrapper');
-        if (printContents) {
-            // A more robust solution may involve creating a new window with the content
-            // to avoid state loss on the main page, but this works for this context.
-            window.print();
+        window.print();
+    };
+
+    const handleDownloadPdf = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+    
+        const waybillElement = document.querySelector('.print-area');
+        if (waybillElement) {
+            doc.html(waybillElement as HTMLElement, {
+                callback: function (doc: any) {
+                    doc.save(`waybill-${consignment.id}.pdf`);
+                },
+                x: 10,
+                y: 10,
+                width: 190, // A4 width is 210, this provides margin
+                windowWidth: 794 // A4 width in pixels at 96 dpi
+            });
+        } else {
+            alert('Could not find waybill content to generate PDF.');
         }
     };
 
+
+    if (!saleForWaybill) {
+        return <Modal title="Error" onClose={onClose}><div className="p-6">Could not generate waybill. Sale or customer data is missing.</div></Modal>;
+    }
+
     return (
-        <Modal title={`Waybill for Consignment ${consignment.id}`} onClose={onClose}>
-             <div className="printable-report-wrapper max-h-[70vh] overflow-y-auto">
-                {saleForWaybill ? (
-                    <Waybill consignment={consignment} sale={saleForWaybill} />
-                ) : (
-                    <div className="p-8 text-center text-red-400">Could not generate waybill. Sale or customer data is missing.</div>
-                )}
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 no-print" onClick={onClose}>
+            <div className="bg-surface rounded-xl shadow-lg w-full max-w-4xl h-[90vh] flex flex-col border border-border" onClick={e => e.stopPropagation()}>
+                <div className="p-4 border-b border-border flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-text-primary">Waybill for Consignment {consignment.id}</h2>
+                    <div className="flex items-center gap-2">
+                         <button onClick={handleDownloadPdf} className="flex items-center gap-2 bg-surface hover:bg-border text-text-secondary font-semibold py-2 px-4 rounded-lg transition-colors border border-border">
+                            <FileDown size={16} /> Download PDF
+                        </button>
+                        <button onClick={handlePrint} className="flex items-center gap-2 bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">
+                            <Printer size={16} /> Print
+                        </button>
+                        <button onClick={onClose} className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                            Close
+                        </button>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto bg-gray-300 p-4 printable-report-wrapper">
+                    <div className="mx-auto max-w-[210mm]">
+                         <Waybill consignment={consignment} sale={saleForWaybill} />
+                    </div>
+                </div>
             </div>
-             <div className="p-4 bg-background flex justify-end gap-2 no-print">
-                <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Close</button>
-                <button type="button" onClick={handlePrint} className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">
-                    <Printer size={16} /> Print
-                </button>
-            </div>
-        </Modal>
+        </div>
     );
 };
 

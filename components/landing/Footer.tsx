@@ -25,9 +25,9 @@ const Footer: React.FC = () => {
   };
 
   const legalLinks = [
-    { name: 'Terms of Service', href: settings?.termsUrl || '#' },
-    { name: 'Privacy Policy', href: settings?.privacyUrl || '#' },
-    { name: 'Refund Policy', href: settings?.refundUrl || '#' }
+    { name: 'Terms of Service', href: '/terms' },
+    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Refund Policy', href: '/refund' }
   ];
   
   const footerSections = [

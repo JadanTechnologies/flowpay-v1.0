@@ -1,11 +1,5 @@
-
-
-
-
-
-
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, LogOut, User, Settings, Calculator as CalculatorIcon, Store, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Search, Bell, ChevronDown, LogOut, User, Settings, Calculator as CalculatorIcon, Store, CheckCircle, AlertTriangle, XCircle, Handshake, CreditCard } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
@@ -37,6 +31,7 @@ const Header: React.FC = () => {
   } = useAppContext();
   const [showCalculator, setShowCalculator] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const isCashier = session?.user?.role === 'Cashier';
 
   const handleSignOut = async () => {
     await logout();
@@ -76,22 +71,27 @@ const Header: React.FC = () => {
         {/* Right side icons and profile */}
         <div className="flex items-center gap-4">
             <div className="group relative">
-                <button className="flex items-center gap-2 bg-background p-2 rounded-lg border border-border">
+                <button 
+                  className={`flex items-center gap-2 bg-background p-2 rounded-lg border border-border ${isCashier ? 'cursor-not-allowed opacity-70' : 'group-hover:bg-border/50'}`}
+                  disabled={isCashier}
+                >
                     <Store size={18} className="text-primary" />
                     <span className="font-semibold text-sm text-text-primary">{currentBranch?.name || 'Select Branch'}</span>
-                    <ChevronDown size={16} className="text-text-secondary" />
+                    {!isCashier && <ChevronDown size={16} className="text-text-secondary group-hover:rotate-180 transition-transform" />}
                 </button>
-                 <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">
-                    {branches.map(branch => (
-                         <button 
-                            key={branch.id} 
-                            onClick={() => setCurrentBranchId(branch.id)}
-                            className={`w-full text-left px-4 py-2 text-sm ${currentBranchId === branch.id ? 'text-primary' : 'text-text-secondary'} hover:bg-background`}
-                        >
-                            {branch.name}
-                        </button>
-                    ))}
-                 </div>
+                {!isCashier && (
+                   <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">
+                      {branches.map(branch => (
+                           <button 
+                              key={branch.id} 
+                              onClick={() => setCurrentBranchId(branch.id)}
+                              className={`w-full text-left px-4 py-2 text-sm ${currentBranchId === branch.id ? 'text-primary' : 'text-text-secondary'} hover:bg-background`}
+                          >
+                              {branch.name}
+                          </button>
+                      ))}
+                   </div>
+                )}
             </div>
             
           <button

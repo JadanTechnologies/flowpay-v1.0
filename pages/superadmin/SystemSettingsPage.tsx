@@ -41,12 +41,15 @@ const SystemSettingsPage: React.FC = () => {
         }));
     };
     
-    const handleInputChange = (section: keyof SystemSettings | 'topLevel', field: any, value: any) => {
+    const handleInputChange = (section: keyof SystemSettings | 'topLevel' | 'branding', field: any, value: any) => {
         if (!localSettings) return;
         setLocalSettings(prev => {
-            if (section === 'topLevel') {
+             if (section === 'topLevel') {
                 return {...prev!, [field]: value};
             }
+             if (section === 'branding') {
+                 return { ...prev!, branding: { ...prev!.branding, [field]: value } };
+             }
             const currentSection = prev![section as keyof SystemSettings];
             if (typeof currentSection === 'object' && currentSection !== null && !Array.isArray(currentSection)) {
                 return { ...prev!, [section]: { ...(currentSection as object), [field]: value } };
@@ -212,16 +215,29 @@ const SystemSettingsPage: React.FC = () => {
                             <input type="text" value={localSettings.footerCredits} onChange={e => handleInputChange('topLevel', 'footerCredits', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
                         </div>
                         <div>
-                            <label className="text-sm text-text-secondary block mb-1">Terms of Service URL</label>
-                            <input type="text" value={localSettings.termsUrl} onChange={e => handleInputChange('topLevel', 'termsUrl', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                            <label className="text-sm text-text-secondary block mb-1">Terms of Service Content</label>
+                            <textarea value={localSettings.termsContent} onChange={e => handleInputChange('topLevel', 'termsContent', e.target.value)} rows={5} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono" />
                         </div>
                          <div>
-                            <label className="text-sm text-text-secondary block mb-1">Privacy Policy URL</label>
-                            <input type="text" value={localSettings.privacyUrl} onChange={e => handleInputChange('topLevel', 'privacyUrl', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                            <label className="text-sm text-text-secondary block mb-1">Privacy Policy Content</label>
+                            <textarea value={localSettings.privacyContent} onChange={e => handleInputChange('topLevel', 'privacyContent', e.target.value)} rows={5} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono" />
                         </div>
                          <div>
-                            <label className="text-sm text-text-secondary block mb-1">Refund Policy URL</label>
-                            <input type="text" value={localSettings.refundUrl} onChange={e => handleInputChange('topLevel', 'refundUrl', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                            <label className="text-sm text-text-secondary block mb-1">Refund Policy Content</label>
+                            <textarea value={localSettings.refundContent} onChange={e => handleInputChange('topLevel', 'refundContent', e.target.value)} rows={5} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono" />
+                        </div>
+                        <h3 className="font-bold text-text-primary pt-4 border-t border-border">Company Pages Content</h3>
+                        <div>
+                            <label className="text-sm text-text-secondary block mb-1">About Us Page Content</label>
+                            <textarea value={localSettings.branding.aboutUsContent} onChange={e => handleInputChange('branding', 'aboutUsContent', e.target.value)} rows={5} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono" />
+                        </div>
+                        <div>
+                            <label className="text-sm text-text-secondary block mb-1">Blog Page Content</label>
+                            <textarea value={localSettings.branding.blogContent} onChange={e => handleInputChange('branding', 'blogContent', e.target.value)} rows={5} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono" />
+                        </div>
+                        <div>
+                            <label className="text-sm text-text-secondary block mb-1">Contact Us Page Content</label>
+                            <textarea value={localSettings.branding.contactUsContent} onChange={e => handleInputChange('branding', 'contactUsContent', e.target.value)} rows={5} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono" />
                         </div>
                     </div>
                 )

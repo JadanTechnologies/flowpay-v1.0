@@ -1,13 +1,6 @@
-
-
-
-
-
-
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
 import { Sale, Payment } from '../../types';
-import { recentSales as mockSales } from '../../data/mockData';
 import Table, { Column } from '../components/ui/Table';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import { useAppContext } from '../contexts/AppContext';
@@ -38,10 +31,10 @@ const EndOfDayReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, cu
 };
 
 const AccountingPage: React.FC = () => {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { currency, products, branches: allBranches, recentSales } = useAppContext();
+  const [sales, setSales] = useState<Sale[]>(recentSales);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { currency, products, branches: allBranches } = useAppContext();
 
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
@@ -50,22 +43,10 @@ const AccountingPage: React.FC = () => {
 
   const [reportData, setReportData] = useState<Sale[] | null>(null);
 
+  // FIX: Use sales data from context instead of re-fetching
   useEffect(() => {
-    const fetchSales = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setSales(mockSales);
-      } catch (err: any) {
-        setError('Failed to fetch sales data. Displaying mock data.');
-        setSales(mockSales);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSales();
-  }, []);
+    setSales(recentSales);
+  }, [recentSales]);
 
   const branches = useMemo(() => [...new Set(sales.map(s => s.branch))], [sales]);
 

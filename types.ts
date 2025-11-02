@@ -2,6 +2,8 @@
 
 
 
+
+
 export interface Sale {
   id: string;
   customerName: string;
@@ -304,6 +306,9 @@ export interface BrandingSettings {
 
   footerDescription: string;
   footerLinkSections: FooterLinkSection[];
+  aboutUsContent: string;
+  blogContent: string;
+  contactUsContent: string;
 }
 
 export interface IpGeolocationSettings {
@@ -323,9 +328,9 @@ export interface SystemSettings {
   branding: BrandingSettings;
   featureFlags: { [key in ModuleId]?: boolean };
   footerCredits: string;
-  termsUrl: string;
-  privacyUrl: string;
-  refundUrl: string;
+  termsContent: string;
+  privacyContent: string;
+  refundContent: string;
 }
 
 // NEW - Business Profile for Tenant Invoicing
