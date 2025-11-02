@@ -6,7 +6,7 @@
 
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
 import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole } from '../types';
-import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaff } from '../data/mockData';
+import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaffData } from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -105,65 +105,85 @@ const defaultNotificationPrefs: NotificationPrefs = {
 
 export const AppContext = createContext<AppContextType>({} as AppContextType);
 
-const loadMockData = (setters: any) => {
-    setters.setProducts(mockProducts);
-    setters.setSuppliers(mockSuppliers);
-    setters.setPurchaseOrders(mockPurchaseOrders);
-    setters.setStockCounts(mockStockCounts);
-    setters.setBranches(mockBranches);
-    setters.setStaff(mockStaff);
-    setters.setStockTransfers(mockStockTransfers);
-    setters.setInventoryAdjustmentLogs(mockInventoryAdjustmentLogs);
-    setters.setScheduledJobs(mockScheduledJobs);
-    setters.setSettings(mockSettingsData);
-    setters.setTenantSettings(mockTenantSettings);
-    setters.setBlockRules(mockBlockRules);
-    setters.setTenantRoles(mockTenantRoles);
-    setters.setApprovedDevices(mockApprovedDevices);
-    setters.setPendingDevices(mockPendingDevices);
-    setters.setUserSubscription(mockUserSubscription);
-    setters.setSubscriptionPlans(mockPlans);
-    setters.setCustomers(mockCustomers);
-    setters.setTrucks(mockTrucks);
-    setters.setDrivers(mockDrivers);
-    setters.setConsignments(mockConsignments);
-};
+function getInitialState<T>(key: string, defaultValue: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved !== null) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error(`Error parsing localStorage key "${key}":`, error);
+  }
+  // If we reach here, there was no valid saved data. Use default and save it.
+  localStorage.setItem(key, JSON.stringify(defaultValue));
+  return defaultValue;
+}
+
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isMaintenanceMode, setMaintenanceMode] = useState(false);
-  const [maintenanceMessage, setMaintenanceMessage] = useState(
-    "We are currently undergoing scheduled maintenance. We'll be back shortly."
-  );
+  // Use local storage for state persistence
+  const [products, setProducts] = useState<Product[]>(() => getInitialState('flowpay_products', mockProducts));
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => getInitialState('flowpay_suppliers', mockSuppliers));
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => getInitialState('flowpay_purchaseOrders', mockPurchaseOrders));
+  const [stockCounts, setStockCounts] = useState<StockCount[]>(() => getInitialState('flowpay_stockCounts', mockStockCounts));
+  const [branches, setBranches] = useState<Branch[]>(() => getInitialState('flowpay_branches', mockBranches));
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(() => getInitialState('flowpay_stockTransfers', mockStockTransfers));
+  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>(() => getInitialState('flowpay_inventoryAdjustmentLogs', mockInventoryAdjustmentLogs));
+  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>(() => getInitialState('flowpay_scheduledJobs', mockScheduledJobs));
+  const [settings, setSettings] = useState<SystemSettings | null>(() => getInitialState('flowpay_settings', mockSettingsData));
+  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(() => getInitialState('flowpay_tenantSettings', mockTenantSettings));
+  const [blockRules, setBlockRules] = useState<BlockRule[]>(() => getInitialState('flowpay_blockRules', mockBlockRules));
+  const [staff, setStaff] = useState<Staff[]>(() => getInitialState('flowpay_staff', mockStaffData));
+  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>(() => getInitialState('flowpay_tenantRoles', mockTenantRoles));
+  const [approvedDevices, setApprovedDevices] = useState<Device[]>(() => getInitialState('flowpay_approvedDevices', mockApprovedDevices));
+  const [pendingDevices, setPendingDevices] = useState<Device[]>(() => getInitialState('flowpay_pendingDevices', mockPendingDevices));
+  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(() => getInitialState('flowpay_userSubscription', mockUserSubscription));
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>(() => getInitialState('flowpay_subscriptionPlans', mockPlans));
+  const [customers, setCustomers] = useState<Customer[]>(() => getInitialState('flowpay_customers', mockCustomers));
+  const [trucks, setTrucks] = useState<Truck[]>(() => getInitialState('flowpay_trucks', mockTrucks));
+  const [drivers, setDrivers] = useState<Driver[]>(() => getInitialState('flowpay_drivers', mockDrivers));
+  const [consignments, setConsignments] = useState<Consignment[]>(() => getInitialState('flowpay_consignments', mockConsignments));
+
+  const [language, setLanguage] = useState<Language>(() => getInitialState('flowpay_language', 'en'));
+  const [currency, setCurrency] = useState<Currency>(() => getInitialState('flowpay_currency', 'USD'));
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(() => getInitialState('flowpay_notificationPrefs', defaultNotificationPrefs));
+  const [currentBranchId, setCurrentBranchId] = useState<string>(() => getInitialState('flowpay_currentBranchId', 'br_1'));
+  const [isMaintenanceMode, setMaintenanceMode] = useState<boolean>(() => getInitialState('flowpay_isMaintenanceMode', false));
+  const [maintenanceMessage, setMaintenanceMessage] = useState<string>(() => getInitialState('flowpay_maintenanceMessage', "We are currently undergoing scheduled maintenance. We'll be back shortly."));
+
+  // Auto-save to localStorage on change
+  useEffect(() => { localStorage.setItem('flowpay_products', JSON.stringify(products)); }, [products]);
+  useEffect(() => { localStorage.setItem('flowpay_suppliers', JSON.stringify(suppliers)); }, [suppliers]);
+  useEffect(() => { localStorage.setItem('flowpay_purchaseOrders', JSON.stringify(purchaseOrders)); }, [purchaseOrders]);
+  useEffect(() => { localStorage.setItem('flowpay_stockCounts', JSON.stringify(stockCounts)); }, [stockCounts]);
+  useEffect(() => { localStorage.setItem('flowpay_branches', JSON.stringify(branches)); }, [branches]);
+  useEffect(() => { localStorage.setItem('flowpay_stockTransfers', JSON.stringify(stockTransfers)); }, [stockTransfers]);
+  useEffect(() => { localStorage.setItem('flowpay_inventoryAdjustmentLogs', JSON.stringify(inventoryAdjustmentLogs)); }, [inventoryAdjustmentLogs]);
+  useEffect(() => { localStorage.setItem('flowpay_scheduledJobs', JSON.stringify(scheduledJobs)); }, [scheduledJobs]);
+  useEffect(() => { localStorage.setItem('flowpay_settings', JSON.stringify(settings)); }, [settings]);
+  useEffect(() => { localStorage.setItem('flowpay_tenantSettings', JSON.stringify(tenantSettings)); }, [tenantSettings]);
+  useEffect(() => { localStorage.setItem('flowpay_blockRules', JSON.stringify(blockRules)); }, [blockRules]);
+  useEffect(() => { localStorage.setItem('flowpay_staff', JSON.stringify(staff)); }, [staff]);
+  useEffect(() => { localStorage.setItem('flowpay_tenantRoles', JSON.stringify(tenantRoles)); }, [tenantRoles]);
+  useEffect(() => { localStorage.setItem('flowpay_approvedDevices', JSON.stringify(approvedDevices)); }, [approvedDevices]);
+  useEffect(() => { localStorage.setItem('flowpay_pendingDevices', JSON.stringify(pendingDevices)); }, [pendingDevices]);
+  useEffect(() => { localStorage.setItem('flowpay_userSubscription', JSON.stringify(userSubscription)); }, [userSubscription]);
+  useEffect(() => { localStorage.setItem('flowpay_subscriptionPlans', JSON.stringify(subscriptionPlans)); }, [subscriptionPlans]);
+  useEffect(() => { localStorage.setItem('flowpay_customers', JSON.stringify(customers)); }, [customers]);
+  useEffect(() => { localStorage.setItem('flowpay_trucks', JSON.stringify(trucks)); }, [trucks]);
+  useEffect(() => { localStorage.setItem('flowpay_drivers', JSON.stringify(drivers)); }, [drivers]);
+  useEffect(() => { localStorage.setItem('flowpay_consignments', JSON.stringify(consignments)); }, [consignments]);
+  useEffect(() => { localStorage.setItem('flowpay_language', JSON.stringify(language)); }, [language]);
+  useEffect(() => { localStorage.setItem('flowpay_currency', JSON.stringify(currency)); }, [currency]);
+  useEffect(() => { localStorage.setItem('flowpay_notificationPrefs', JSON.stringify(notificationPrefs)); }, [notificationPrefs]);
+  useEffect(() => { localStorage.setItem('flowpay_currentBranchId', JSON.stringify(currentBranchId)); }, [currentBranchId]);
+  useEffect(() => { localStorage.setItem('flowpay_isMaintenanceMode', JSON.stringify(isMaintenanceMode)); }, [isMaintenanceMode]);
+  useEffect(() => { localStorage.setItem('flowpay_maintenanceMessage', JSON.stringify(maintenanceMessage)); }, [maintenanceMessage]);
+  
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState<Language>('en');
-  const [currency, setCurrency] = useState<Currency>('USD');
-  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs);
-  const [currentBranchId, setCurrentBranchId] = useState<string>('br_1');
   
-  // Centralized data states
-  const [products, setProducts] = useState<Product[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [stockCounts, setStockCounts] = useState<StockCount[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>([]);
-  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>([]);
-  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>([]);
-  const [settings, setSettings] = useState<SystemSettings | null>(null);
-  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(null);
-  const [blockRules, setBlockRules] = useState<BlockRule[]>([]);
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>([]);
-  const [approvedDevices, setApprovedDevices] = useState<Device[]>([]);
-  const [pendingDevices, setPendingDevices] = useState<Device[]>([]);
-  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [trucks, setTrucks] = useState<Truck[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [consignments, setConsignments] = useState<Consignment[]>([]);
   const [currentUserPermissions, setCurrentUserPermissions] = useState<Set<TenantPermission>>(new Set());
 
   // Notification State
@@ -174,17 +194,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const initializeApp = async () => {
         setLoading(true);
-        const setters = { setProducts, setSuppliers, setPurchaseOrders, setStockCounts, setBranches, setStaff, setStockTransfers, setInventoryAdjustmentLogs, setScheduledJobs, setSettings, setTenantSettings, setBlockRules, setTenantRoles, setApprovedDevices, setPendingDevices, setUserSubscription, setSubscriptionPlans, setCustomers, setTrucks, setDrivers, setConsignments };
-
         const token = localStorage.getItem('flowpay_token');
         if (token) {
-            // In a real app, you'd verify the token with the backend and get user info.
-            // Here, we'll just re-create a mock session based on a simplified structure.
-            const mockUser: User = { id: 'stf_5', email: 'admin@flowpay.com', name: 'Admin User', role: 'Admin', tenantId: 'tnt_2' };
-            const mockSession: Session = { access_token: token, token_type: 'bearer', user: mockUser };
-            setSession(mockSession);
-            setUser(mockUser);
-            loadMockData(setters);
+            try {
+                const storedUser = localStorage.getItem('flowpay_user');
+                if(storedUser) {
+                    const parsedUser: User = JSON.parse(storedUser);
+                    const mockSession: Session = { access_token: token, token_type: 'bearer', user: parsedUser };
+                    setSession(mockSession);
+                    setUser(parsedUser);
+                } else {
+                    localStorage.removeItem('flowpay_token');
+                }
+            } catch (e) {
+                 console.error("Failed to parse user session from localStorage", e);
+                 localStorage.removeItem('flowpay_token');
+                 localStorage.removeItem('flowpay_user');
+            }
         }
         setLoading(false);
     };
@@ -220,19 +246,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return { data: { session: null }, error };
     }
 
-    let user: User | null = null;
+    let loggedInUser: User | null = null;
     if (email === 'superadmin@flowpay.com') {
-        user = {
+        loggedInUser = {
             id: 'sa_1',
             email: 'superadmin@flowpay.com',
             name: 'Super Admin',
             role: 'super_admin'
         };
     } else {
-        const staffMember = mockStaff.find(s => s.email === email);
+        const staffMember = staff.find(s => s.email === email);
         if (staffMember) {
-            const role = mockTenantRoles.find(r => r.id === staffMember.roleId);
-            user = {
+            const role = tenantRoles.find(r => r.id === staffMember.roleId);
+            loggedInUser = {
                 id: staffMember.id,
                 email: staffMember.email,
                 name: staffMember.name,
@@ -242,32 +268,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
     }
 
-    if (!user) {
+    if (!loggedInUser) {
         const error = new Error("User not found.");
         return { data: { session: null }, error };
     }
     
     const token = `mock_token_${Date.now()}`;
     localStorage.setItem('flowpay_token', token);
+    localStorage.setItem('flowpay_user', JSON.stringify(loggedInUser));
 
-    const session: Session = {
+    const newSession: Session = {
         access_token: token,
         token_type: 'bearer',
-        user: user,
+        user: loggedInUser,
     };
     
-    setSession(session);
-    setUser(user);
+    setSession(newSession);
+    setUser(loggedInUser);
     
-    // After login, load all mock data
-    const setters = { setProducts, setSuppliers, setPurchaseOrders, setStockCounts, setBranches, setStaff, setStockTransfers, setInventoryAdjustmentLogs, setScheduledJobs, setSettings, setTenantSettings, setBlockRules, setTenantRoles, setApprovedDevices, setPendingDevices, setUserSubscription, setSubscriptionPlans, setCustomers, setTrucks, setDrivers, setConsignments };
-    loadMockData(setters);
-
-    return { data: { session: session }, error: null };
-};
+    return { data: { session: newSession }, error: null };
+  };
 
   const logout = async () => {
     localStorage.removeItem('flowpay_token');
+    localStorage.removeItem('flowpay_user');
     setSession(null);
     setUser(null);
   };

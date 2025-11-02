@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link } from 'react-router-dom';
@@ -15,7 +17,7 @@ interface BulkUpdateResults {
 }
 
 const InventoryPage: React.FC = () => {
-    const { products, setProducts, loading, addNotification, branches, currency, currentBranchId, setInventoryAdjustmentLogs } = useAppContext();
+    const { products, setProducts, loading, addNotification, branches, currency, currentBranchId, setInventoryAdjustmentLogs, session } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'inStock' | 'lowStock' | 'outOfStock'>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,6 +108,8 @@ const InventoryPage: React.FC = () => {
     };
     
     const handleSaveStockAdjustment = ({ variantId, newStock, reason }: { variantId: string; newStock: number; reason: string }) => {
+        if (!adjustingStockProduct || !adjustingStockVariant) return;
+
         setProducts(currentProducts => currentProducts.map(p => {
             const variantIndex = p.variants.findIndex(v => v.id === variantId);
             if (variantIndex > -1) {
@@ -113,16 +117,16 @@ const InventoryPage: React.FC = () => {
                 const variant = updatedVariants[variantIndex];
                 const oldStock = variant.stockByBranch[branchFilter] || 0;
                 
-                const newLog = {
+                const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: 'Admin User',
+                    user: session?.user?.name || 'Admin User',
                     branchId: branchFilter,
-                    type: 'Manual Adjustment' as const,
+                    type: 'Manual Adjustment',
                     referenceId: reason,
                     items: [{
-                        productId: p.id,
-                        productName: `${p.name} ${Object.values(variant.options).join(' ')}`.trim(),
+                        productId: adjustingStockProduct.id,
+                        productName: `${adjustingStockProduct.name} ${Object.values(adjustingStockVariant.options).join(' ')}`.trim(),
                         change: newStock - oldStock,
                     }],
                 };

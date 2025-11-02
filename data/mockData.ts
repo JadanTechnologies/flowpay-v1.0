@@ -1,6 +1,3 @@
-
-
-
 import { Sale, Product as InventoryProduct, SalesDataPoint, BranchPerformance, Product, SubscriptionPlan, UserSubscription, PaymentHistory, SystemSettings, Tenant, Driver, Delivery, Branch, Staff, Invoice, Customer, CreditTransaction, TenantSettings, ActivityLog, Supplier, PurchaseOrder, StockCount, StockTransfer, PlatformPayment, Announcement, SuperAdminStaff, SuperAdminRole, EmailSmsTemplate, CronJob, ScheduledJob, InventoryAdjustmentLog, BlockRule, TenantRole, Device, ActiveSubscription, ProductVariant, CartItem, Truck, Consignment } from '../types';
 
 export const salesData: SalesDataPoint[] = [
@@ -207,234 +204,80 @@ export const tenantGrowthData = [
 export const trucks: Truck[] = [
     { id: 'TRUCK-01', licensePlate: 'SG 5123 A', model: 'Scania R-series', capacity: 25000, status: 'On Route' },
     { id: 'TRUCK-02', licensePlate: 'SG 9876 B', model: 'Volvo FH', capacity: 25000, status: 'Idle' },
-    { id: 'VAN-03', licensePlate: 'SG 4321 C', model: 'Mercedes-Benz Sprinter', capacity: 3000, status: 'Idle' },
-    { id: 'VAN-05', licensePlate: 'SG 8888 D', model: 'Ford Transit', capacity: 3500, status: 'Maintenance' },
+];
+
+export const drivers: Driver[] = [
+    { id: 'DRV-01', name: 'John Doe', assignedTruckId: 'TRUCK-01', licenseNumber: 'D1234567', phone: '555-0101', status: 'On Route' },
+    { id: 'DRV-02', name: 'Jane Smith', assignedTruckId: 'TRUCK-02', licenseNumber: 'D7654321', phone: '555-0102', status: 'Idle' },
 ];
 
 export const consignments: Consignment[] = [
-    { 
-        id: 'CON-2024-001', 
-        truckId: 'TRUCK-01', 
-        driverId: 'drv_1', 
-        originBranchId: 'br_1', 
-        destinationAddress: '456 Market St, Gadget Galaxy', 
-        items: [{ variantId: 'v-pos-8', quantity: 20 }, { variantId: 'v-pos-11', quantity: 50 }], 
-        status: 'In Transit', 
-        dispatchDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), 
-        deliveryDate: null 
-    },
-    { 
-        id: 'CON-2024-002', 
-        truckId: 'TRUCK-02', 
-        driverId: 'drv_3', 
-        originBranchId: 'br_2', 
-        destinationAddress: '123 Main St, Anytown', 
-        items: [{ variantId: 'v-pos-4', quantity: 100 }], 
-        status: 'Pending', 
-        dispatchDate: null, 
-        deliveryDate: null 
-    },
-];
-
-// FIX: Changed vehicleId to assignedTruckId to match the Driver type.
-export const drivers: Driver[] = [
-  { id: 'drv_1', name: 'John Doe', assignedTruckId: 'TRUCK-01', status: 'On Route', licenseNumber: 'D12345', phone: '555-0101' },
-  { id: 'drv_2', name: 'Jane Smith', assignedTruckId: 'VAN-03', status: 'Idle', licenseNumber: 'D67890', phone: '555-0102' },
-  { id: 'drv_3', name: 'Mike Ross', assignedTruckId: 'TRUCK-02', status: 'On Break', licenseNumber: 'D11223', phone: '555-0103' },
-  { id: 'drv_4', name: 'Rachel Zane', assignedTruckId: 'VAN-05', status: 'In Shop', licenseNumber: 'D44556', phone: '555-0104' },
+  { 
+    id: 'CON-001', 
+    truckId: 'TRUCK-01',
+    driverId: 'DRV-01',
+    originBranchId: 'br_1',
+    destinationAddress: '123 Customer Ave, Client City',
+    items: [ { variantId: 'v-pos-9', quantity: 10 }, { variantId: 'v-pos-10', quantity: 5 } ],
+    status: 'In Transit',
+    dispatchDate: new Date().toISOString(),
+    deliveryDate: null,
+  },
+  { 
+    id: 'CON-002', 
+    truckId: 'TRUCK-02',
+    driverId: 'DRV-02',
+    originBranchId: 'br_2',
+    destinationAddress: '456 Business Rd, Corporate Town',
+    items: [ { variantId: 'v-pos-2-m', quantity: 20 } ],
+    status: 'Pending',
+    dispatchDate: null,
+    deliveryDate: null,
+  }
 ];
 
 export const deliveries: Delivery[] = [
-  { id: 'del_1', orderId: 'ORD-1024', customerName: 'Innovate Inc.', destination: '123 Tech Ave', driverId: 'drv_1', status: 'In Transit' },
-  { id: 'del_2', orderId: 'ORD-1025', customerName: 'Gadget Galaxy', destination: '456 Market St', driverId: 'drv_1', status: 'Delayed' },
-  { id: 'del_3', orderId: 'ORD-1026', customerName: 'Cornerstone Cafe', destination: '789 Coffee Ln', driverId: 'drv_3', status: 'Pending' },
-  { id: 'del_4', orderId: 'ORD-1021', customerName: 'The Book Nook', destination: '321 Read Blvd', driverId: 'drv_2', status: 'Delivered' },
+    { id: 'DEL-01', orderId: 'ORD-123', customerName: 'Innovate Inc.', destination: '123 Tech Park', driverId: 'DRV-01', status: 'In Transit' },
+    { id: 'DEL-02', orderId: 'ORD-124', customerName: 'Cornerstone Cafe', destination: '456 Coffee Ave', driverId: 'DRV-02', status: 'Pending' },
+    { id: 'DEL-03', orderId: 'ORD-120', customerName: 'Gadget Galaxy', destination: '789 Circuit Board', driverId: 'DRV-01', status: 'Delayed' },
 ];
 
-export const branches: Branch[] = [
-    { id: 'br_1', name: 'Downtown Central', address: '123 Main St, Anytown', phone: '555-1234', managerIds: ['stf_1', 'stf_5'], status: 'active' },
-    { id: 'br_2', name: 'Uptown Square', address: '456 Oak Ave, Anytown', phone: '555-5678', managerIds: ['stf_2'], status: 'active' },
-    { id: 'br_3', name: 'Westside Mall', address: '789 Pine Ln, Anytown', phone: '555-9012', managerIds: ['stf_3'], status: 'inactive' },
-];
-
-export const tenantRoles: TenantRole[] = [
-    { id: 'trole_1', name: 'Admin', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'manage_branches', 'manage_automations', 'view_reports', 'process_returns', 'access_settings', 'manage_logistics', 'manage_invoicing', 'manage_credit', 'view_activity_log'] },
-    { id: 'trole_2', name: 'Manager', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'view_reports', 'process_returns'] },
-    { id: 'trole_3', name: 'Cashier', permissions: ['manage_pos', 'process_returns'] },
-];
-
-export const staff: Staff[] = [
-  { id: 'stf_1', name: 'Bob Williams', email: 'bob@flowpay.com', username: 'bobw', roleId: 'trole_2', branch: 'Downtown Central', status: 'active' },
-  { id: 'stf_2', name: 'Charlie Brown', email: 'charlie@flowpay.com', username: 'charlieb', roleId: 'trole_3', branch: 'Uptown Square', status: 'active' },
-  { id: 'stf_3', name: 'Diana Prince', email: 'diana@flowpay.com', username: 'dianap', roleId: 'trole_3', branch: 'Westside Mall', status: 'on-leave' },
-  { id: 'stf_4', name: 'Alice Johnson', email: 'alice@flowpay.com', username: 'alicej', roleId: 'trole_2', branch: 'Downtown Central', status: 'active' },
-  { id: 'stf_5', name: 'Admin User', email: 'admin@flowpay.com', username: 'admin', roleId: 'trole_1', branch: 'Downtown Central', status: 'active' },
-];
-
-export const customers: Customer[] = [
-    { id: 'cust_1', name: 'Liam Johnson', email: 'liam@example.com', phone: '555-1111', creditBalance: 0 },
-    { id: 'cust_2', name: 'Olivia Smith', email: 'olivia@example.com', phone: '555-2222', creditBalance: 0 },
-    { id: 'cust_3', name: 'Gadget Galaxy', email: 'support@gadgetgalaxy.com', phone: '555-3333', creditBalance: 8.50 },
-    { id: 'cust_4', name: 'Walk-in Customer', creditBalance: 0 },
-];
-
-export const suppliers: Supplier[] = [
-  { id: 'sup_1', name: 'Global Foods Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globalfoods.com', phone: '555-0101', address: '100 Market St', paymentTerms: 'Net 30' },
-  { id: 'sup_2', name: 'Bakery Supplies Co.', contactPerson: 'Tom Adams', email: 'tadams@bakerysupplies.com', phone: '555-0102', address: '200 Flour Rd', paymentTerms: 'Net 15' },
-  { id: 'sup_3', name: 'Fresh Beverages Ltd.', contactPerson: 'Maria Garcia', email: 'maria.g@freshbev.com', phone: '555-0103', address: '300 Aqua Blvd', paymentTerms: 'Due on Receipt' },
-];
-
-export const purchaseOrders: PurchaseOrder[] = [
-  { id: 'PO-2024-001', supplierId: 'sup_1', supplierName: 'Global Foods Inc.', deliveryBranchId: 'br_1', createdDate: '2024-07-15', expectedDate: '2024-07-22', status: 'Received', items: [{ productId: 'v-pos-9', name: 'Sandwich', sku: 'FOD-SND-TRK', quantity: 50, costPrice: 2.50, quantityReceived: 50 }], totalCost: 125.00, notes: 'Urgent restock' },
-  { id: 'PO-2024-002', supplierId: 'sup_2', supplierName: 'Bakery Supplies Co.', deliveryBranchId: 'br_2', createdDate: '2024-07-18', expectedDate: '2024-07-25', status: 'Partial', items: [{ productId: 'v-pos-4', name: 'Croissant', sku: 'PST-CRS-BTR', quantity: 100, costPrice: 0.90, quantityReceived: 50 }], totalCost: 90.00 },
-  { id: 'PO-2024-003', supplierId: 'sup_3', supplierName: 'Fresh Beverages Ltd.', deliveryBranchId: 'br_1', createdDate: '2024-07-20', expectedDate: '2024-07-28', status: 'Pending', items: [{ productId: 'v-pos-7', name: 'Iced Tea', sku: 'DRK-TEA-ICD', quantity: 200, costPrice: 0.50, quantityReceived: 0 }], totalCost: 100.00 },
-];
-
-export const stockCounts: StockCount[] = [
-    { id: 'SC-2024-001', branchId: 'br_1', date: '2024-07-01', status: 'Completed', items: [] },
-    { id: 'SC-2024-002', branchId: 'br_2', date: '2024-07-15', status: 'In Progress', items: [] },
-];
-
-export const stockTransfers: StockTransfer[] = [
-    { id: 'ST-2024-001', fromBranchId: 'br_2', toBranchId: 'br_1', createdDate: '2024-07-10', completedDate: '2024-07-12', status: 'Completed', items: [{ variantId: 'v-pos-2-s', quantity: 10 }] },
-    { id: 'ST-2024-002', fromBranchId: 'br_1', toBranchId: 'br_2', createdDate: '2024-07-20', status: 'In Transit', items: [{ variantId: 'v-pos-1', quantity: 20 }] },
-];
-
-export const inventoryAdjustmentLogs: InventoryAdjustmentLog[] = [
-    { id: 'adj_1', timestamp: '2024-07-22T10:00:00Z', user: 'Admin User', branchId: 'br_1', type: 'Purchase Order Receipt', referenceId: 'PO-2024-001', items: [{ productId: 'pos-9', productName: 'Sandwich', change: 50 }] },
-    { id: 'adj_2', timestamp: '2024-07-21T14:00:00Z', user: 'Admin User', branchId: 'br_1', type: 'Manual Adjustment', items: [{ productId: 'pos-1', productName: 'Espresso', change: -2 }], referenceId: 'Damaged' },
-];
-
-export const scheduledJobs: ScheduledJob[] = [
-  { id: 'job_1', tenantId: 'tnt_2', name: 'Daily Sales Report', taskType: 'email_report', schedule: '0 23 * * *', lastRun: '2024-07-21 23:00:00', nextRun: '2024-07-22 23:00:00', status: 'active', config: { recipientEmail: 'manager@cornerstone.com', reportType: 'daily_sales', attachmentFormat: 'pdf' } },
-  { id: 'job_2', tenantId: 'tnt_2', name: 'Low Stock Alerts', taskType: 'low_stock_alert', schedule: '0 */4 * * *', lastRun: '2024-07-22 08:00:00', nextRun: '2024-07-22 12:00:00', status: 'active', config: { recipientEmail: 'inventory@cornerstone.com' } },
-  { id: 'job_3', tenantId: 'tnt_5', name: 'Weekly Data Backup', taskType: 'data_backup', schedule: '0 2 * * 0', lastRun: '2024-07-21 02:00:00', nextRun: '2024-07-28 02:00:00', status: 'paused', config: { backupLocation: 'google_drive', backupFormat: 'json' } },
-  { id: 'job_4', tenantId: 'tnt_2', name: 'Credit Reminders', taskType: 'credit_reminder', schedule: '0 9 * * 1', lastRun: '2024-07-22 09:00:00', nextRun: '2024-07-29 09:00:00', status: 'active', config: {} },
-];
-
-export const tenantSettings: TenantSettings = {
-    id: 'ts_1',
-    tenantId: 'tnt_2',
-    trackerIntegration: {
-        provider: 'teltonika',
-        enableWeightSensors: true,
-        apiUrl: 'https://api.teltonika.com',
-        apiKey: 'xxxxxxxxxxxxxxxx'
-    },
-    inactivityLogoutTimer: 30,
-    businessProfile: {
-        companyName: 'Cornerstone Cafe',
-        address: '789 Coffee Lane, Anytown, USA',
-        phone: '555-0102',
-        email: 'manager@cornerstone.com',
-        logoUrl: '',
-        taxId: 'VAT-12345'
-    }
-};
-
-export const blockRules: BlockRule[] = [
-    { id: 'br_1', type: 'ip', value: '123.45.67.89', reason: 'Spam activity detected', createdAt: '2024-07-01T10:00:00Z' },
-    { id: 'br_2', type: 'country', value: 'North Korea', reason: 'High-risk region', createdAt: '2024-06-15T10:00:00Z' },
-];
-
-export const approvedDevices: Device[] = [
-    { id: 'dev_1', staffName: 'Admin User', name: 'MacBook Pro', os: 'macOS', browser: 'Chrome', ipAddress: '73.15.22.100', lastLogin: new Date(Date.now() - 3600000).toLocaleString() },
-];
-
-export const pendingDevices: Device[] = [
-    { id: 'dev_2', staffName: 'Charlie Brown', name: 'iPhone 15', os: 'iOS', browser: 'Safari', ipAddress: '208.80.154.224', lastLogin: new Date(Date.now() - 600000).toLocaleString() },
-];
-
-export const invoices: Invoice[] = [
-  { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 2500, status: 'Paid' },
-  { id: 'inv_1002', customerName: 'Gadget Galaxy', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 1200, status: 'Due' },
-  { id: 'inv_1003', customerName: 'The Book Nook', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450, status: 'Overdue' },
-];
-
-export const creditTransactions: CreditTransaction[] = [
-    { id: 'ctx_1', customerId: 'cust_3', date: '2023-10-25', type: 'Sale', amount: 8.50, saleId: 'sale_6' },
-    { id: 'ctx_2', customerId: 'cust_3', date: '2023-10-20', type: 'Payment', amount: -50.00 },
-];
-
-export const activityLogs: ActivityLog[] = [
-  { id: 'log_1', tenantId: 'tnt_2', timestamp: new Date(Date.now() - 300000).toISOString(), user: 'Admin User', userRole: 'Admin', action: 'Login', details: 'User logged in from IP 192.168.1.1', branch: 'Downtown Central' },
-  { id: 'log_2', tenantId: 'tnt_2', timestamp: new Date(Date.now() - 600000).toISOString(), user: 'Charlie Brown', userRole: 'Cashier', action: 'Sale', details: 'Completed sale #sale_2 for $22.50', branch: 'Uptown Square' },
-  { id: 'log_3', tenantId: 'tnt_2', timestamp: new Date(Date.now() - 900000).toISOString(), user: 'Admin User', userRole: 'Admin', action: 'Inventory Adjustment', details: 'Manually adjusted stock for "Espresso" by -2', branch: 'Downtown Central' },
-  { id: 'log_4', tenantId: 'tnt_3', timestamp: new Date(Date.now() - 1200000).toISOString(), user: 'Mike Ross', userRole: 'Manager', action: 'Created PO', details: 'Created Purchase Order #PO-2024-002', branch: 'Uptown Square' },
-];
-
-export const platformPayments: PlatformPayment[] = [
-    { id: 'pay_1', tenantId: 'tnt_1', tenantName: 'Innovate Inc.', amount: 249, plan: 'Premium', gateway: 'stripe', transactionId: 'ch_xxxxxxxxxx', date: '2024-07-15', status: 'Success' },
-    { id: 'pay_2', tenantId: 'tnt_2', tenantName: 'Cornerstone Cafe', amount: 99, plan: 'Pro', gateway: 'paystack', transactionId: 'Txxxxxxxxxx', date: '2024-07-22', status: 'Success' },
-];
-
-export const announcements: Announcement[] = [
-    { id: 'ann_1', title: 'New Feature: Logistics Module!', content: 'We are excited to launch our new Logistics and GPS Tracking module for all Premium plan subscribers.', type: 'success', publishDate: '2024-07-10', status: 'published' },
-    { id: 'ann_2', title: 'Scheduled Maintenance', content: 'We will be undergoing scheduled maintenance on July 30th from 2 AM to 3 AM UTC.', type: 'warning', publishDate: '2024-07-25', status: 'draft' },
-];
-
-export const superAdminRoles: SuperAdminRole[] = [
-  { id: 'sa_role_1', name: 'Owner', permissions: ['manage_tenants', 'manage_billing', 'manage_payments', 'system_settings', 'manage_team', 'view_reports', 'post_announcements'] },
-  { id: 'sa_role_2', name: 'Support', permissions: ['manage_tenants', 'view_reports'] },
-];
-
-export const superAdminStaff: SuperAdminStaff[] = [
-  { id: 'sa_1', name: 'Super Admin', email: 'owner@flowpay.com', roleId: 'sa_role_1', status: 'active' },
-  { id: 'sa_2', name: 'Support Staff', email: 'support@flowpay.com', roleId: 'sa_role_2', status: 'active' },
-];
-
-export const emailSmsTemplates: EmailSmsTemplate[] = [
-    { id: 'tpl_1', name: 'Welcome Email', subject: 'Welcome to FlowPay, {{tenant_name}}!', body: 'Hello {{user_name}},\n\nWelcome to FlowPay!', type: 'email' },
-    { id: 'tpl_2', name: 'Password Reset', subject: 'Reset Your Password', body: 'Click here to reset: {{reset_link}}', type: 'email' },
-    { id: 'tpl_3', name: '2FA Code', body: 'Your FlowPay verification code is: {{2fa_code}}', type: 'sms' },
-];
-
-export const cronJobs: CronJob[] = [
-    { id: 'cron_1', name: 'Subscription Billing', description: 'Processes monthly and yearly subscription renewals.', schedule: '0 1 * * *', lastRun: '2024-07-22 01:00:00', nextRun: '2024-07-23 01:00:00', status: 'OK' },
-    { id: 'cron_2', name: 'Tenant Usage Analytics', description: 'Aggregates tenant activity data for reports.', schedule: '*/30 * * * *', lastRun: '2024-07-22 10:30:00', nextRun: '2024-07-22 11:00:00', status: 'Running' },
-];
-
-
-// Data for Super Admin System Settings
-// FIX: Completed the branding object to match the BrandingSettings type and added the mobileApp object.
+// System Settings
 export const systemSettings: SystemSettings = {
-  id: 1,
-  isMaintenanceMode: false,
-  maintenanceMessage: "We are currently undergoing scheduled maintenance. We'll be back shortly.",
-  inactivityLogoutTimer: 60,
-  paymentGateways: [
-    { id: 'stripe', name: 'Stripe', enabled: true, apiKey: 'pk_live_xxxxxxxxxxxxxxxxxxxxxxxx', secretKey: 'sk_live_xxxxxxxxxxxxxxxxxxxxxxxx', webhookUrl: 'https://api.flowpay.com/webhooks/stripe' },
-    { id: 'paypal', name: 'PayPal', enabled: false, apiKey: 'AYxxxxxxxx-xxxxxxxx', secretKey: 'ELxxxxxxxx-xxxxxxxx', webhookUrl: 'https://api.flowpay.com/webhooks/paypal' },
-    { id: 'paystack', name: 'Paystack', enabled: true, apiKey: 'pk_live_xxxxxxxxxxxxxxxxxxxxxxxx', secretKey: 'sk_live_xxxxxxxxxxxxxxxxxxxxxxxx', webhookUrl: 'https://api.flowpay.com/webhooks/paystack' },
-    { id: 'flutterwave', name: 'Flutterwave', enabled: true, apiKey: 'FLWPUBK_LIVE-xxxxxxxxxxxxxxxx', secretKey: 'FLWSECK_LIVE-xxxxxxxxxxxxxxxx', webhookUrl: 'https://api.flowpay.com/webhooks/flutterwave' },
-    { id: 'monnify', name: 'Monnify', enabled: false, apiKey: '', secretKey: '', webhookUrl: 'https://api.flowpay.com/webhooks/monnify' },
-    { id: 'wise', name: 'Wise', enabled: false, apiKey: '', secretKey: '', webhookUrl: 'https://api.flowpay.com/webhooks/wise' },
-    { id: 'googlepay', name: 'Google Pay', enabled: false, apiKey: '', secretKey: '', webhookUrl: 'https://api.flowpay.com/webhooks/googlepay' },
-    { id: 'payoneer', name: 'Payoneer', enabled: false, apiKey: '', secretKey: '', webhookUrl: 'https://api.flowpay.com/webhooks/payoneer' },
-    { id: '2checkout', name: '2Checkout', enabled: false, apiKey: '', secretKey: '', webhookUrl: 'https://api.flowpay.com/webhooks/2checkout' },
-    { id: 'manual', name: 'Manual/Bank Transfer', enabled: true, apiKey: 'Bank: FlowPay Bank\nAccount: 1234567890\nReference: Your Company Name', secretKey: '', webhookUrl: '' },
-  ],
-  email: {
-    provider: 'smtp',
-    host: 'smtp.mailtrap.io',
-    port: 2525,
-    user: 'smtp_user',
-    pass: 'smtp_pass'
-  },
-  notifications: {
-    twilioSid: 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    twilioToken: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    oneSignalAppId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-    oneSignalApiKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    firebaseServerKey: 'AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-  },
-  ipGeolocation: {
-      provider: 'ip-api',
-  },
-  branding: {
+    id: 1,
+    isMaintenanceMode: false,
+    maintenanceMessage: "We are currently undergoing scheduled maintenance. We'll be back shortly.",
+    inactivityLogoutTimer: 15,
+    paymentGateways: [
+        { id: 'stripe', name: 'Stripe', enabled: true, apiKey: 'pk_test_...', secretKey: 'sk_test_...', webhookUrl: 'https://api.flowpay.com/webhooks/stripe' },
+        { id: 'paypal', name: 'PayPal', enabled: false, apiKey: '...', secretKey: '...', webhookUrl: 'https://api.flowpay.com/webhooks/paypal' },
+        { id: 'paystack', name: 'Paystack', enabled: true, apiKey: 'pk_test_...', secretKey: 'sk_test_...', webhookUrl: 'https://api.flowpay.com/webhooks/paystack' },
+        { id: 'flutterwave', name: 'Flutterwave', enabled: true, apiKey: 'pk_test_...', secretKey: 'sk_test_...', webhookUrl: 'https://api.flowpay.com/webhooks/flutterwave' },
+        { id: 'manual', name: 'Manual / Bank Transfer', enabled: true, apiKey: 'Bank: FlowPay Bank\nAccount: 1234567890\nReference: Your Company Name', secretKey: '', webhookUrl: '' },
+    ],
+    email: {
+        provider: 'resend',
+        apiKey: 're_123456789',
+        host: '',
+        port: 587,
+        user: '',
+        pass: '',
+    },
+    notifications: {
+        twilioSid: 'AC123...',
+        twilioToken: '...',
+        oneSignalAppId: '...',
+        oneSignalApiKey: '...',
+        firebaseServerKey: '...',
+    },
+    ipGeolocation: {
+        provider: 'ip-api',
+        apiKey: '',
+    },
+    branding: {
       platformName: 'FlowPay',
       logoUrl: '',
-      faviconUrl: '',
+      faviconUrl: '/vite.svg',
       landingNavItems: [
         { name: 'Features', href: '#features' },
         { name: 'Pricing', href: '#pricing' },
@@ -442,27 +285,27 @@ export const systemSettings: SystemSettings = {
         { name: 'FAQ', href: '#faq' },
       ],
       signInButtonText: 'Sign In',
-      mainCtaText: 'Start Free Trial',
-      mobileMenuCtaText: 'Get Started',
+      mainCtaText: 'Get Started',
+      mobileMenuCtaText: 'Start Free Trial',
       mobileMenuExistingCustomerText: 'Existing customer?',
       heroTitle: 'The All-In-One <span class="text-primary">POS & Logistics</span> Platform',
       heroSubtitle: 'FlowPay combines Point of Sale, Inventory, Accounting, and GPS Tracking into one seamless, powerful SaaS solution designed for B2B success.',
       heroMainCtaText: 'Start Your 30-Day Free Trial',
       heroSecondaryCtaText: 'Explore Features',
       heroStats: [
-          { value: '10,000+', label: 'Businesses Served' },
-          { value: '$1B+', label: 'Processed Annually' },
-          { value: '4.9/5', label: 'Customer Rating' },
+          { value: '10,000+', label: 'Active Users' },
+          { value: '5M+', label: 'Transactions Processed' },
+          { value: '$50M+', label: 'Managed Revenue' },
       ],
       featuresSectionTitle: 'Everything Your Business Needs',
       featuresSectionSubtitle: "FlowPay is more than just a POS. It's a complete ecosystem to manage and grow your business.",
       features: [
-        { icon: 'ShoppingCart', title: 'Point of Sale', description: 'Intuitive, fast, and reliable POS system for any retail environment.' },
-        { icon: 'Package', title: 'Inventory Management', description: 'Track stock levels across multiple branches in real-time with purchase orders and stock counts.' },
-        { icon: 'BookOpen', title: 'Integrated Accounting', description: 'Automate bookkeeping, manage invoices, and get a clear view of your finances.' },
-        { icon: 'Truck', title: 'Logistics & GPS Tracking', description: 'Optimize delivery routes, track your fleet, and manage drivers effortlessly.' },
-        { icon: 'Users', title: 'Staff & Branch Management', description: 'Control user roles, permissions, and manage multiple business locations seamlessly.' },
-        { icon: 'BarChart', title: 'Advanced Reporting', description: 'Gain actionable insights into your sales, products, and business performance.' },
+        { icon: 'ShoppingCart', title: 'Point of Sale', description: 'Intuitive, fast, and reliable POS for any business. Works online and offline.' },
+        { icon: 'Package', title: 'Inventory Management', description: 'Track stock levels across multiple branches, manage suppliers, and automate purchase orders.' },
+        { icon: 'BookOpen', title: 'Accounting', description: 'Integrated accounting with real-time reporting, invoicing, and expense tracking.' },
+        { icon: 'Truck', title: 'Logistics & GPS', description: 'Manage your fleet, track consignments in real-time, and optimize delivery routes.' },
+        { icon: 'Users', title: 'Multi-Tenant & Staff', description: 'Securely manage multiple business tenants or branches with granular staff permissions.' },
+        { icon: 'BarChart', title: 'Advanced Reporting', description: 'Get actionable insights into your sales, inventory, and financial performance.' },
       ],
       pricingSectionTitle: 'Flexible Pricing for Teams of Any Size',
       pricingSectionSubtitle: 'Choose a plan that fits your needs. All plans start with a 30-day free trial.',
@@ -471,41 +314,212 @@ export const systemSettings: SystemSettings = {
       testimonialsSectionTitle: 'Loved by Businesses Worldwide',
       testimonialsSectionSubtitle: "Don't just take our word for it. Here's what our customers are saying.",
       testimonials: [
-        { quote: 'FlowPay revolutionized our inventory management. What used to take days now takes hours. The real-time tracking is a game-changer for our logistics.', name: 'John Doe', title: 'CEO, Innovate Inc.', avatar: 'https://picsum.photos/seed/john/100' },
-        { quote: "The POS is incredibly easy to use for our staff, and the accounting integration saves us so much time on bookkeeping. Highly recommended!", name: 'Jane Smith', title: 'Owner, Cornerstone Cafe', avatar: 'https://picsum.photos/seed/jane/100' },
-        { quote: "As a multi-branch business, managing everything from a central dashboard has been invaluable. The support team is also top-notch.", name: 'Mike Ross', title: 'Operations Manager, Gadget Galaxy', avatar: 'https://picsum.photos/seed/mike/100' },
+        { quote: "FlowPay revolutionized how we manage our multi-branch retail operations. The inventory management is a lifesaver!", name: 'Sarah L.', title: 'CEO of Innovate Inc.', avatar: 'https://picsum.photos/seed/sarah/100' },
+        { quote: "The ability to track our delivery fleet in real-time alongside our POS data is a game-changer for our B2B operations.", name: 'David C.', title: 'Logistics Manager, Global Logistics', avatar: 'https://picsum.photos/seed/david/100' },
+        { quote: "As a small cafe, the Pro plan was perfect for us. It's affordable, powerful, and incredibly easy to set up.", name: 'Maria G.', title: 'Owner, Cornerstone Cafe', avatar: 'https://picsum.photos/seed/maria/100' },
       ],
       faqSectionTitle: 'Frequently Asked Questions',
       faqSectionSubtitle: "Have questions? We've got answers. If you can't find what you're looking for, feel free to contact us.",
       faqItems: [
-        { question: 'Is there a free trial?', answer: 'Yes! All our plans come with a 30-day free trial, no credit card required. You can explore all the features and decide which plan is right for you.' },
-        { question: 'Can I change my plan later?', answer: 'Absolutely. You can upgrade or downgrade your plan at any time from your billing settings. Changes will be prorated.' },
-        { question: 'Is my data secure?', answer: 'Data security is our top priority. We use industry-standard encryption, regular backups, and robust security measures to protect your information.' },
-        { question: 'Do you offer customer support?', answer: 'Yes, we offer email support on all plans. Our Pro and Premium plans include priority support and dedicated account managers.' },
+        { question: 'Is there a free trial?', answer: 'Yes, all our plans come with a 30-day free trial. No credit card required to get started.' },
+        { question: 'Can I change my plan later?', answer: 'Absolutely! You can upgrade or downgrade your plan at any time from your billing settings.' },
+        { question: 'Does FlowPay work offline?', answer: 'Yes, our POS module has offline capabilities. It will sync your sales data automatically once you reconnect to the internet.' },
+        { question: 'What kind of support do you offer?', answer: 'We offer email support on all plans. Our Premium plan includes dedicated phone support and a personal account manager.' },
       ],
-      mobileAppSectionTitle: 'FlowPay on the Go',
-      mobileAppSectionSubtitle: 'Manage your business from anywhere. Download our mobile app to access key features right from your pocket.',
+      mobileAppSectionTitle: 'Manage Your Business On The Go',
+      mobileAppSectionSubtitle: 'Our mobile app for iOS and Android lets you view sales, manage inventory, and track your fleet from anywhere.',
       footerDescription: 'The ultimate SaaS platform for POS, Inventory, and Logistics management.',
       footerLinkSections: [
-          { title: 'Product', links: [{ name: 'Features', href: '#features' }, { name: 'Pricing', href: '#pricing' }, { name: 'Integrations', href: '#' }] },
-          { title: 'Company', links: [{ name: 'About Us', href: '#' }, { name: 'Careers', href: '#' }, { name: 'Contact Us', href: '#' }] },
-      ]
-  },
-  featureFlags: {
-    dashboard: true,
-    pos: true,
-    inventory: true,
-    logistics: true,
-    branches: true,
-    staff: true,
-    automations: true,
-    invoicing: true,
-    credit_management: true,
-    activityLog: true,
-    reports: true,
-  },
-  footerCredits: `© ${new Date().getFullYear()} FlowPay Inc. All rights reserved.`,
-  termsUrl: '#',
-  privacyUrl: '#',
-  refundUrl: '#'
+         {
+            title: 'Product',
+            links: [
+                { name: 'Features', href: '#features' },
+                { name: 'Pricing', href: '#pricing' },
+                { name: 'Integrations', href: '#' },
+                { name: 'API Status', href: '#' },
+            ]
+        },
+        {
+            title: 'Company',
+            links: [
+                { name: 'About Us', href: '#' },
+                { name: 'Careers', href: '#' },
+                { name: 'Blog', href: '#' },
+                { name: 'Contact Us', href: '#' },
+            ]
+        },
+      ],
+    },
+    featureFlags: {
+        'dashboard': true,
+        'pos': true,
+        'inventory': true,
+        'logistics': true,
+        'branches': true,
+        'staff': true,
+        'automations': true,
+        'invoicing': true,
+        'credit_management': true,
+        'activityLog': true,
+        'reports': true,
+    },
+    footerCredits: '© 2024 FlowPay Inc. All rights reserved.',
+    termsUrl: '#',
+    privacyUrl: '#',
+    refundUrl: '#',
 };
+
+// Tenant-specific settings
+export const tenantSettings: TenantSettings = {
+    id: 'ts_1',
+    tenantId: 'tnt_1',
+    trackerIntegration: {
+        provider: 'teltonika',
+        enableWeightSensors: true,
+        apiUrl: 'https://api.teltonika.com',
+        apiKey: '...',
+    },
+    businessProfile: {
+      companyName: 'Cornerstone Cafe',
+      address: '456 Coffee Ave, Flavor Town',
+      phone: '555-0102',
+      email: 'manager@cornerstone.com',
+      logoUrl: 'https://picsum.photos/seed/logo/200/80',
+      taxId: 'VAT-12345678',
+    }
+};
+
+// Tenant Data
+export const branches: Branch[] = [
+    { id: 'br_1', name: 'Downtown Central', address: '123 Main St', phone: '555-1234', managerIds: ['stf_2'], status: 'active' },
+    { id: 'br_2', name: 'Uptown Square', address: '456 Oak Ave', phone: '555-5678', managerIds: ['stf_3'], status: 'active' },
+    { id: 'br_3', name: 'Westside Mall', address: '789 Pine Ln', phone: '555-9012', managerIds: [], status: 'inactive' },
+];
+
+export const staff: Staff[] = [
+  { id: 'stf_1', name: 'Jadan Admin', email: 'tenantadmin@jadan.com', username: 'jadanadmin', roleId: 'role_admin', branch: 'Downtown Central', status: 'active' },
+  { id: 'stf_2', name: 'Jadan Manager', email: 'manager@jadan.com', username: 'jadanmanager', roleId: 'role_manager', branch: 'Downtown Central', status: 'active' },
+  { id: 'stf_3', name: 'Jadan Accountant', email: 'accountant@jadan.com', username: 'jadanaccountant', roleId: 'role_accountant', branch: 'Downtown Central', status: 'active' },
+  { id: 'stf_4', name: 'Jadan Cashier', email: 'cashier@jadan.com', username: 'jadancashier', roleId: 'role_cashier', branch: 'Downtown Central', status: 'active' },
+  { id: 'stf_5', name: 'Alice Johnson', email: 'alice@flowpay.com', username: 'alicej', roleId: 'role_cashier', branch: 'Uptown Square', status: 'on-leave' },
+];
+
+export const tenantRoles: TenantRole[] = [
+    { id: 'role_admin', name: 'Admin', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'manage_branches', 'view_reports', 'access_settings', 'manage_logistics', 'manage_invoicing', 'manage_credit', 'view_activity_log', 'manage_automations'] },
+    { id: 'role_manager', name: 'Manager', permissions: ['manage_pos', 'manage_inventory', 'view_reports', 'process_returns'] },
+    { id: 'role_accountant', name: 'Accountant', permissions: ['view_reports', 'manage_invoicing', 'manage_credit', 'view_activity_log'] },
+    { id: 'role_cashier', name: 'Cashier', permissions: ['manage_pos', 'process_returns'] },
+];
+
+export const invoices: Invoice[] = [
+    { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid' },
+    { id: 'inv_1002', customerName: 'Local Blooms', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 750.50, status: 'Due' },
+    { id: 'inv_1003', customerName: 'Gadget Galaxy', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450.00, status: 'Overdue' },
+];
+
+export const customers: Customer[] = [
+    { id: 'cust_1', name: 'Innovate Inc.', email: 'accounts@innovate.com', phone: '555-1111', creditBalance: 0 },
+    { id: 'cust_2', name: 'Local Blooms', email: 'flowers@localblooms.com', phone: '555-2222', creditBalance: 0 },
+    { id: 'cust_3', name: 'Gadget Galaxy', email: 'support@gadgetgalaxy.com', phone: '555-3333', creditBalance: 8.50 },
+    { id: 'cust_4', name: 'Walk-in Customer', creditBalance: 0 },
+];
+
+export const creditTransactions: CreditTransaction[] = [
+    { id: 'ctx_1', customerId: 'cust_3', date: '2023-10-25', type: 'Sale', amount: 8.50, saleId: 'sale_6' },
+];
+
+export const activityLogs: ActivityLog[] = [
+    { id: 'log_1', tenantId: 'tnt_2', timestamp: '2023-10-26T10:30:00Z', user: 'Bob Williams', userRole: 'Manager', action: 'Completed Sale', details: 'Sale ID: sale_1, Amount: $6.00', branch: 'Downtown Central' },
+    { id: 'log_2', tenantId: 'tnt_2', timestamp: '2023-10-26T09:05:00Z', user: 'Admin User', userRole: 'Admin', action: 'Updated Product', details: 'Product: Latte, Price changed to $3.50', branch: 'Downtown Central' },
+    { id: 'log_3', tenantId: 'tnt_2', timestamp: '2023-10-25T14:02:00Z', user: 'Bob Williams', userRole: 'Manager', action: 'Processed Refund', details: 'Sale ID: sale_5, Amount: $2.75', branch: 'Downtown Central' },
+    { id: 'log_4', tenantId: 'tnt_3', timestamp: '2023-10-25T18:05:00Z', user: 'Alice Johnson', userRole: 'Cashier', action: 'Sale on Credit', details: 'Sale ID: sale_6, Amount: $8.50 to Gadget Galaxy', branch: 'Downtown Central' },
+];
+
+export const inventoryAdjustmentLogs: InventoryAdjustmentLog[] = [
+  { id: 'adj_1', timestamp: new Date().toISOString(), user: 'Admin User', branchId: 'br_1', type: 'Manual Adjustment', referenceId: 'Damaged Goods', items: [{ productId: 'pos-2', productName: 'Latte', change: -2 }] },
+  { id: 'adj_2', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), user: 'System', branchId: 'br_2', type: 'Purchase Order Receipt', referenceId: 'PO-2023-001', items: [{ productId: 'pos-1', productName: 'Espresso', change: 50 }] },
+  { id: 'adj_3', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), user: 'Charlie Brown', branchId: 'br_2', type: 'Sale Return', referenceId: 'sale_5', items: [{ productId: 'pos-4', productName: 'Croissant', change: 1 }] },
+];
+
+
+// Inventory Sub-modules
+export const suppliers: Supplier[] = [
+  { id: 'sup_1', name: 'Global Coffee Co.', contactPerson: 'John Bean', email: 'sales@globalcoffee.com', phone: '555-1001', address: '1 Coffee Way', paymentTerms: 'Net 30' },
+  { id: 'sup_2', name: 'Fresh Pastries Inc.', contactPerson: 'Jane Dough', email: 'orders@freshpastries.com', phone: '555-1002', address: '2 Bakery Lane', paymentTerms: 'Due on Receipt' },
+  { id: 'sup_3', name: 'Pure Beverages Ltd.', contactPerson: 'Sam Water', email: 'contact@purebev.com', phone: '555-1003', address: '3 Aqua Drive', paymentTerms: 'Net 15' },
+];
+
+export const purchaseOrders: PurchaseOrder[] = [
+    { id: 'PO-2023-001', supplierId: 'sup_1', supplierName: 'Global Coffee Co.', deliveryBranchId: 'br_1', createdDate: '2023-10-15', expectedDate: '2023-10-25', status: 'Received', items: [{ productId: 'v-pos-1', name: 'Espresso', sku: 'COF-ESP-SGL', quantity: 100, costPrice: 1.10, quantityReceived: 100 }], totalCost: 110.00 },
+    { id: 'PO-2023-002', supplierId: 'sup_2', supplierName: 'Fresh Pastries Inc.', deliveryBranchId: 'br_2', createdDate: '2023-10-20', expectedDate: '2023-10-28', status: 'Partial', items: [{ productId: 'v-pos-4', name: 'Croissant', sku: 'PST-CRS-BTR', quantity: 50, costPrice: 0.85, quantityReceived: 25 }], totalCost: 42.50 },
+    { id: 'PO-2023-003', supplierId: 'sup_1', supplierName: 'Global Coffee Co.', deliveryBranchId: 'br_1', createdDate: '2023-10-26', expectedDate: '2023-11-05', status: 'Pending', items: [{ productId: 'v-pos-2-m', name: 'Latte - Medium', sku: 'COF-LAT-MED', quantity: 50, costPrice: 1.60 }], totalCost: 80.00 },
+];
+
+export const stockCounts: StockCount[] = [
+    { id: 'SC-2023-001', branchId: 'br_1', date: '2023-09-30', status: 'Completed', items: [{ productId: 'pos-1', productName: 'Espresso', sku: 'COF-ESP-SGL', expectedQuantity: 105, countedQuantity: 102 }] },
+    { id: 'SC-2023-002', branchId: 'br_2', date: '2023-10-25', status: 'In Progress', items: [{ productId: 'pos-4', productName: 'Croissant', sku: 'PST-CRS-BTR', expectedQuantity: 30, countedQuantity: null }] },
+];
+
+export const stockTransfers: StockTransfer[] = [
+  { id: 'ST-001', fromBranchId: 'br_1', toBranchId: 'br_2', createdDate: '2023-10-22', completedDate: '2023-10-24', status: 'Completed', items: [{ variantId: 'v-pos-1', quantity: 10 }] },
+  { id: 'ST-002', fromBranchId: 'br_2', toBranchId: 'br_3', createdDate: '2023-10-25', status: 'In Transit', items: [{ variantId: 'v-pos-5', quantity: 20 }] },
+];
+
+// SUPER ADMIN - Platform Management
+export const platformPayments: PlatformPayment[] = [
+    { id: 'pay_1', tenantId: 'tnt_1', tenantName: 'Innovate Inc.', amount: 249, plan: 'Premium', gateway: 'stripe', transactionId: 'ch_123...', date: '2023-10-15', status: 'Success' },
+    { id: 'pay_2', tenantId: 'tnt_2', tenantName: 'Cornerstone Cafe', amount: 99, plan: 'Pro', gateway: 'paystack', transactionId: 'ps_456...', date: '2023-10-22', status: 'Success' },
+    { id: 'pay_3', tenantId: 'tnt_3', tenantName: 'Gadget Galaxy', amount: 99, plan: 'Pro', gateway: 'stripe', transactionId: 'ch_789...', date: '2023-10-10', status: 'Failed' },
+];
+
+export const announcements: Announcement[] = [
+    { id: 'ann_1', title: 'New Feature: Logistics Module', content: 'We are excited to launch our new Logistics module with GPS tracking!', type: 'success', publishDate: '2023-10-20', status: 'published' },
+    { id: 'ann_2', title: 'Scheduled Maintenance', content: 'We will be undergoing scheduled maintenance on Oct 30th from 2-3 AM UTC.', type: 'warning', publishDate: '2023-10-25', status: 'published' },
+    { id: 'ann_3', title: 'Q4 Updates Draft', content: 'This is a draft for the upcoming Q4 feature roundup.', type: 'info', publishDate: '2023-11-01', status: 'draft' },
+];
+
+export const superAdminStaff: SuperAdminStaff[] = [
+    { id: 'sa_1', name: 'Super Admin', email: 'owner@flowpay.com', roleId: 'sa_role_1', status: 'active' },
+    { id: 'sa_2', name: 'Support Lead', email: 'support@flowpay.com', roleId: 'sa_role_2', status: 'active' },
+];
+
+export const superAdminRoles: SuperAdminRole[] = [
+    { id: 'sa_role_1', name: 'Platform Owner', permissions: ['manage_tenants', 'manage_billing', 'manage_payments', 'system_settings', 'manage_team', 'view_reports', 'post_announcements'] },
+    { id: 'sa_role_2', name: 'Support', permissions: ['manage_tenants', 'view_reports'] },
+];
+
+export const emailSmsTemplates: EmailSmsTemplate[] = [
+    { id: 'tmpl_1', name: 'Welcome Email', subject: 'Welcome to FlowPay, {{tenant_name}}!', body: 'Hello {{user_name}},\n\nWelcome aboard! Your account is ready.', type: 'email' },
+    { id: 'tmpl_2', name: 'Password Reset', subject: 'Reset Your FlowPay Password', body: 'Click here to reset: {{reset_link}}', type: 'email' },
+    { id: 'tmpl_3', name: '2FA Code', body: 'Your FlowPay verification code is: {{2fa_code}}', type: 'sms' },
+];
+
+export const cronJobs: CronJob[] = [
+    { id: 'job_billing', name: 'Process Subscriptions', description: 'Handles recurring billing for all active tenants.', schedule: '0 0 * * *', lastRun: '2023-10-26 00:00:00', nextRun: '2023-10-27 00:00:00', status: 'OK' },
+    { id: 'job_backups', name: 'Database Backup', description: 'Performs a full backup of the platform database.', schedule: '0 2 * * *', lastRun: '2023-10-26 02:00:00', nextRun: '2023-10-27 02:00:00', status: 'OK' },
+    { id: 'job_reports', name: 'Generate Analytics', description: 'Aggregates daily analytics and reports.', schedule: '0 * * * *', lastRun: '2023-10-26 10:00:00', nextRun: '2023-10-26 11:00:00', status: 'Running' },
+];
+
+// TENANT - Automations
+export const scheduledJobs: ScheduledJob[] = [
+    { id: 'job_1', tenantId: 'tnt_2', name: 'Daily Sales Email', taskType: 'email_report', schedule: '0 21 * * *', lastRun: '2023-10-25 21:00:00', nextRun: '2023-10-26 21:00:00', status: 'active', config: { recipientEmail: 'manager@cornerstone.com', reportType: 'daily_sales', attachmentFormat: 'pdf' } },
+    { id: 'job_2', tenantId: 'tnt_2', name: 'Weekly Inventory Summary', taskType: 'email_report', schedule: '0 2 * * 0', lastRun: '2023-10-22 02:00:00', nextRun: '2023-10-29 02:00:00', status: 'paused', config: { recipientEmail: 'admin@flowpay.com', reportType: 'inventory_summary', attachmentFormat: 'csv' } },
+    { id: 'job_3', tenantId: 'tnt_1', name: 'Hourly Low Stock Check', taskType: 'low_stock_alert', schedule: '0 * * * *', lastRun: '2023-10-26 10:00:00', nextRun: '2023-10-26 11:00:00', status: 'active', config: { recipientEmail: 'ops@innovate.com' } },
+    { id: 'job_4', tenantId: 'tnt_2', name: 'Monthly Credit Reminders', taskType: 'credit_reminder', schedule: '0 9 25 * *', lastRun: '2023-09-25 09:00:00', nextRun: '2023-10-25 09:00:00', status: 'active', config: {} },
+];
+
+// SUPER ADMIN - Access Control
+export const blockRules: BlockRule[] = [
+    { id: 'br_1', type: 'ip', value: '123.45.67.89', reason: 'Spam activity detected', createdAt: '2023-10-20T10:00:00Z' },
+    { id: 'br_2', type: 'country', value: 'North Korea', reason: 'Sanctions', createdAt: '2023-01-01T10:00:00Z' },
+];
+
+// TENANT - Device Access Control
+export const approvedDevices: Device[] = [
+    { id: 'dev_1', staffName: 'Admin User', name: 'Admin-Desktop', os: 'macOS', browser: 'Chrome', ipAddress: '73.22.101.50', lastLogin: '2023-10-26 10:00 AM' },
+    { id: 'dev_2', staffName: 'Bob Williams', name: 'Bobs-iPhone', os: 'iOS 17', browser: 'Safari', ipAddress: '192.168.1.10', lastLogin: '2023-10-26 09:30 AM' },
+];
+
+export const pendingDevices: Device[] = [
+    { id: 'dev_3', staffName: 'Charlie Brown', name: 'Galaxy S23', os: 'Android 14', browser: 'Chrome', ipAddress: '98.12.34.56', lastLogin: '2023-10-26 11:00 AM' },
+];
