@@ -3,29 +3,35 @@ import { Upload } from 'lucide-react';
 import { useAppContext, Language, Currency } from '../../contexts/AppContext';
 
 const ProfilePage: React.FC = () => {
-    const { currency, setCurrency, language, setLanguage, addNotification } = useAppContext();
+    const { currency, setCurrency, language, setLanguage, addNotification, tenantSettings, setTenantSettings } = useAppContext();
     const [profile, setProfile] = useState({
         fullName: 'Admin User',
         email: 'admin@flowpay.com',
         avatar: 'https://picsum.photos/seed/user/100/100',
     });
-    const [company, setCompany] = useState({
-        name: 'FlowPay Demo Inc.',
-        address: '123 Tech Street, Silicon Valley, CA 94000',
+    const [businessProfile, setBusinessProfile] = useState(tenantSettings?.businessProfile || {
+        companyName: '',
+        address: '',
+        phone: '',
+        email: '',
+        logoUrl: '',
+        taxId: ''
     });
 
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setProfile({ ...profile, [e.target.name]: e.target.value });
     };
 
-    const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCompany({ ...company, [e.target.name]: e.target.value });
+    const handleBusinessProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setBusinessProfile({ ...businessProfile, [e.target.name]: e.target.value });
     };
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, you'd make an API call here.
-        addNotification({ message: 'Profile updated successfully!', type: 'success' });
+        if (tenantSettings) {
+            setTenantSettings({ ...tenantSettings, businessProfile });
+        }
+        addNotification({ message: 'Profile and business details updated successfully!', type: 'success' });
     }
 
   return (
@@ -33,7 +39,7 @@ const ProfilePage: React.FC = () => {
       {/* Profile Section */}
       <div>
         <h2 className="text-xl font-bold text-text-primary mb-1">Profile</h2>
-        <p className="text-sm text-text-secondary mb-6">This information will be displayed publicly so be careful what you share.</p>
+        <p className="text-sm text-text-secondary mb-6">This information is for your user account.</p>
         <div className="flex items-center gap-6">
             <img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" />
             <div className="relative">
@@ -53,18 +59,34 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Company Section */}
+      {/* Business Profile Section */}
       <div className="pt-8">
-         <h2 className="text-xl font-bold text-text-primary mb-1">Company Information</h2>
-        <p className="text-sm text-text-secondary mb-6">Update your company's details.</p>
+         <h2 className="text-xl font-bold text-text-primary mb-1">Business & Invoice Details</h2>
+        <p className="text-sm text-text-secondary mb-6">This information will appear on your receipts and invoices.</p>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label htmlFor="companyName" className="block text-sm font-medium text-text-secondary mb-1">Company Name</label>
-                <input type="text" name="name" id="companyName" value={company.name} onChange={handleCompanyChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                <input type="text" name="companyName" id="companyName" value={businessProfile.companyName} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
             </div>
              <div>
-                <label htmlFor="companyAddress" className="block text-sm font-medium text-text-secondary mb-1">Address</label>
-                <input type="text" name="address" id="companyAddress" value={company.address} onChange={handleCompanyChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                <label htmlFor="taxId" className="block text-sm font-medium text-text-secondary mb-1">Tax ID / VAT Number</label>
+                <input type="text" name="taxId" id="taxId" value={businessProfile.taxId} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+            </div>
+             <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-text-secondary mb-1">Public Phone</label>
+                <input type="text" name="phone" id="phone" value={businessProfile.phone} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+            </div>
+             <div>
+                <label htmlFor="businessEmail" className="block text-sm font-medium text-text-secondary mb-1">Public Email</label>
+                <input type="email" name="email" id="businessEmail" value={businessProfile.email} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+            </div>
+             <div className="md:col-span-2">
+                <label htmlFor="address" className="block text-sm font-medium text-text-secondary mb-1">Company Address</label>
+                <input type="text" name="address" id="address" value={businessProfile.address} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+            </div>
+             <div className="md:col-span-2">
+                <label htmlFor="logoUrl" className="block text-sm font-medium text-text-secondary mb-1">Logo URL</label>
+                <input type="text" name="logoUrl" id="logoUrl" value={businessProfile.logoUrl} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
             </div>
         </div>
       </div>

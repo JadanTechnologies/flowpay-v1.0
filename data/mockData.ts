@@ -321,6 +321,14 @@ export const tenantSettings: TenantSettings = {
         apiKey: 'xxxxxxxxxxxxxxxx'
     },
     inactivityLogoutTimer: 30,
+    businessProfile: {
+        companyName: 'Cornerstone Cafe',
+        address: '789 Coffee Lane, Anytown, USA',
+        phone: '555-0102',
+        email: 'manager@cornerstone.com',
+        logoUrl: '',
+        taxId: 'VAT-12345'
+    }
 };
 
 export const blockRules: BlockRule[] = [

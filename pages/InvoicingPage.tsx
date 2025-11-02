@@ -6,7 +6,8 @@ import DashboardCard from '../components/dashboard/DashboardCard';
 import Modal from '../components/ui/Modal';
 import { invoices as mockInvoices } from '../data/mockData';
 import { useAppContext } from '../contexts/AppContext';
-import { formatCurrency } from '../utils/formatting';
+import { formatCurrency } from '../../utils/formatting';
+import InvoiceViewModal from '../components/invoicing/InvoiceViewModal';
 
 
 const getStatusBadge = (status: Invoice['status']) => {
@@ -22,6 +23,7 @@ const InvoicingPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
     const { currency } = useAppContext();
+    const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
 
     const totalOutstanding = invoices.filter(i => i.status === 'Due' || i.status === 'Overdue').reduce((sum, i) => sum + i.amount, 0);
     const totalOverdue = invoices.filter(i => i.status === 'Overdue').reduce((sum, i) => sum + i.amount, 0);
@@ -94,7 +96,7 @@ const InvoicingPage: React.FC = () => {
                 <div className="group relative text-right">
                     <button className="p-1.5 rounded-md hover:bg-border"><MoreVertical size={16} /></button>
                     <div className="absolute right-0 mt-1 w-40 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">
-                        <button onClick={() => alert(`Viewing invoice ${row.id}`)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-background"><Eye size={14} /> View Invoice</button>
+                        <button onClick={() => setViewingInvoice(row)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-background"><Eye size={14} /> View Invoice</button>
                         {row.status !== 'Paid' && <button onClick={() => handleMarkAsPaid(row.id)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-background"><CheckCircle size={14} /> Mark as Paid</button>}
                         <button onClick={() => handleDelete(row.id)} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-background"><Trash2 size={14} /> Delete</button>
                     </div>
@@ -128,6 +130,13 @@ const InvoicingPage: React.FC = () => {
             </div>
 
             {isModalOpen && <InvoiceFormModal invoice={editingInvoice} onSave={handleSaveInvoice} onClose={() => setIsModalOpen(false)} />}
+            
+            {viewingInvoice && (
+                <InvoiceViewModal 
+                    invoice={viewingInvoice}
+                    onClose={() => setViewingInvoice(null)}
+                />
+            )}
         </div>
     );
 };

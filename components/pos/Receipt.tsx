@@ -1,14 +1,15 @@
 import React from 'react';
-import { Sale } from '../../types';
+import { Sale, BusinessProfile } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
 import { Zap } from 'lucide-react';
 
 interface ReceiptProps {
   sale: Sale;
   isPreview?: boolean;
+  businessProfile?: BusinessProfile;
 }
 
-const Receipt: React.FC<ReceiptProps> = ({ sale, isPreview = false }) => {
+const Receipt: React.FC<ReceiptProps> = ({ sale, isPreview = false, businessProfile }) => {
   const subtotal = sale.items.reduce((sum, item) => {
     const itemTotal = item.price * item.quantity;
     const itemDiscount = item.discount || 0;
@@ -19,13 +20,13 @@ const Receipt: React.FC<ReceiptProps> = ({ sale, isPreview = false }) => {
   return (
     <div className={!isPreview ? 'print-receipt bg-white text-black font-mono w-[80mm] p-[10px]' : 'bg-white text-black font-mono p-4'}>
       <div className="text-center">
+        {businessProfile?.logoUrl && <img src={businessProfile.logoUrl} alt="logo" className="h-12 mx-auto mb-2" />}
         <div className="flex justify-center items-center gap-2 mb-2">
-            <Zap className="text-black" size={20} />
-            <h1 className="text-xl font-bold">FlowPay Inc.</h1>
+            {!businessProfile?.logoUrl && <Zap className="text-black" size={20} />}
+            <h1 className="text-xl font-bold">{businessProfile?.companyName || 'FlowPay Inc.'}</h1>
         </div>
-        <p className="text-xs">123 Tech Street, Silicon Valley, CA</p>
-        <p className="text-xs">www.flowpay.com</p>
-        <p className="text-xs">Tel: 555-123-4567</p>
+        <p className="text-xs">{businessProfile?.address || '123 Tech Street, Silicon Valley, CA'}</p>
+        <p className="text-xs">{businessProfile?.phone || 'Tel: 555-123-4567'}</p>
       </div>
 
       <div className="border-t border-b border-dashed border-black my-3 py-1 text-xs">

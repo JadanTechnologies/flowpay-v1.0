@@ -353,11 +353,22 @@ export interface SystemSettings {
   isSupabaseConfigured?: boolean;
 }
 
+// NEW - Business Profile for Tenant Invoicing
+export interface BusinessProfile {
+    companyName: string;
+    address: string;
+    phone: string;
+    email: string;
+    logoUrl?: string;
+    taxId?: string;
+}
+
 export interface TenantSettings {
     id: string;
     tenantId: string;
     trackerIntegration: TrackerIntegrationSettings;
     inactivityLogoutTimer?: number; // Tenant-specific override in minutes
+    businessProfile: BusinessProfile;
 }
 
 // Branch Type
@@ -591,7 +602,7 @@ export type Permission =
   | 'manage_payments'
   | 'system_settings' 
   | 'manage_team'
-  | 'view_reports'
+  | 'view_reports' 
   | 'post_announcements';
 
 export interface SuperAdminRole {

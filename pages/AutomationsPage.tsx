@@ -85,31 +85,27 @@ const AutomationsPage: React.FC = () => {
                     const totalProducts = products.length;
                     // FIX: Correctly calculate stock from variants.
                     const lowStockItemsCount = products.filter(p => {
-                        // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                        // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
-                        const totalStock = p.variants.reduce((sum: number, v) => sum + Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0), 0);
+                        // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
+                        const totalStock = p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0);
                         const lowStockThreshold = p.variants[0]?.lowStockThreshold || 0; // Simplified threshold
                         return totalStock > 0 && totalStock <= lowStockThreshold;
                     }).length;
-                    // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                    // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
-                    const outOfStockItemsCount = products.filter(p => p.variants.reduce((sum: number, v) => sum + Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0), 0) <= 0).length;
+                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
+                    const outOfStockItemsCount = products.filter(p => p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0) <= 0).length;
                     executionMessage = `Email Report Sent to ${job.config.recipientEmail} as a .${attachmentFormat.toUpperCase()} file.\n\nReport Type: Inventory Summary\nTotal Products: ${totalProducts}\nItems with Low Stock: ${lowStockItemsCount}\nItems Out of Stock: ${outOfStockItemsCount}`;
                 }
                 break;
             case 'low_stock_alert':
                 // FIX: Correctly calculate stock from variants.
                 const lowStockProducts = products.filter(p => {
-                    // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                    // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
-                    const totalStock = p.variants.reduce((sum: number, v) => sum + Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0), 0);
+                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
+                    const totalStock = p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0);
                     const lowStockThreshold = p.variants[0]?.lowStockThreshold || 0; // Simplified threshold
                     return totalStock > 0 && totalStock <= lowStockThreshold;
                 });
                 if (lowStockProducts.length > 0) {
-                    // FIX: Correctly calculate total stock for display.
-                    // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
-                    const productDetails = lowStockProducts.map(p => `${p.name} (Stock: ${p.variants.reduce((sum: number, v) => sum + Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0), 0)})`).join('\n - ');
+                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
+                    const productDetails = lowStockProducts.map(p => `${p.name} (Stock: ${p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0)})`).join('\n - ');
                     executionMessage = `Low Stock Alert Sent to ${job.config.recipientEmail}.\n\nItems needing attention:\n - ${productDetails}`;
                 } else {
                     executionMessage = `Low stock check ran. No items are currently low on stock.`;
@@ -127,9 +123,8 @@ const AutomationsPage: React.FC = () => {
                         p.variants.map(v => {
                             const variantName = Object.values(v.options).join(' ');
                             const displayName = variantName ? `${p.name} - ${variantName}` : p.name;
-                            // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                            // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
-                            const totalStock = Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0);
+                            // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
+                            const totalStock = Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0);
                             return `${v.sku},"${displayName}",${v.price},${totalStock}`;
                         })
                     ).join('\n');

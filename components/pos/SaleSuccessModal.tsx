@@ -12,7 +12,7 @@ interface SaleSuccessModalProps {
 }
 
 const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({ sale, onNewSale, onPrint }) => {
-    const { currency } = useAppContext();
+    const { currency, tenantSettings } = useAppContext();
     const totalPaidByTender = sale.payments.filter(p => p.method !== 'Credit').reduce((sum, p) => sum + p.amount, 0);
     const changeDue = totalPaidByTender > sale.amount ? totalPaidByTender - sale.amount : 0;
     
@@ -50,7 +50,7 @@ const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({ sale, onNewSale, on
                 </div>
 
                 <div className="px-6 h-64 bg-gray-200 overflow-y-auto">
-                    <Receipt sale={sale} isPreview={true} />
+                    <Receipt sale={sale} isPreview={true} businessProfile={tenantSettings?.businessProfile} />
                 </div>
                 
                 <div className="p-4 bg-background rounded-b-xl flex justify-between gap-2">
