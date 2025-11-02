@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowPay - B2B SaaS Platform</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#111827" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'primary': '#007A7A',
+              'primary-dark': '#005C5C',
+              'secondary': '#FFB800',
+              'background': '#111827',
+              'surface': '#1F2937',
+              'text-primary': '#F9FAFB',
+              'text-secondary': '#9CA3AF',
+              'border': '#374151',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
+            },
+          },
+        },
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/clsx@1.2.1/dist/clsx.min.js"></script>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js"></script>
+
+  <script type="importmap">
+{
+  "imports": {
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.552.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.5",
+    "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/+esm",
+    "react-native": "https://aistudiocdn.com/react-native@^0.82.1",
+    "expo-status-bar": "https://aistudiocdn.com/expo-status-bar@^3.0.8",
+    "react-native-gesture-handler": "https://aistudiocdn.com/react-native-gesture-handler@^2.29.0",
+    "@react-navigation/native": "https://aistudiocdn.com/@react-navigation/native@^7.1.19",
+    "@react-navigation/stack": "https://aistudiocdn.com/@react-navigation/stack@^7.6.2"
+  }
+}
+</script>
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-area, .print-area * {
+      visibility: visible;
+    }
+    .print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .no-print {
+      display: none !important;
+    }
+    @page {
+      size: 80mm auto; /* Default for receipts */
+      margin: 0;
+    }
+    .printable-report-wrapper {
+      @page {
+        size: A4 landscape;
+        margin: 1cm;
+      }
+    }
+  }
+</style>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

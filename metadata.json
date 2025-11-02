@@ -1,0 +1,7 @@
+{
+  "name": " FlowPay  v1.0",
+  "description": "A comprehensive multi-tenant SaaS platform for Point of Sale (POS), Inventory Management, Accounting, and Logistics. FlowPay provides a clean, scalable, and high-performing solution for businesses to manage their retail, inventory, and logistics in one intelligent ecosystem.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
