@@ -257,8 +257,8 @@ export const branches: Branch[] = [
 ];
 
 export const tenantRoles: TenantRole[] = [
-    { id: 'trole_1', name: 'Admin', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'manage_branches', 'manage_automations', 'view_accounting', 'process_returns', 'access_settings'] },
-    { id: 'trole_2', name: 'Manager', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'view_accounting', 'process_returns'] },
+    { id: 'trole_1', name: 'Admin', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'manage_branches', 'manage_automations', 'view_reports', 'process_returns', 'access_settings', 'manage_logistics', 'manage_invoicing', 'manage_credit', 'view_activity_log'] },
+    { id: 'trole_2', name: 'Manager', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'view_reports', 'process_returns'] },
     { id: 'trole_3', name: 'Cashier', permissions: ['manage_pos', 'process_returns'] },
 ];
 

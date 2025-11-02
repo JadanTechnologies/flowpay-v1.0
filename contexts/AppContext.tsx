@@ -3,8 +3,8 @@
 import React, { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan } from '../types';
-import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans } from '../data/mockData';
+import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission } from '../types';
+import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaff } from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -64,8 +64,11 @@ interface AppContextType {
   setTenantSettings: React.Dispatch<React.SetStateAction<TenantSettings | null>>;
   blockRules: BlockRule[];
   setBlockRules: React.Dispatch<React.SetStateAction<BlockRule[]>>;
+  staff: Staff[];
+  setStaff: React.Dispatch<React.SetStateAction<Staff[]>>;
   tenantRoles: TenantRole[];
   setTenantRoles: React.Dispatch<React.SetStateAction<TenantRole[]>>;
+  currentUserPermissions: Set<TenantPermission>;
   approvedDevices: Device[];
   setApprovedDevices: React.Dispatch<React.SetStateAction<Device[]>>;
   pendingDevices: Device[];
@@ -143,8 +146,11 @@ export const AppContext = createContext<AppContextType>({
   setTenantSettings: () => {},
   blockRules: [],
   setBlockRules: () => {},
+  staff: [],
+  setStaff: () => {},
   tenantRoles: [],
   setTenantRoles: () => {},
+  currentUserPermissions: new Set(),
   approvedDevices: [],
   setApprovedDevices: () => {},
   pendingDevices: [],
@@ -194,6 +200,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(null);
   const [blockRules, setBlockRules] = useState<BlockRule[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [tenantRoles, setTenantRoles] = useState<TenantRole[]>([]);
   const [approvedDevices, setApprovedDevices] = useState<Device[]>([]);
   const [pendingDevices, setPendingDevices] = useState<Device[]>([]);
@@ -203,6 +210,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [consignments, setConsignments] = useState<Consignment[]>([]);
+  const [currentUserPermissions, setCurrentUserPermissions] = useState<Set<TenantPermission>>(new Set());
+
   const [impersonation, setImpersonation] = useState<ImpersonationState>({
     active: false,
     originalSession: null,
@@ -228,6 +237,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setPurchaseOrders(mockPurchaseOrders);
         setStockCounts(mockStockCounts);
         setBranches(mockBranches);
+        setStaff(mockStaff);
         setStockTransfers(mockStockTransfers);
         setInventoryAdjustmentLogs(mockInventoryAdjustmentLogs);
         setScheduledJobs(mockScheduledJobs);
@@ -262,6 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setPurchaseOrders(mockPurchaseOrders);
       setStockCounts(mockStockCounts);
       setBranches(mockBranches);
+      setStaff(mockStaff);
       setStockTransfers(mockStockTransfers);
       setInventoryAdjustmentLogs(mockInventoryAdjustmentLogs);
       setScheduledJobs(mockScheduledJobs);
@@ -280,6 +291,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setLoading(false);
     }
   }, []);
+
+  // Effect to calculate user permissions
+  useEffect(() => {
+    if (session?.user && staff.length > 0 && tenantRoles.length > 0) {
+        // Find the staff member from mock data.
+        const staffMember = staff.find(s => s.email === session.user.email);
+        if (staffMember) {
+            const role = tenantRoles.find(r => r.id === staffMember.roleId);
+            if (role) {
+                setCurrentUserPermissions(new Set(role.permissions));
+            } else {
+                setCurrentUserPermissions(new Set()); // No role found, no permissions
+            }
+        } else {
+             // If user is logged in but not in staff list (e.g. main tenant owner), give them admin perms
+            const adminRole = tenantRoles.find(r => r.name === 'Admin');
+            if (adminRole) {
+                setCurrentUserPermissions(new Set(adminRole.permissions));
+            }
+        }
+    } else {
+        setCurrentUserPermissions(new Set()); // No session, no permissions
+    }
+}, [session, staff, tenantRoles]);
+
   
   const login = async (email: string, pass: string) => {
     if (isSupabaseConfigured) {
@@ -393,10 +429,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(mockTenantSession.user);
   };
 
-  const impersonateStaff = (staff: Staff) => {
+  const impersonateStaff = (staffMember: Staff) => {
     const userRoleName = session?.user?.app_metadata?.role;
     
-    const targetRole = tenantRoles.find(r => r.id === staff.roleId);
+    const targetRole = tenantRoles.find(r => r.id === staffMember.roleId);
     if (!targetRole) {
         alert("Target user has an invalid role.");
         return;
@@ -412,7 +448,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         canImpersonate = true;
     }
     
-    if (session?.user?.email === staff.email) {
+    if (session?.user?.email === staffMember.email) {
         canImpersonate = false;
     }
 
@@ -423,10 +459,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const mockStaffUser: User = {
-        id: staff.id,
-        email: staff.email,
+        id: staffMember.id,
+        email: staffMember.email,
         app_metadata: { role: targetRoleName },
-        user_metadata: { name: staff.name, branch: staff.branch },
+        user_metadata: { name: staffMember.name, branch: staffMember.branch },
         aud: 'authenticated',
         created_at: new Date().toISOString(),
     };
@@ -441,7 +477,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setImpersonation({
         active: true,
         originalSession: session,
-        targetName: staff.name,
+        targetName: staffMember.name,
         returnPath: '/app/staff',
     });
     setSession(mockStaffSession);
@@ -501,8 +537,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTenantSettings,
       blockRules,
       setBlockRules,
+      staff,
+      setStaff,
       tenantRoles,
       setTenantRoles,
+      currentUserPermissions,
       approvedDevices,
       setApprovedDevices,
       pendingDevices,
@@ -526,7 +565,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       consignments,
       setConsignments,
     }),
-    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, impersonation, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, tenantRoles, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments]
+    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, impersonation, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

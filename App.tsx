@@ -5,7 +5,7 @@ import React, { useEffect, useMemo } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } = ReactRouterDOM;
 import { AppProvider, useAppContext } from './contexts/AppContext';
-import { ModuleId } from './types';
+import { ModuleId, TenantPermission } from './types';
 
 // Layouts
 import TenantLayout from './layouts/TenantLayout';
@@ -43,7 +43,6 @@ import SuppliersPage from './pages/inventory/SuppliersPage';
 import StockTransfersPage from './pages/inventory/StockTransfersPage';
 import InventoryHistoryPage from './pages/inventory/InventoryHistoryPage';
 import AutomationsPage from './pages/AutomationsPage';
-import TenantAccessControlPage from './pages/settings/AccessControlPage';
 import ViewSubscriptionDetailsPage from './pages/settings/ViewSubscriptionDetailsPage';
 import ManageBillingPage from './pages/settings/ManageBillingPage';
 import PaymentHistoryPage from './pages/settings/PaymentHistoryPage';
@@ -80,9 +79,21 @@ const DynamicHead: React.FC = () => {
     return null;
 };
 
+const moduleIdToPermissionMap: Partial<Record<ModuleId, TenantPermission>> = {
+    pos: 'manage_pos',
+    inventory: 'manage_inventory',
+    reports: 'view_reports',
+    logistics: 'manage_logistics',
+    branches: 'manage_branches',
+    staff: 'manage_staff',
+    automations: 'manage_automations',
+    invoicing: 'manage_invoicing',
+    credit_management: 'manage_credit',
+    activityLog: 'view_activity_log',
+};
+
 const FeatureRoute: React.FC<{ moduleId: ModuleId, element: React.ReactNode }> = ({ moduleId, element }) => {
-  const { settings, userSubscription, subscriptionPlans, addNotification } = useAppContext();
-  const navigate = useNavigate();
+  const { settings, userSubscription, subscriptionPlans, addNotification, currentUserPermissions } = useAppContext();
 
   const isEnabled = useMemo(() => {
     // 1. Check global feature flag
@@ -93,13 +104,17 @@ const FeatureRoute: React.FC<{ moduleId: ModuleId, element: React.ReactNode }> =
     const currentPlan = subscriptionPlans.find(p => p.name.toLowerCase() === userSubscription.planId);
     const planEnabled = currentPlan?.enabledModules.includes(moduleId) ?? false;
 
-    return globallyEnabled && planEnabled;
-  }, [settings, userSubscription, subscriptionPlans, moduleId]);
+    // 3. Check user permission
+    const requiredPermission = moduleIdToPermissionMap[moduleId];
+    const userHasPermission = !requiredPermission || currentUserPermissions.has(requiredPermission);
+
+    return globallyEnabled && planEnabled && userHasPermission;
+  }, [settings, userSubscription, subscriptionPlans, moduleId, currentUserPermissions]);
 
   useEffect(() => {
     if (!isEnabled) {
         addNotification({
-            message: 'This feature is not available for your account.',
+            message: "You don't have permission to access this feature.",
             type: 'warning'
         });
     }
@@ -108,6 +123,23 @@ const FeatureRoute: React.FC<{ moduleId: ModuleId, element: React.ReactNode }> =
   if (settings === null) return null; // Wait for settings to load
 
   return isEnabled ? <>{element}</> : <Navigate to="/app/dashboard" replace />;
+};
+
+const PermissionGuard: React.FC<{ permission: TenantPermission, element: React.ReactNode }> = ({ permission, element }) => {
+    const { currentUserPermissions, addNotification } = useAppContext();
+
+    const hasPermission = useMemo(() => currentUserPermissions.has(permission), [currentUserPermissions, permission]);
+
+    useEffect(() => {
+        if (!hasPermission) {
+            addNotification({
+                message: "Access Denied: You don't have permission to view this page.",
+                type: 'error'
+            });
+        }
+    }, [hasPermission, addNotification]);
+
+    return hasPermission ? <>{element}</> : <Navigate to="/app/dashboard" replace />;
 };
 
 const AppRoutes: React.FC = () => {
@@ -156,7 +188,7 @@ const AppRoutes: React.FC = () => {
         <Route path="invoicing" element={<FeatureRoute moduleId="invoicing" element={<InvoicingPage />} />} />
         <Route path="credit-management" element={<FeatureRoute moduleId="credit_management" element={<CreditManagementPage />} />} />
         <Route path="activity" element={<FeatureRoute moduleId="activityLog" element={<ActivityLogPage />} />} />
-        <Route path="settings" element={<SettingsPage />}>
+        <Route path="settings" element={<PermissionGuard permission="access_settings" element={<SettingsPage />} />}>
           <Route index element={<Navigate to="profile" replace />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="subscription-details" element={<ViewSubscriptionDetailsPage />} />
@@ -165,7 +197,6 @@ const AppRoutes: React.FC = () => {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="security" element={<SecurityPage />} />
           <Route path="integrations" element={<IntegrationsPage />} />
-          <Route path="access-control" element={<TenantAccessControlPage />} />
         </Route>
       </Route>
 

@@ -401,9 +401,13 @@ export type TenantPermission =
   | 'manage_staff'
   | 'manage_branches'
   | 'manage_automations'
-  | 'view_accounting'
+  | 'view_reports'
   | 'process_returns'
-  | 'access_settings';
+  | 'access_settings'
+  | 'manage_logistics'
+  | 'manage_invoicing'
+  | 'manage_credit'
+  | 'view_activity_log';
 
 export interface TenantRole {
     id: string;

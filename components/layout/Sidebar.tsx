@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAppContext } from '../../contexts/AppContext';
-import { ModuleId } from '../../types';
+import { ModuleId, TenantPermission } from '../../types';
 
 interface NavItemProps {
     icon: React.ReactNode;
@@ -95,15 +95,28 @@ const SubNavItem: React.FC<SubNavItemProps> = ({ text, to, active }) => {
     );
 };
 
+const moduleIdToPermissionMap: Partial<Record<ModuleId, TenantPermission>> = {
+    pos: 'manage_pos',
+    inventory: 'manage_inventory',
+    reports: 'view_reports',
+    logistics: 'manage_logistics',
+    branches: 'manage_branches',
+    staff: 'manage_staff',
+    automations: 'manage_automations',
+    invoicing: 'manage_invoicing',
+    credit_management: 'manage_credit',
+    activityLog: 'view_activity_log',
+};
+
 const Sidebar: React.FC = () => {
     const [expanded, setExpanded] = useState(true);
     const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
     const location = useLocation();
     const { t } = useTranslation();
-    const { logout, userSubscription, subscriptionPlans, settings } = useAppContext();
+    const { logout, userSubscription, subscriptionPlans, settings, currentUserPermissions } = useAppContext();
     const navigate = useNavigate();
 
-    const enabledModules = useMemo(() => {
+    const allowedBySubscriptionAndFlags = useMemo(() => {
         if (!userSubscription || !subscriptionPlans || !settings?.featureFlags) return new Set<ModuleId>();
         
         const currentPlan = subscriptionPlans.find(p => p.name.toLowerCase() === userSubscription.planId);
@@ -165,11 +178,25 @@ const Sidebar: React.FC = () => {
         { id: 'activityLog', icon: <History size={20} />, text: t('activityLog'), to: '/app/activity' },
     ];
     
-    const navItems = useMemo(() => allNavItems.filter(item => enabledModules.has(item.id as ModuleId)), [enabledModules]);
+    const navItems = useMemo(() => allNavItems.filter(item => {
+        // Dashboard is always visible
+        if (item.id === 'dashboard') return true;
+
+        const isEnabledByPlan = allowedBySubscriptionAndFlags.has(item.id as ModuleId);
+        const requiredPermission = moduleIdToPermissionMap[item.id as ModuleId];
+
+        // If no specific permission is required, only check plan. Otherwise, check both.
+        return isEnabledByPlan && (!requiredPermission || currentUserPermissions.has(requiredPermission));
+    }), [allowedBySubscriptionAndFlags, currentUserPermissions]);
 
     const bottomNavItems = [
-        { icon: <Settings size={20} />, text: t('settings'), to: '/app/settings' },
-    ];
+        { id: 'settings', icon: <Settings size={20} />, text: t('settings'), to: '/app/settings' },
+    ].filter(item => {
+        if (item.id === 'settings') {
+            return currentUserPermissions.has('access_settings');
+        }
+        return true;
+    });
     
     useEffect(() => {
         let isSubmenuActive = false;
@@ -240,6 +267,7 @@ const Sidebar: React.FC = () => {
 
                 <ul className="px-3">
                      {bottomNavItems.map((item, index) => (
+                        // @ts-ignore
                         <NavItem key={index} {...item} active={isActive(item.to)} expanded={expanded} />
                     ))}
                 </ul>
