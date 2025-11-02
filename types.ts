@@ -86,6 +86,9 @@ export interface Tenant {
   subscriptionExpires?: string;
 }
 
+// NEW - Type for enabled modules
+export type ModuleId = 'dashboard' | 'pos' | 'inventory' | 'logistics' | 'branches' | 'staff' | 'automations' | 'invoicing' | 'credit_management' | 'activityLog' | 'reports';
+
 // Billing and Subscription Types
 export interface SubscriptionPlan {
   id: string;
@@ -95,6 +98,7 @@ export interface SubscriptionPlan {
   features: string[];
   branchLimit: number;
   userLimit: number;
+  enabledModules: ModuleId[];
 }
 
 export interface UserSubscription {

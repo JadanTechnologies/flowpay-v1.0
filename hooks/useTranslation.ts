@@ -1,4 +1,5 @@
 
+
 import { useAppContext } from '../contexts/AppContext';
 
 const translations = {
@@ -7,6 +8,7 @@ const translations = {
     pos: 'POS',
     inventory: 'Inventory',
     accounting: 'Accounting',
+    reports: 'Reports',
     logistics: 'Logistics',
     branches: 'Branches',
     staff: 'Staff',
@@ -34,6 +36,7 @@ const translations = {
     pos: 'TPV',
     inventory: 'Inventario',
     accounting: 'Contabilidad',
+    reports: 'Informes',
     logistics: 'Logística',
     branches: 'Sucursales',
     staff: 'Personal',
@@ -61,6 +64,7 @@ const translations = {
     pos: 'PDV',
     inventory: 'Inventaire',
     accounting: 'Comptabilité',
+    reports: 'Rapports',
     logistics: 'Logistique',
     branches: 'Succursales',
     staff: 'Personnel',
@@ -69,7 +73,7 @@ const translations = {
     activityLog: 'Journal d\'activité',
     settings: 'Paramètres',
     salesOverview: 'Aperçu des Ventes',
-    performanceDesSuccursales: 'Performance des Succursales',
+    branchPerformance: 'Performance des Succursales',
     recentSales: 'Ventes Récentes',
     topSellingProducts: 'Meilleurs Produits de Vente',
     integrations: 'Intégrations',

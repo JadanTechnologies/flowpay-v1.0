@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link, useLocation, useNavigate } = ReactRouterDOM;
@@ -8,7 +8,7 @@ import {
     LayoutDashboard, 
     ShoppingCart, 
     Package, 
-    BookOpen, 
+    BarChart2, 
     Truck, 
     Settings, 
     ChevronLeft, 
@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAppContext } from '../../contexts/AppContext';
+import { ModuleId } from '../../types';
 
 interface NavItemProps {
     icon: React.ReactNode;
@@ -99,8 +100,14 @@ const Sidebar: React.FC = () => {
     const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
     const location = useLocation();
     const { t } = useTranslation();
-    const { logout } = useAppContext();
+    const { logout, userSubscription, subscriptionPlans } = useAppContext();
     const navigate = useNavigate();
+
+    const enabledModules = useMemo(() => {
+        if (!userSubscription || !subscriptionPlans) return new Set<ModuleId>();
+        const currentPlan = subscriptionPlans.find(p => p.name.toLowerCase() === userSubscription.planId);
+        return new Set(currentPlan?.enabledModules || []);
+    }, [userSubscription, subscriptionPlans]);
 
     const handleSignOut = async () => {
         if (window.confirm('Are you sure you want to sign out?')) {
@@ -112,10 +119,11 @@ const Sidebar: React.FC = () => {
     const isActive = (path: string) => location.pathname.startsWith(path);
     const isSubNavItemActive = (path: string) => location.pathname === path;
 
-    const navItems = [
-        { icon: <LayoutDashboard size={20} />, text: t('dashboard'), to: '/app/dashboard' },
-        { icon: <ShoppingCart size={20} />, text: t('pos'), to: '/app/pos' },
+    const allNavItems = [
+        { id: 'dashboard', icon: <LayoutDashboard size={20} />, text: t('dashboard'), to: '/app/dashboard' },
+        { id: 'pos', icon: <ShoppingCart size={20} />, text: t('pos'), to: '/app/pos' },
         { 
+            id: 'inventory',
             icon: <Package size={20} />, 
             text: t('inventory'), 
             basePath: '/app/inventory',
@@ -128,8 +136,9 @@ const Sidebar: React.FC = () => {
                 { text: t('history'), to: '/app/inventory/history' },
             ]
         },
-        { icon: <BookOpen size={20} />, text: t('accounting'), to: '/app/accounting' },
+        { id: 'reports', icon: <BarChart2 size={20} />, text: t('reports'), to: '/app/accounting' },
         { 
+            id: 'logistics',
             icon: <Truck size={20} />, 
             text: t('logistics'), 
             basePath: '/app/logistics',
@@ -139,14 +148,16 @@ const Sidebar: React.FC = () => {
                 { text: 'Fleet Management', to: '/app/logistics/fleet' },
             ]
         },
-        { icon: <Store size={20} />, text: t('branches'), to: '/app/branches' },
-        { icon: <Users size={20} />, text: t('staff'), to: '/app/staff' },
-        { icon: <Repeat size={20} />, text: t('automations'), to: '/app/automations' },
-        { icon: <Receipt size={20} />, text: t('invoicing'), to: '/app/invoicing' },
-        { icon: <Handshake size={20} />, text: t('creditManagement'), to: '/app/credit-management' },
-        { icon: <History size={20} />, text: t('activityLog'), to: '/app/activity' },
+        { id: 'branches', icon: <Store size={20} />, text: t('branches'), to: '/app/branches' },
+        { id: 'staff', icon: <Users size={20} />, text: t('staff'), to: '/app/staff' },
+        { id: 'automations', icon: <Repeat size={20} />, text: t('automations'), to: '/app/automations' },
+        { id: 'invoicing', icon: <Receipt size={20} />, text: t('invoicing'), to: '/app/invoicing' },
+        { id: 'credit_management', icon: <Handshake size={20} />, text: t('creditManagement'), to: '/app/credit-management' },
+        { id: 'activityLog', icon: <History size={20} />, text: t('activityLog'), to: '/app/activity' },
     ];
     
+    const navItems = useMemo(() => allNavItems.filter(item => enabledModules.has(item.id as ModuleId)), [enabledModules]);
+
     const bottomNavItems = [
         { icon: <Settings size={20} />, text: t('settings'), to: '/app/settings' },
     ];
@@ -160,7 +171,7 @@ const Sidebar: React.FC = () => {
                 break; 
             }
         }
-    }, [location.pathname]);
+    }, [location.pathname, navItems]);
 
     const handleSubMenuToggle = (text: string) => {
         setOpenSubMenu(openSubMenu === text ? null : text);

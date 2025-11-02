@@ -1,11 +1,10 @@
 
 
-
 import React, { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment } from '../types';
-import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments } from '../data/mockData';
+import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan } from '../types';
+import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans } from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -77,6 +76,8 @@ interface AppContextType {
   notificationHistory: Notification[];
   userSubscription: UserSubscription | null;
   setUserSubscription: React.Dispatch<React.SetStateAction<UserSubscription | null>>;
+  subscriptionPlans: SubscriptionPlan[];
+  setSubscriptionPlans: React.Dispatch<React.SetStateAction<SubscriptionPlan[]>>;
   markNotificationsAsRead: () => void;
   hasUnreadNotifications: boolean;
   customers: Customer[];
@@ -154,6 +155,8 @@ export const AppContext = createContext<AppContextType>({
   notificationHistory: [],
   userSubscription: null,
   setUserSubscription: () => {},
+  subscriptionPlans: [],
+  setSubscriptionPlans: () => {},
   markNotificationsAsRead: () => {},
   hasUnreadNotifications: false,
   customers: [],
@@ -195,6 +198,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [approvedDevices, setApprovedDevices] = useState<Device[]>([]);
   const [pendingDevices, setPendingDevices] = useState<Device[]>([]);
   const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -234,6 +238,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setApprovedDevices(mockApprovedDevices);
         setPendingDevices(mockPendingDevices);
         setUserSubscription(mockUserSubscription);
+        setSubscriptionPlans(mockPlans);
         setCustomers(mockCustomers);
         setTrucks(mockTrucks);
         setDrivers(mockDrivers);
@@ -267,6 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setApprovedDevices(mockApprovedDevices);
       setPendingDevices(mockPendingDevices);
       setUserSubscription(mockUserSubscription);
+      setSubscriptionPlans(mockPlans);
       setCustomers(mockCustomers);
       setTrucks(mockTrucks);
       setDrivers(mockDrivers);
@@ -508,6 +514,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       markNotificationsAsRead,
       userSubscription,
       setUserSubscription,
+      subscriptionPlans,
+      setSubscriptionPlans,
       hasUnreadNotifications,
       customers,
       setCustomers,
@@ -518,7 +526,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       consignments,
       setConsignments,
     }),
-    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, impersonation, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, tenantRoles, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, customers, trucks, drivers, consignments]
+    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, impersonation, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, tenantRoles, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

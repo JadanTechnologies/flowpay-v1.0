@@ -128,7 +128,8 @@ const AutomationsPage: React.FC = () => {
                             const variantName = Object.values(v.options).join(' ');
                             const displayName = variantName ? `${p.name} - ${variantName}` : p.name;
                             // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                            const totalStock = Object.values(v.stockByBranch).reduce((s: number, c: number) => s + c, 0);
+                            // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
+                            const totalStock = Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0);
                             return `${v.sku},"${displayName}",${v.price},${totalStock}`;
                         })
                     ).join('\n');
