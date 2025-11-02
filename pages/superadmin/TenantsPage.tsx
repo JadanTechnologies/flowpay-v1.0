@@ -131,8 +131,7 @@ const TenantsPage: React.FC = () => {
 
     const handleImpersonate = (tenant: Tenant) => {
         if (window.confirm(`Are you sure you want to impersonate ${tenant.companyName}? This will log you in as one of their administrators.`)) {
-            impersonateTenant(tenant);
-            navigate('/app/dashboard');
+            impersonateTenant(tenant, navigate);
         }
     };
 

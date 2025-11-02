@@ -58,9 +58,7 @@ const TenantLayout: React.FC = () => {
   }, [subscriptionWarning, addNotification, warningNotifSent]);
 
   const handleStopImpersonation = () => {
-      const returnPath = impersonation.returnPath;
-      stopImpersonation();
-      navigate(returnPath);
+      stopImpersonation(navigate);
   }
 
   if (loading) {
@@ -75,7 +73,8 @@ const TenantLayout: React.FC = () => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  if (session.user.app_metadata.role === 'super_admin') {
+  // Do not redirect super_admin during an active impersonation session
+  if (session.user.app_metadata.role === 'super_admin' && !impersonation.active) {
     return <Navigate to="/admin/dashboard" replace />;
   }
   

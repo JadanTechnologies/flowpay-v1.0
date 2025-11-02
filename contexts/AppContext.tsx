@@ -20,6 +20,7 @@ export interface NotificationPrefs {
     outOfStockEmail: boolean;
 }
 
+// FIX: Added missing AppContextType interface definition
 interface AppContextType {
   isMaintenanceMode: boolean;
   setMaintenanceMode: React.Dispatch<React.SetStateAction<boolean>>;
@@ -57,9 +58,9 @@ interface AppContextType {
   settings: SystemSettings | null;
   setSettings: React.Dispatch<React.SetStateAction<SystemSettings | null>>;
   impersonation: ImpersonationState;
-  impersonateTenant: (tenant: Tenant) => void;
-  impersonateStaff: (staff: Staff) => void;
-  stopImpersonation: () => void;
+  impersonateTenant: (tenant: Tenant, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
+  impersonateStaff: (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
+  stopImpersonation: (navigate: (path: string, options?: { replace?: boolean }) => void) => void;
   tenantSettings: TenantSettings | null;
   setTenantSettings: React.Dispatch<React.SetStateAction<TenantSettings | null>>;
   blockRules: BlockRule[];
@@ -92,6 +93,7 @@ interface AppContextType {
   consignments: Consignment[];
   setConsignments: React.Dispatch<React.SetStateAction<Consignment[]>>;
 }
+
 
 const defaultNotificationPrefs: NotificationPrefs = {
     salesEmail: true,
@@ -397,7 +399,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setHasUnreadNotifications(false);
   };
 
-  const impersonateTenant = (tenant: Tenant) => {
+  const impersonateTenant = (tenant: Tenant, navigate: (path: string) => void) => {
     if (!session || session.user.app_metadata.role !== 'super_admin') {
       console.error("Only super admins can impersonate.");
       return;
@@ -427,10 +429,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setSession(mockTenantSession);
     setUser(mockTenantSession.user);
+    setTimeout(() => navigate('/app/dashboard'), 0);
   };
 
-  const impersonateStaff = (staffMember: Staff) => {
-    const userRoleName = session?.user?.app_metadata?.role;
+  const impersonateStaff = (staffMember: Staff, navigate: (path: string) => void) => {
+    const userRole = tenantRoles.find(r => r.id === (staff.find(s => s.email === session?.user?.email)?.roleId));
+    const userRoleName = userRole?.name;
     
     const targetRole = tenantRoles.find(r => r.id === staffMember.roleId);
     if (!targetRole) {
@@ -482,13 +486,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
     setSession(mockStaffSession);
     setUser(mockStaffSession.user);
+    setTimeout(() => navigate('/app/dashboard'), 0);
   };
 
-  const stopImpersonation = () => {
+  const stopImpersonation = (navigate: (path: string) => void) => {
       if (impersonation.active && impersonation.originalSession) {
-          setSession(impersonation.originalSession);
-          setUser(impersonation.originalSession.user);
+          const returnPath = impersonation.returnPath;
+          const originalSess = impersonation.originalSession;
+
           setImpersonation({ active: false, originalSession: null, targetName: null, returnPath: '' });
+          setSession(originalSess);
+          setUser(originalSess.user);
+          
+          setTimeout(() => {
+              navigate(returnPath);
+          }, 0);
       }
   };
 

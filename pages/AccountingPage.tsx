@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
 import { Sale, Payment } from '../../types';
@@ -125,7 +126,7 @@ const AccountingPage: React.FC = () => {
                  reportData.length > 0 ? (
                     <>
                         {reportType === 'sales_summary' && <SalesSummaryReport sales={reportData} currency={currency} />}
-                        {reportType === 'detailed_sales' && <DetailedSalesReport sales={reportData} products={products} currency={currency} />}
+                        {reportType === 'detailed_sales' && <DetailedSalesReport sales={reportData} products={products} currency={currency} branches={allBranches} />}
                         {reportType === 'credit_sales' && <CreditSalesReport sales={reportData} currency={currency} />}
                         {reportType === 'end_of_day' && <EndOfDayReport sales={reportData} currency={currency} />}
                     </>

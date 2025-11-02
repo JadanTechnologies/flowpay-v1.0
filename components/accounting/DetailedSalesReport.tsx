@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Sale, Product } from '../../types';
+import { Sale, Product, Branch } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
 import { formatCurrency } from '../../utils/formatting';
 import { Printer, FileDown } from 'lucide-react';
@@ -15,6 +15,7 @@ interface DetailedSalesReportProps {
     sales: Sale[];
     products: Product[];
     currency: string;
+    branches: Branch[];
 }
 
 interface ReportRow {
@@ -35,21 +36,23 @@ interface ReportRow {
     dateTime: string;
 }
 
-const DetailedSalesReport: React.FC<DetailedSalesReportProps> = ({ sales, products, currency }) => {
+const DetailedSalesReport: React.FC<DetailedSalesReportProps> = ({ sales, products, currency, branches }) => {
 
     const reportRows = useMemo((): ReportRow[] => {
         const rows: ReportRow[] = [];
         sales.forEach(sale => {
+            const branch = branches.find(b => b.name === sale.branch);
+            if (!branch) return; // Skip if branch not found
+            const branchId = branch.id;
+
             sale.items.forEach(item => {
-                // FIX: Look up product by productId from cart item, then find variant by item.id
                 const product = products.find(p => p.id === item.productId);
                 if (!product) return;
                 const variant = product.variants.find(v => v.id === item.id);
                 if (!variant) return;
 
                 const qtySold = item.quantity;
-                // FIX: Access stockByBranch from the variant, not the product
-                const currentStock = variant.stockByBranch[sale.branch] ?? 0;
+                const currentStock = variant.stockByBranch[branchId] ?? 0;
                 // This is a simplification; for true accuracy, stock snapshots would be needed.
                 const qtyAfter = currentStock; 
                 const qtyBefore = currentStock + qtySold;
@@ -63,7 +66,6 @@ const DetailedSalesReport: React.FC<DetailedSalesReportProps> = ({ sales, produc
                 rows.push({
                     branchName: sale.branch,
                     itemName: item.name,
-                    // FIX: Get category from the parent product
                     category: product.category,
                     qtyBefore,
                     qtySold,
@@ -81,7 +83,7 @@ const DetailedSalesReport: React.FC<DetailedSalesReportProps> = ({ sales, produc
             });
         });
         return rows;
-    }, [sales, products]);
+    }, [sales, products, branches]);
 
     const grandTotals = useMemo(() => {
         return reportRows.reduce((totals, row) => ({
