@@ -1,9 +1,8 @@
 
-
 import React, { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission } from '../types';
+import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, ImpersonationState, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant } from '../types';
 import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaff } from '../data/mockData';
 
 
@@ -104,78 +103,76 @@ const defaultNotificationPrefs: NotificationPrefs = {
     outOfStockEmail: true,
 };
 
-export const AppContext = createContext<AppContextType>({
-  isMaintenanceMode: false,
-  setMaintenanceMode: () => {},
-  maintenanceMessage: "We'll be back soon!",
-  setMaintenanceMessage: () => {},
-  session: null,
-  user: null,
-  loading: true,
-  login: async () => ({ data: { session: null }, error: null }),
-  logout: async () => {},
-  language: 'en',
-  setLanguage: () => {},
-  currency: 'USD',
-  setCurrency: () => {},
-  notificationPrefs: defaultNotificationPrefs,
-  setNotificationPrefs: () => {},
-  products: [],
-  setProducts: () => {},
-  suppliers: [],
-  setSuppliers: () => {},
-  purchaseOrders: [],
-  setPurchaseOrders: () => {},
-  stockCounts: [],
-  setStockCounts: () => {},
-  branches: [],
-  setBranches: () => {},
-  currentBranchId: 'br_1',
-  setCurrentBranchId: () => {},
-  stockTransfers: [],
-  setStockTransfers: () => {},
-  inventoryAdjustmentLogs: [],
-  setInventoryAdjustmentLogs: () => {},
-  scheduledJobs: [],
-  setScheduledJobs: () => {},
-  settings: null,
-  setSettings: () => {},
-  impersonation: { active: false, originalSession: null, targetName: null, returnPath: '' },
-  impersonateTenant: () => {},
-  impersonateStaff: () => {},
-  stopImpersonation: () => {},
-  tenantSettings: null,
-  setTenantSettings: () => {},
-  blockRules: [],
-  setBlockRules: () => {},
-  staff: [],
-  setStaff: () => {},
-  tenantRoles: [],
-  setTenantRoles: () => {},
-  currentUserPermissions: new Set(),
-  approvedDevices: [],
-  setApprovedDevices: () => {},
-  pendingDevices: [],
-  setPendingDevices: () => {},
-  notifications: [],
-  addNotification: () => {},
-  removeNotification: () => {},
-  notificationHistory: [],
-  userSubscription: null,
-  setUserSubscription: () => {},
-  subscriptionPlans: [],
-  setSubscriptionPlans: () => {},
-  markNotificationsAsRead: () => {},
-  hasUnreadNotifications: false,
-  customers: [],
-  setCustomers: () => {},
-  trucks: [],
-  setTrucks: () => {},
-  drivers: [],
-  setDrivers: () => {},
-  consignments: [],
-  setConsignments: () => {},
-});
+export const AppContext = createContext<AppContextType>({} as AppContextType);
+
+const loadMockData = (setters: any) => {
+    setters.setProducts(mockProducts);
+    setters.setSuppliers(mockSuppliers);
+    setters.setPurchaseOrders(mockPurchaseOrders);
+    setters.setStockCounts(mockStockCounts);
+    setters.setBranches(mockBranches);
+    setters.setStaff(mockStaff);
+    setters.setStockTransfers(mockStockTransfers);
+    setters.setInventoryAdjustmentLogs(mockInventoryAdjustmentLogs);
+    setters.setScheduledJobs(mockScheduledJobs);
+    setters.setSettings(mockSettingsData);
+    setters.setTenantSettings(mockTenantSettings);
+    setters.setBlockRules(mockBlockRules);
+    setters.setTenantRoles(mockTenantRoles);
+    setters.setApprovedDevices(mockApprovedDevices);
+    setters.setPendingDevices(mockPendingDevices);
+    setters.setUserSubscription(mockUserSubscription);
+    setters.setSubscriptionPlans(mockPlans);
+    setters.setCustomers(mockCustomers);
+    setters.setTrucks(mockTrucks);
+    setters.setDrivers(mockDrivers);
+    setters.setConsignments(mockConsignments);
+};
+
+const fetchDataFromSupabase = async (setters: any) => {
+    console.log("Fetching data from Supabase...");
+    // Fetch data that is public or specific to the user's role
+    const { data: settingsData, error: settingsError } = await supabase.from('system_settings').select('*').single();
+    if (settingsError) console.error("Error fetching system_settings:", settingsError.message);
+    else setters.setSettings(settingsData);
+    
+    const { data: plansData, error: plansError } = await supabase.from('subscription_plans').select('*');
+    if (plansError) console.error("Error fetching subscription_plans:", plansError.message);
+    else setters.setSubscriptionPlans(plansData);
+
+    // Fetch tenant-specific data
+    const { data: branchesData, error: branchesError } = await supabase.from('branches').select('*');
+    if (branchesError) console.error("Error fetching branches:", branchesError.message);
+    else setters.setBranches(branchesData);
+
+    const { data: staffData, error: staffError } = await supabase.from('staff').select('*');
+    if (staffError) console.error("Error fetching staff:", staffError.message);
+    else setters.setStaff(staffData);
+
+    const { data: rolesData, error: rolesError } = await supabase.from('tenant_roles').select('*');
+    if (rolesError) console.error("Error fetching tenant_roles:", rolesError.message);
+    else setters.setTenantRoles(rolesData);
+    
+    const { data: productsData, error: productsError } = await supabase.from('products').select(`*, variants:product_variants(*, stock:stock(*))`);
+    if (productsError) console.error("Error fetching products:", productsError.message);
+    else {
+        // Transform the data to match the app's structure
+        const formattedProducts = productsData.map((p: any) => ({
+            ...p,
+            variantOptions: p.variant_options,
+            variants: p.variants.map((v: any) => ({
+                ...v,
+                costPrice: v.cost_price,
+                lowStockThreshold: v.low_stock_threshold,
+                stockByBranch: v.stock.reduce((acc: any, s: any) => {
+                    acc[s.branch_id] = s.quantity;
+                    return acc;
+                }, {})
+            }))
+        }));
+        setters.setProducts(formattedProducts);
+    }
+};
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMaintenanceMode, setMaintenanceMode] = useState(false);
@@ -227,90 +224,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
   useEffect(() => {
-    if (isSupabaseConfigured) {
-      const getSession = async () => {
+    const initializeApp = async () => {
         setLoading(true);
+
+        const setters = { setProducts, setSuppliers, setPurchaseOrders, setStockCounts, setBranches, setStaff, setStockTransfers, setInventoryAdjustmentLogs, setScheduledJobs, setSettings, setTenantSettings, setBlockRules, setTenantRoles, setApprovedDevices, setPendingDevices, setUserSubscription, setSubscriptionPlans, setCustomers, setTrucks, setDrivers, setConsignments };
+
+        // First, get session
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
-        // Fetch real data from Supabase here in the future
-        setProducts(mockProducts);
-        setSuppliers(mockSuppliers);
-        setPurchaseOrders(mockPurchaseOrders);
-        setStockCounts(mockStockCounts);
-        setBranches(mockBranches);
-        setStaff(mockStaff);
-        setStockTransfers(mockStockTransfers);
-        setInventoryAdjustmentLogs(mockInventoryAdjustmentLogs);
-        setScheduledJobs(mockScheduledJobs);
-        setSettings(mockSettingsData);
-        setTenantSettings(mockTenantSettings);
-        setBlockRules(mockBlockRules);
-        setTenantRoles(mockTenantRoles);
-        setApprovedDevices(mockApprovedDevices);
-        setPendingDevices(mockPendingDevices);
-        setUserSubscription(mockUserSubscription);
-        setSubscriptionPlans(mockPlans);
-        setCustomers(mockCustomers);
-        setTrucks(mockTrucks);
-        setDrivers(mockDrivers);
-        setConsignments(mockConsignments);
+
+        if (isSupabaseConfigured) {
+            await fetchDataFromSupabase(setters);
+        } else {
+            console.log("Running in demo mode with mock data.");
+            loadMockData(setters);
+        }
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            // Re-fetch data on auth change if configured
+            if (isSupabaseConfigured) {
+                fetchDataFromSupabase(setters);
+            }
+        });
+        
         setLoading(false);
-      };
-      getSession();
+        return () => subscription?.unsubscribe();
+    };
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      });
-
-      return () => {
-        subscription?.unsubscribe();
-      };
-    } else {
-      // Load mock data in demo mode
-      setProducts(mockProducts);
-      setSuppliers(mockSuppliers);
-      setPurchaseOrders(mockPurchaseOrders);
-      setStockCounts(mockStockCounts);
-      setBranches(mockBranches);
-      setStaff(mockStaff);
-      setStockTransfers(mockStockTransfers);
-      setInventoryAdjustmentLogs(mockInventoryAdjustmentLogs);
-      setScheduledJobs(mockScheduledJobs);
-      setSettings(mockSettingsData);
-      setTenantSettings(mockTenantSettings);
-      setBlockRules(mockBlockRules);
-      setTenantRoles(mockTenantRoles);
-      setApprovedDevices(mockApprovedDevices);
-      setPendingDevices(mockPendingDevices);
-      setUserSubscription(mockUserSubscription);
-      setSubscriptionPlans(mockPlans);
-      setCustomers(mockCustomers);
-      setTrucks(mockTrucks);
-      setDrivers(mockDrivers);
-      setConsignments(mockConsignments);
-      setLoading(false);
-    }
+    initializeApp();
   }, []);
 
   // Effect to calculate user permissions
   useEffect(() => {
     if (session?.user && staff.length > 0 && tenantRoles.length > 0) {
         // Find the staff member from mock data.
-        const staffMember = staff.find(s => s.email === session.user.email);
+        const staffMember = staff.find(s => s.user_id === session.user.id);
         if (staffMember) {
             const role = tenantRoles.find(r => r.id === staffMember.roleId);
             if (role) {
-                setCurrentUserPermissions(new Set(role.permissions));
+                setCurrentUserPermissions(new Set(role.permissions as TenantPermission[]));
             } else {
                 setCurrentUserPermissions(new Set()); // No role found, no permissions
             }
-        } else {
+        } else if (session.user.app_metadata.role === 'Admin') {
              // If user is logged in but not in staff list (e.g. main tenant owner), give them admin perms
             const adminRole = tenantRoles.find(r => r.name === 'Admin');
             if (adminRole) {
-                setCurrentUserPermissions(new Set(adminRole.permissions));
+                setCurrentUserPermissions(new Set(adminRole.permissions as TenantPermission[]));
             }
         }
     } else {
@@ -326,7 +289,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     
     // Mock login logic
-    if ((email === 'admin@flowpay.com' && pass === '12345') || (email === 'superadmin@flowpay.com' && pass === '12345')) {
+    if ((email === 'admin@flowpay.com' && pass === 'password') || (email === 'superadmin@flowpay.com' && pass === 'password')) {
         const isSuperAdmin = email.startsWith('superadmin');
         const roleName = isSuperAdmin ? 'super_admin' : 'Admin';
         const mockUser: User = {

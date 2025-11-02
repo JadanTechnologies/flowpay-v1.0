@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link, useNavigate } = ReactRouterDOM;
 import { Zap, UserPlus } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 
 const TenantSignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -18,18 +20,35 @@ const TenantSignupPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // Mock signup logic
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        if (isSupabaseConfigured) {
+            const { data, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        company_name: companyName,
+                        full_name: 'Admin User' // The edge function can use this
+                    }
+                }
+            });
 
-        if (email.includes('error')) {
-            setError('This email address is already in use.');
+            if (authError) {
+                setError(authError.message);
+            } else {
+                setSuccess(true);
+            }
         } else {
-            setSuccess(true);
-            setTimeout(() => {
-                navigate('/login');
-            }, 3000);
+            // Mock signup logic for demo mode
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            if (email.includes('error')) {
+                setError('This email address is already in use.');
+            } else {
+                setSuccess(true);
+                setTimeout(() => {
+                    navigate('/login');
+                }, 3000);
+            }
         }
-
         setLoading(false);
     }
 
@@ -48,7 +67,12 @@ const TenantSignupPage: React.FC = () => {
         {success ? (
              <div className="p-4 bg-green-900/50 text-green-300 rounded-md text-center">
                 <h3 className="font-bold">Account Created!</h3>
-                <p className="text-sm">You will be redirected to the login page shortly.</p>
+                <p className="text-sm">
+                    {isSupabaseConfigured 
+                        ? "Please check your email for a confirmation link to activate your account."
+                        : "You will be redirected to the login page shortly."
+                    }
+                </p>
             </div>
         ) : (
             <form className="space-y-6" onSubmit={handleSignup}>
