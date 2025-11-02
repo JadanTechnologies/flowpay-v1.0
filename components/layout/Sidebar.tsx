@@ -100,14 +100,23 @@ const Sidebar: React.FC = () => {
     const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
     const location = useLocation();
     const { t } = useTranslation();
-    const { logout, userSubscription, subscriptionPlans } = useAppContext();
+    const { logout, userSubscription, subscriptionPlans, settings } = useAppContext();
     const navigate = useNavigate();
 
     const enabledModules = useMemo(() => {
-        if (!userSubscription || !subscriptionPlans) return new Set<ModuleId>();
+        if (!userSubscription || !subscriptionPlans || !settings?.featureFlags) return new Set<ModuleId>();
+        
         const currentPlan = subscriptionPlans.find(p => p.name.toLowerCase() === userSubscription.planId);
-        return new Set(currentPlan?.enabledModules || []);
-    }, [userSubscription, subscriptionPlans]);
+        if (!currentPlan) return new Set<ModuleId>();
+
+        const featureFlags = settings.featureFlags;
+
+        const allowedModules = currentPlan.enabledModules.filter(
+            moduleId => featureFlags[moduleId] === true
+        );
+
+        return new Set(allowedModules);
+    }, [userSubscription, subscriptionPlans, settings]);
 
     const handleSignOut = async () => {
         if (window.confirm('Are you sure you want to sign out?')) {

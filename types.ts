@@ -343,6 +343,7 @@ export interface SystemSettings {
   ipGeolocation: IpGeolocationSettings;
   branding: BrandingSettings;
   mobileApp: MobileAppSettings;
+  featureFlags: { [key in ModuleId]?: boolean };
   footerCredits: string;
   termsUrl: string;
   privacyUrl: string;

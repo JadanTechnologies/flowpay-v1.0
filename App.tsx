@@ -1,10 +1,11 @@
 
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import * as ReactRouterDOM from 'react-router-dom';
-const { HashRouter, Routes, Route, Navigate, useLocation } = ReactRouterDOM;
+const { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } = ReactRouterDOM;
 import { AppProvider, useAppContext } from './contexts/AppContext';
+import { ModuleId } from './types';
 
 // Layouts
 import TenantLayout from './layouts/TenantLayout';
@@ -63,6 +64,7 @@ import CronJobsPage from './pages/superadmin/CronJobsPage';
 import TenantActivityLogPage from './pages/superadmin/TenantActivityLogPage';
 import AccessControlPage from './pages/superadmin/AccessControlPage';
 import AppManagementPage from './pages/superadmin/AppManagementPage';
+import FeatureControlPage from './pages/superadmin/FeatureControlPage';
 
 const DynamicHead: React.FC = () => {
     const { settings } = useAppContext();
@@ -76,6 +78,36 @@ const DynamicHead: React.FC = () => {
         }
     }, [settings?.branding]);
     return null;
+};
+
+const FeatureRoute: React.FC<{ moduleId: ModuleId, element: React.ReactNode }> = ({ moduleId, element }) => {
+  const { settings, userSubscription, subscriptionPlans, addNotification } = useAppContext();
+  const navigate = useNavigate();
+
+  const isEnabled = useMemo(() => {
+    // 1. Check global feature flag
+    const globallyEnabled = settings?.featureFlags?.[moduleId] ?? false;
+
+    // 2. Check subscription plan
+    if (!userSubscription || !subscriptionPlans) return false;
+    const currentPlan = subscriptionPlans.find(p => p.name.toLowerCase() === userSubscription.planId);
+    const planEnabled = currentPlan?.enabledModules.includes(moduleId) ?? false;
+
+    return globallyEnabled && planEnabled;
+  }, [settings, userSubscription, subscriptionPlans, moduleId]);
+
+  useEffect(() => {
+    if (!isEnabled) {
+        addNotification({
+            message: 'This feature is not available for your account.',
+            type: 'warning'
+        });
+    }
+  }, [isEnabled, addNotification]);
+  
+  if (settings === null) return null; // Wait for settings to load
+
+  return isEnabled ? <>{element}</> : <Navigate to="/app/dashboard" replace />;
 };
 
 const AppRoutes: React.FC = () => {
@@ -107,23 +139,23 @@ const AppRoutes: React.FC = () => {
       <Route path="/app" element={<TenantLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="pos" element={<PosPage />} />
-        <Route path="inventory" element={<InventoryPage />} />
-        <Route path="inventory/purchase-orders" element={<PurchaseOrdersPage />} />
-        <Route path="inventory/stock-counts" element={<StockCountsPage />} />
-        <Route path="inventory/stock-transfers" element={<StockTransfersPage />} />
-        <Route path="inventory/suppliers" element={<SuppliersPage />} />
-        <Route path="inventory/history" element={<InventoryHistoryPage />} />
-        <Route path="accounting" element={<AccountingPage />} />
-        <Route path="logistics" element={<LogisticsPage />} />
-        <Route path="logistics/fleet" element={<FleetPage />} />
-        <Route path="logistics/consignments" element={<ConsignmentsPage />} />
-        <Route path="branches" element={<BranchManagementPage />} />
-        <Route path="staff" element={<StaffManagementPage />} />
-        <Route path="automations" element={<AutomationsPage />} />
-        <Route path="invoicing" element={<InvoicingPage />} />
-        <Route path="credit-management" element={<CreditManagementPage />} />
-        <Route path="activity" element={<ActivityLogPage />} />
+        <Route path="pos" element={<FeatureRoute moduleId="pos" element={<PosPage />} />} />
+        <Route path="inventory" element={<FeatureRoute moduleId="inventory" element={<InventoryPage />} />} />
+        <Route path="inventory/purchase-orders" element={<FeatureRoute moduleId="inventory" element={<PurchaseOrdersPage />} />} />
+        <Route path="inventory/stock-counts" element={<FeatureRoute moduleId="inventory" element={<StockCountsPage />} />} />
+        <Route path="inventory/stock-transfers" element={<FeatureRoute moduleId="inventory" element={<StockTransfersPage />} />} />
+        <Route path="inventory/suppliers" element={<FeatureRoute moduleId="inventory" element={<SuppliersPage />} />} />
+        <Route path="inventory/history" element={<FeatureRoute moduleId="inventory" element={<InventoryHistoryPage />} />} />
+        <Route path="accounting" element={<FeatureRoute moduleId="reports" element={<AccountingPage />} />} />
+        <Route path="logistics" element={<FeatureRoute moduleId="logistics" element={<LogisticsPage />} />} />
+        <Route path="logistics/fleet" element={<FeatureRoute moduleId="logistics" element={<FleetPage />} />} />
+        <Route path="logistics/consignments" element={<FeatureRoute moduleId="logistics" element={<ConsignmentsPage />} />} />
+        <Route path="branches" element={<FeatureRoute moduleId="branches" element={<BranchManagementPage />} />} />
+        <Route path="staff" element={<FeatureRoute moduleId="staff" element={<StaffManagementPage />} />} />
+        <Route path="automations" element={<FeatureRoute moduleId="automations" element={<AutomationsPage />} />} />
+        <Route path="invoicing" element={<FeatureRoute moduleId="invoicing" element={<InvoicingPage />} />} />
+        <Route path="credit-management" element={<FeatureRoute moduleId="credit_management" element={<CreditManagementPage />} />} />
+        <Route path="activity" element={<FeatureRoute moduleId="activityLog" element={<ActivityLogPage />} />} />
         <Route path="settings" element={<SettingsPage />}>
           <Route index element={<Navigate to="profile" replace />} />
           <Route path="profile" element={<ProfilePage />} />
@@ -151,6 +183,7 @@ const AppRoutes: React.FC = () => {
           <Route path="cron-jobs" element={<CronJobsPage />} />
           <Route path="access-control" element={<AccessControlPage />} />
           <Route path="app-management" element={<AppManagementPage />} />
+          <Route path="feature-control" element={<FeatureControlPage />} />
           <Route path="system-settings" element={<SystemSettingsPage />} />
       </Route>
     </Routes>
