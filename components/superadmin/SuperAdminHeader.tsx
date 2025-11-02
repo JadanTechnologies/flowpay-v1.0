@@ -1,15 +1,17 @@
 
 
 
-import React from 'react';
-import { Search, Bell, ChevronDown, LogOut, Settings, Power } from 'lucide-react';
+
+
+import React, { useMemo } from 'react';
+import { Search, Bell, ChevronDown, LogOut, Settings, Power, User } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import NetworkStatusIndicator from '../ui/NetworkStatusIndicator';
 
 const SuperAdminHeader: React.FC = () => {
-  const { settings, setSettings, logout } = useAppContext();
+  const { settings, setSettings, logout, session } = useAppContext();
   const navigate = useNavigate();
 
   const isMaintenanceMode = settings?.isMaintenanceMode ?? false;
@@ -32,6 +34,9 @@ const SuperAdminHeader: React.FC = () => {
     await logout();
     navigate('/admin/login');
   };
+
+  const userName = useMemo(() => session?.user?.name || 'Super Admin', [session]);
+  const userRole = useMemo(() => "Platform Owner", []);
 
 
   return (
@@ -68,12 +73,15 @@ const SuperAdminHeader: React.FC = () => {
             <button className="flex items-center gap-2">
                 <img src="https://picsum.photos/seed/superadmin/100/100" alt="avatar" className="w-9 h-9 rounded-full" />
                 <div>
-                    <p className="font-semibold text-sm text-text-primary text-left">Super Admin</p>
-                    <p className="text-xs text-text-secondary text-left">Platform Owner</p>
+                    <p className="font-semibold text-sm text-text-primary text-left">{userName}</p>
+                    <p className="text-xs text-text-secondary text-left">{userRole}</p>
                 </div>
                 <ChevronDown size={16} className="text-text-secondary group-hover:rotate-180 transition-transform" />
             </button>
             <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">
+                <Link to="/admin/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-background hover:text-text-primary">
+                    <User size={16} /> Profile
+                </Link>
                 <Link to="/admin/system-settings" className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-background hover:text-text-primary">
                     <Settings size={16} /> System Settings
                 </Link>

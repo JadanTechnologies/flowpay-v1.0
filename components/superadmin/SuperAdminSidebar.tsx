@@ -2,7 +2,9 @@
 
 
 
-import React, { useState } from 'react';
+
+
+import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -21,6 +23,7 @@ import {
     Ban,
     ToggleRight
 } from 'lucide-react';
+import { useAppContext } from '../../contexts/AppContext';
 
 interface NavItemProps {
     icon: React.ReactNode;
@@ -63,6 +66,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, text, to, active, expanded }) =
 const SuperAdminSidebar: React.FC = () => {
     const [expanded, setExpanded] = useState(true);
     const location = useLocation();
+    const { session } = useAppContext();
 
     const navSections = [
         {
@@ -98,6 +102,9 @@ const SuperAdminSidebar: React.FC = () => {
         }
     ];
 
+    const userName = useMemo(() => session?.user?.name || 'Super Admin', [session]);
+    const userEmail = useMemo(() => session?.user?.email || 'owner@flowpay.com', [session]);
+
     return (
         <aside className="h-screen sticky top-0">
             <nav className="h-full flex flex-col bg-surface border-r border-border shadow-sm">
@@ -129,8 +136,8 @@ const SuperAdminSidebar: React.FC = () => {
                     <img src="https://picsum.photos/seed/superadmin/100/100" alt="avatar" className="w-10 h-10 rounded-md" />
                     <div className={`flex justify-between items-center overflow-hidden transition-all ${expanded ? 'w-40 ml-3' : 'w-0'}`}>
                         <div className="leading-4">
-                            <h4 className="font-semibold text-text-primary">Super Admin</h4>
-                            <span className="text-xs text-text-secondary">owner@flowpay.com</span>
+                            <h4 className="font-semibold text-text-primary">{userName}</h4>
+                            <span className="text-xs text-text-secondary">{userEmail}</span>
                         </div>
                     </div>
                 </div>

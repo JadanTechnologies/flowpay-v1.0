@@ -64,6 +64,7 @@ import CronJobsPage from './pages/superadmin/CronJobsPage';
 import TenantActivityLogPage from './pages/superadmin/TenantActivityLogPage';
 import AccessControlPage from './pages/superadmin/AccessControlPage';
 import FeatureControlPage from './pages/superadmin/FeatureControlPage';
+import SuperAdminProfilePage from './pages/superadmin/ProfilePage';
 
 const DynamicHead: React.FC = () => {
     const { settings } = useAppContext();
@@ -215,6 +216,7 @@ const AppRoutes: React.FC = () => {
           <Route path="access-control" element={<AccessControlPage />} />
           <Route path="feature-control" element={<FeatureControlPage />} />
           <Route path="system-settings" element={<SystemSettingsPage />} />
+          <Route path="profile" element={<SuperAdminProfilePage />} />
       </Route>
     </Routes>
   );
