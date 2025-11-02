@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { PurchaseOrder, PurchaseOrderItem } from '../../types';
 import Modal from '../ui/Modal';
@@ -71,7 +70,7 @@ const ReceivePOModal: React.FC<ReceivePOModalProps> = ({ po, onSave, onClose }) 
         onSave(updatedPO, stockUpdates);
     };
     
-    const isAnythingBeingReceived = Object.values(receivingQuantities).some(qty => parseInt(qty || '0') > 0);
+    const isAnythingBeingReceived = Object.values(receivingQuantities).some(qty => parseInt((qty as string) || '0') > 0);
 
     return (
         <Modal title={`Receive Stock for PO ${po.id}`} onClose={onClose}>

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import * as ReactRouterDOM from 'react-router-dom';
@@ -36,7 +35,8 @@ const InventoryPage: React.FC = () => {
         return products.map(p => ({
             ...p,
             // FIX: Explicitly type accumulators and values in reduce functions to resolve type inference issues.
-            totalStock: p.variants.reduce((variantSum: number, v) => variantSum + Object.values(v.stockByBranch).reduce((branchSum: number, count: number) => branchSum + count, 0), 0)
+            // FIX: Cast `count` to number as Object.values can return unknown[] with certain TS configs.
+            totalStock: p.variants.reduce((variantSum: number, v) => variantSum + Object.values(v.stockByBranch).reduce((branchSum: number, count) => branchSum + (count as number), 0), 0)
         }));
     }, [products]);
 
@@ -276,7 +276,8 @@ const InventoryPage: React.FC = () => {
                                 // FIX: Explicitly type accumulators to resolve type errors with reduce.
                                 const branchStock = product.variants.reduce((sum: number, v) => sum + (v.stockByBranch[branchFilter] || 0), 0);
                                 // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                                const totalStock = product.variants.reduce((sum: number, v) => sum + Object.values(v.stockByBranch).reduce((s: number, c: number) => s + c, 0), 0);
+                                // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
+                                const totalStock = product.variants.reduce((sum: number, v) => sum + Object.values(v.stockByBranch).reduce((s: number, c) => s + (c as number), 0), 0);
                                 const hasMultipleVariants = product.variants.length > 1;
                                 return (
                                     <React.Fragment key={product.id}>
@@ -331,7 +332,8 @@ const InventoryPage: React.FC = () => {
                                                                 {product.variants.map(variant => {
                                                                     const vBranchStock = variant.stockByBranch[branchFilter] || 0;
                                                                     // FIX: Explicitly type accumulators to resolve type errors with reduce.
-                                                                    const vTotalStock = Object.values(variant.stockByBranch).reduce((s: number, c: number) => s + c, 0);
+                                                                    // FIX: Cast `c` to number as Object.values can return unknown[] with certain TS configs.
+                                                                    const vTotalStock = Object.values(variant.stockByBranch).reduce((s: number, c) => s + (c as number), 0);
                                                                     return (
                                                                         <tr key={variant.id} className="border-b border-border/50 last:border-b-0">
                                                                             <td className="px-2 py-2 font-medium">{Object.values(variant.options).join(' / ')}</td>

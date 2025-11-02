@@ -13,8 +13,8 @@ interface SaleSuccessModalProps {
 
 const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({ sale, onNewSale, onPrint }) => {
     const { currency } = useAppContext();
-    const totalPaid = sale.payments.reduce((sum, p) => sum + p.amount, 0);
-    const changeDue = totalPaid > sale.amount ? totalPaid - sale.amount : 0;
+    const totalPaidByTender = sale.payments.filter(p => p.method !== 'Credit').reduce((sum, p) => sum + p.amount, 0);
+    const changeDue = totalPaidByTender > sale.amount ? totalPaidByTender - sale.amount : 0;
     
     return (
         // Using a custom modal structure to avoid the default Modal's click-outside-to-close behavior
@@ -31,8 +31,8 @@ const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({ sale, onNewSale, on
                             <span className="font-bold text-text-primary">{formatCurrency(sale.amount, currency)}</span>
                         </div>
                          <div className="flex justify-between text-lg">
-                            <span className="text-text-secondary">Paid</span>
-                            <span className="font-bold text-green-400">{formatCurrency(totalPaid, currency)}</span>
+                            <span className="text-text-secondary">Paid by Tender</span>
+                            <span className="font-bold text-green-400">{formatCurrency(totalPaidByTender, currency)}</span>
                         </div>
                         {changeDue > 0 && (
                             <div className="flex justify-between text-lg">
@@ -43,7 +43,7 @@ const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({ sale, onNewSale, on
                          {sale.status === 'Credit' && (
                             <div className="flex justify-between text-lg">
                                 <span className="text-text-secondary">Charged to Account</span>
-                                <span className="font-bold text-blue-400">{formatCurrency(sale.amount, currency)}</span>
+                                <span className="font-bold text-blue-400">{formatCurrency(sale.payments.find(p => p.method === 'Credit')?.amount || 0, currency)}</span>
                             </div>
                         )}
                     </div>

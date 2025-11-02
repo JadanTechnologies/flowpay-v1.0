@@ -190,6 +190,18 @@ const PosPage: React.FC = () => {
   
   const handleSuccessfulPayment = (payments: Payment[], finalStatus: Sale['status'], customer: Customer) => {
     const cashierName = session?.user?.user_metadata?.name || session?.user?.email || 'System';
+    
+    let finalPayments = [...payments];
+    let amountAddedToCredit = 0;
+
+    if (finalStatus === 'Credit') {
+        const totalPaidByTender = payments.reduce((sum, p) => sum + p.amount, 0);
+        amountAddedToCredit = total - totalPaidByTender;
+        if (amountAddedToCredit > 0) {
+            finalPayments.push({ method: 'Credit', amount: amountAddedToCredit });
+        }
+    }
+
     const newSale: Sale = {
         id: `sale_${Date.now()}`,
         customerName: customer.name,
@@ -200,22 +212,19 @@ const PosPage: React.FC = () => {
         status: finalStatus,
         branch: currentBranchName,
         items: cart,
-        payments: payments,
+        payments: finalPayments,
     };
     
     console.log("Sale completed:", newSale);
 
-    if (finalStatus === 'Credit' && customer.id !== 'cust_4') {
-        const creditAmount = payments.find(p => p.method === 'Credit')?.amount || 0;
-        if (creditAmount > 0) {
-            setCustomers(currentCustomers =>
-                currentCustomers.map(c =>
-                    c.id === customer.id
-                        ? { ...c, creditBalance: c.creditBalance + creditAmount }
-                        : c
-                )
-            );
-        }
+    if (finalStatus === 'Credit' && customer.id !== 'cust_4' && amountAddedToCredit > 0) {
+        setCustomers(currentCustomers =>
+            currentCustomers.map(c =>
+                c.id === customer.id
+                    ? { ...c, creditBalance: c.creditBalance + amountAddedToCredit }
+                    : c
+            )
+        );
     }
 
     setProducts(currentProducts => {
@@ -298,7 +307,7 @@ const PosPage: React.FC = () => {
         addNotification({ message: "Cart is empty!", type: 'warning' });
         return;
     }
-    handleSuccessfulPayment([{ method: 'Credit', amount: total }], 'Credit', customer);
+    handleSuccessfulPayment([], 'Credit', customer);
   };
 
   const handleRestoreSale = (saleId: string) => {

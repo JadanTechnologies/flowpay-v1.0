@@ -11,11 +11,11 @@ interface PaymentModalProps {
   onConfirm: (payments: Payment[], finalStatus: Sale['status'], customer: Customer) => void;
 }
 
-type PaymentMethod = 'Cash' | 'Card' | 'Transfer' | 'Credit';
+type PaymentMethod = 'Cash' | 'Card' | 'Transfer';
 type PaymentAmounts = Record<PaymentMethod, string>;
 
 const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, onConfirm }) => {
-  const [amounts, setAmounts] = useState<PaymentAmounts>({ Cash: '', Card: '', Transfer: '', Credit: '' });
+  const [amounts, setAmounts] = useState<PaymentAmounts>({ Cash: '', Card: '', Transfer: '' });
   const { currency, addNotification } = useAppContext();
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -23,21 +23,14 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
     
     // Allow only numbers and a single decimal point
     if (/^\d*\.?\d{0,2}$/.test(value)) {
-        if (name === 'Credit' && customer) {
-            const creditValue = parseFloat(value) || 0;
-            const maxCredit = customer.creditBalance < 0 ? 0 : customer.creditBalance;
-            if (creditValue > maxCredit) {
-                setAmounts(prev => ({ ...prev, [name]: maxCredit.toFixed(2) }));
-                return;
-            }
-        }
         setAmounts(prev => ({ ...prev, [name]: value }));
     }
   };
 
   const totalPaid = useMemo(() => {
     // FIX: Explicitly type the accumulator in the reduce function to prevent type inference issues.
-    return Object.values(amounts).reduce((sum: number, val) => sum + (parseFloat(val) || 0), 0);
+    // FIX: Cast `val` to string as Object.values can return unknown[] with certain TS configs.
+    return Object.values(amounts).reduce((sum: number, val) => sum + (parseFloat(val as string) || 0), 0);
   }, [amounts]);
   
   const remainingBalance = totalAmount - totalPaid;
@@ -48,34 +41,33 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
         return;
     }
     const appliedPayments: Payment[] = Object.entries(amounts)
-        .filter(([, amount]) => parseFloat(amount) > 0)
+        // FIX: Cast `amount` to string as Object.entries can return [string, unknown][] with certain TS configs.
+        .filter(([, amount]) => parseFloat(amount as string) > 0)
         .map(([method, amount]) => ({
             method: method as PaymentMethod,
-            amount: parseFloat(amount),
+            // FIX: Cast `amount` to string as Object.entries can return [string, unknown][] with certain TS configs.
+            amount: parseFloat(amount as string),
         }));
     
     if(remainingBalance > 0) {
-       if (customer.id === 'cust_4') {
+       if (customer.id === 'cust_4') { // 'cust_4' is the Walk-in Customer
            addNotification({ message: 'A specific customer must be selected to process a sale on credit.', type: 'error' });
            return;
        }
        if(window.confirm(`Finalize sale with an outstanding balance of ${formatCurrency(remainingBalance, currency)} on credit for ${customer.name}?`)) {
-          const finalPayments: Payment[] = [...appliedPayments, { method: 'Credit', amount: remainingBalance }];
-          onConfirm(finalPayments, 'Credit', customer);
+          onConfirm(appliedPayments, 'Credit', customer);
       }
     } else {
        onConfirm(appliedPayments, 'Paid', customer);
     }
   }
   
-  const canUseCredit = customer && customer.id !== 'cust_4';
-  const creditInfo = canUseCredit ? `Available: ${formatCurrency(customer.creditBalance, currency)}` : 'Select a customer';
-
-  const paymentMethods: { name: PaymentMethod; icon: React.ReactNode; disabled?: boolean; info?: string }[] = [
+  const canFinalize = totalPaid > 0 || (customer && customer.id !== 'cust_4' && remainingBalance > 0);
+  
+  const paymentMethods: { name: PaymentMethod; icon: React.ReactNode; }[] = [
       { name: 'Cash', icon: <Banknote /> },
       { name: 'Card', icon: <CreditCard /> },
       { name: 'Transfer', icon: <Smartphone /> },
-      { name: 'Credit', icon: <Handshake />, disabled: !canUseCredit, info: creditInfo }
   ];
 
   return (
@@ -90,13 +82,12 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
             {/* Left - Payment Entry */}
             <div className="p-6 border-r border-border space-y-4">
                 <h3 className="font-semibold text-text-primary">Enter Payment Amounts</h3>
-                {paymentMethods.map(({name, icon, disabled, info}) => (
+                {paymentMethods.map(({name, icon}) => (
                      <div key={name}>
                         <label className="text-sm font-medium text-text-secondary flex items-center justify-between mb-1">
                             <span className="flex items-center gap-2">
                                 {icon} {name}
                             </span>
-                            {info && <span className="text-xs">{info}</span>}
                         </label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary">{new Intl.NumberFormat().format(0).replace('0', '')}</span>
@@ -105,9 +96,8 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
                                 name={name}
                                 value={amounts[name]}
                                 onChange={handleAmountChange}
-                                disabled={disabled}
                                 placeholder="0.00"
-                                className="bg-background border border-border rounded-lg pl-7 pr-2 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-800 disabled:cursor-not-allowed"
+                                className="bg-background border border-border rounded-lg pl-7 pr-2 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                     </div>
@@ -127,8 +117,8 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
                 </div>
 
                 <div className="mt-auto pt-4 flex flex-col gap-2">
-                    <button onClick={handleFinalize} disabled={totalPaid <= 0 && remainingBalance >= totalAmount && !canUseCredit} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-700 disabled:text-text-secondary disabled:cursor-not-allowed">
-                       {remainingBalance > 0 && canUseCredit ? 'Finalize with Credit' : 'Finalize Sale'}
+                    <button onClick={handleFinalize} disabled={!canFinalize} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-700 disabled:text-text-secondary disabled:cursor-not-allowed">
+                       {remainingBalance > 0 && customer && customer.id !== 'cust_4' ? 'Finalize with Credit' : 'Finalize Sale'}
                     </button>
                 </div>
             </div>
