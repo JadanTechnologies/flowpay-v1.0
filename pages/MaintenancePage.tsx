@@ -3,7 +3,8 @@ import { Zap, ServerOff } from 'lucide-react';
 import { useAppContext } from '../contexts/AppContext';
 
 const MaintenancePage: React.FC = () => {
-  const { maintenanceMessage } = useAppContext();
+  const { settings } = useAppContext();
+  const maintenanceMessage = settings?.maintenanceMessage || "We are currently undergoing scheduled maintenance. We'll be back shortly.";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-text-primary p-4">

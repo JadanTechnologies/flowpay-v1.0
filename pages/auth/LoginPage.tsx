@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -22,7 +24,7 @@ const LoginPage: React.FC = () => {
             setEmail('superadmin@flowpay.com');
             setPassword('12345');
         } else {
-            setEmail('admin@flowpay.com');
+            setEmail('tenantadmin@jadan.com');
             setPassword('12345');
         }
     });

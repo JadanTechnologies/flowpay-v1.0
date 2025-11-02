@@ -24,10 +24,6 @@ export interface NotificationPrefs {
 
 // FIX: Added missing AppContextType interface definition
 interface AppContextType {
-  isMaintenanceMode: boolean;
-  setMaintenanceMode: React.Dispatch<React.SetStateAction<boolean>>;
-  maintenanceMessage: string;
-  setMaintenanceMessage: React.Dispatch<React.SetStateAction<string>>;
   session: Session | null;
   user: User | null;
   loading: boolean;
@@ -148,8 +144,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currency, setCurrency] = useState<Currency>(() => getInitialState('flowpay_currency', 'USD'));
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(() => getInitialState('flowpay_notificationPrefs', defaultNotificationPrefs));
   const [currentBranchId, setCurrentBranchId] = useState<string>(() => getInitialState('flowpay_currentBranchId', 'br_1'));
-  const [isMaintenanceMode, setMaintenanceMode] = useState<boolean>(() => getInitialState('flowpay_isMaintenanceMode', false));
-  const [maintenanceMessage, setMaintenanceMessage] = useState<string>(() => getInitialState('flowpay_maintenanceMessage', "We are currently undergoing scheduled maintenance. We'll be back shortly."));
 
   // Auto-save to localStorage on change
   useEffect(() => { localStorage.setItem('flowpay_products', JSON.stringify(products)); }, [products]);
@@ -177,15 +171,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { localStorage.setItem('flowpay_currency', JSON.stringify(currency)); }, [currency]);
   useEffect(() => { localStorage.setItem('flowpay_notificationPrefs', JSON.stringify(notificationPrefs)); }, [notificationPrefs]);
   useEffect(() => { localStorage.setItem('flowpay_currentBranchId', JSON.stringify(currentBranchId)); }, [currentBranchId]);
-  useEffect(() => { localStorage.setItem('flowpay_isMaintenanceMode', JSON.stringify(isMaintenanceMode)); }, [isMaintenanceMode]);
-  useEffect(() => { localStorage.setItem('flowpay_maintenanceMessage', JSON.stringify(maintenanceMessage)); }, [maintenanceMessage]);
   
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const [currentUserPermissions, setCurrentUserPermissions] = useState<Set<TenantPermission>>(new Set());
-
   // Notification State
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
@@ -218,22 +208,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     initializeApp();
   }, []);
 
-  // Effect to calculate user permissions
-  useEffect(() => {
+  // FIX: Derive permissions directly from session state to prevent race conditions on login.
+  const currentUserPermissions = useMemo(() => {
+    const permissions = new Set<TenantPermission>();
     if (session?.user && staff.length > 0 && tenantRoles.length > 0) {
         const userEmail = session.user.email;
         const staffMember = staff.find(s => s.email === userEmail);
         
         if (staffMember) {
             const role = tenantRoles.find(r => r.id === staffMember.roleId);
-            if (role) setCurrentUserPermissions(new Set(role.permissions as TenantPermission[]));
-        } else if (session.user.role === 'Admin') {
-            const adminRole = tenantRoles.find(r => r.name === 'Admin');
-            if (adminRole) setCurrentUserPermissions(new Set(adminRole.permissions as TenantPermission[]));
+            if (role) {
+                return new Set(role.permissions as TenantPermission[]);
+            }
         }
-    } else {
-        setCurrentUserPermissions(new Set());
+        
+        // Fallback for users not in staff list or if roleId is broken.
+        // It uses the role name stored in the session.
+        const roleByName = tenantRoles.find(r => r.name === session.user.role);
+        if (roleByName) {
+            return new Set(roleByName.permissions as TenantPermission[]);
+        }
     }
+    return permissions;
   }, [session, staff, tenantRoles]);
 
   
@@ -343,10 +339,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const value = useMemo(
     () => ({
-      isMaintenanceMode,
-      setMaintenanceMode,
-      maintenanceMessage,
-      setMaintenanceMessage,
       session,
       user,
       loading,
@@ -411,7 +403,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setConsignments,
       impersonateStaff,
     }),
-    [isMaintenanceMode, maintenanceMessage, session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff]
+    [session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

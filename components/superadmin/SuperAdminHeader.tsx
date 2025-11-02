@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import { Search, Bell, ChevronDown, LogOut, Settings, Power } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
@@ -8,17 +9,21 @@ import { useAppContext } from '../../contexts/AppContext';
 import NetworkStatusIndicator from '../ui/NetworkStatusIndicator';
 
 const SuperAdminHeader: React.FC = () => {
-  const { isMaintenanceMode, setMaintenanceMode, logout } = useAppContext();
+  const { settings, setSettings, logout } = useAppContext();
   const navigate = useNavigate();
 
+  const isMaintenanceMode = settings?.isMaintenanceMode ?? false;
+
   const handleShutdownToggle = () => {
+    if (!settings) return;
+    
     if (isMaintenanceMode) {
-      setMaintenanceMode(false);
+      setSettings({ ...settings, isMaintenanceMode: false });
       alert('System is back online.');
     } else {
       const confirm = window.confirm('Are you sure you want to enable maintenance mode? All non-admin users will be locked out.');
       if (confirm) {
-        setMaintenanceMode(true);
+        setSettings({ ...settings, isMaintenanceMode: true });
       }
     }
   };
