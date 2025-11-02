@@ -1,6 +1,6 @@
 import React, { useState, useReducer, useMemo, useEffect, useCallback } from 'react';
 import { Search, Loader, UserPlus, Barcode, Star, Layers } from 'lucide-react';
-import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant } from '../types';
+import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant, InventoryAdjustmentLog } from '../types';
 import Cart from '../components/pos/Cart';
 import ProductCard from '../components/pos/ProductCard';
 import PaymentModal from '../components/pos/PaymentModal';
@@ -91,7 +91,8 @@ const PosPage: React.FC = () => {
     addNotification, 
     session,
     customers,
-    setCustomers
+    setCustomers,
+    setInventoryAdjustmentLogs
   } = useAppContext();
   
   const [cart, dispatch] = useReducer(cartReducer, []);
@@ -265,8 +266,23 @@ const PosPage: React.FC = () => {
     });
 
     const totalRefundAmount = returnedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
     const cashierName = session?.user?.user_metadata?.name || session?.user?.email || 'System';
+
+    const newLog: InventoryAdjustmentLog = {
+      id: `adj_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      user: cashierName,
+      branchId: currentBranchId,
+      type: 'Sale Return',
+      referenceId: originalSale.id,
+      items: returnedItems.map(item => ({
+        productId: item.productId,
+        productName: item.name,
+        change: item.quantity
+      }))
+    };
+    setInventoryAdjustmentLogs(prev => [newLog, ...prev]);
+
     const refundSale: Sale = {
         id: `refund_${Date.now()}`,
         customerName: originalSale.customerName,

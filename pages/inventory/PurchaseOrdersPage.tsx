@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link } from 'react-router-dom';
 import { Truck, PlusCircle, MoreVertical, Edit, Trash2, CheckCircle, ArrowLeft, Filter } from 'lucide-react';
-import { PurchaseOrder } from '../../types';
+import { PurchaseOrder, InventoryAdjustmentLog } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import PurchaseOrderModal from '../../components/inventory/PurchaseOrderModal';
 import ReceivePOModal from '../../components/inventory/ReceivePOModal';
@@ -22,7 +22,7 @@ const getStatusBadge = (status: PurchaseOrder['status']) => {
 };
 
 const PurchaseOrdersPage: React.FC = () => {
-    const { purchaseOrders, setPurchaseOrders, setProducts, currency, suppliers, products, branches } = useAppContext();
+    const { purchaseOrders, setPurchaseOrders, setProducts, currency, suppliers, products, branches, setInventoryAdjustmentLogs, session } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPO, setEditingPO] = useState<PurchaseOrder | null>(null);
     const [receivingPO, setReceivingPO] = useState<PurchaseOrder | null>(null);
@@ -117,6 +117,28 @@ const PurchaseOrdersPage: React.FC = () => {
                 return p;
             });
         });
+        
+        const logItems = stockUpdates.map(update => {
+            const poItem = updatedPO.items.find(i => i.productId === update.productId);
+            return {
+                productId: 'N/A', // In a real system you'd link this to the parent product
+                productName: poItem?.name || 'Unknown',
+                change: update.quantity,
+            };
+        });
+
+        if (logItems.length > 0) {
+            const newLog: InventoryAdjustmentLog = {
+                id: `adj_${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                user: session?.user?.user_metadata?.name || 'Admin User',
+                branchId: updatedPO.deliveryBranchId,
+                type: 'Purchase Order Receipt',
+                referenceId: updatedPO.id,
+                items: logItems,
+            };
+            setInventoryAdjustmentLogs(prev => [newLog, ...prev]);
+        }
     
         setReceivingPO(null);
         alert('Stock received and inventory updated successfully!');

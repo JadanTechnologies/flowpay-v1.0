@@ -1,11 +1,12 @@
 
 
 
+
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link } from 'react-router-dom';
 import { Shuffle, PlusCircle, ArrowLeft, MoreVertical, Edit, CheckCircle, Truck } from 'lucide-react';
-import { StockTransfer, Product, ProductVariant } from '../../types';
+import { StockTransfer, Product, ProductVariant, InventoryAdjustmentLog } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import { useAppContext } from '../../contexts/AppContext';
 import StockTransferModal from '../../components/inventory/StockTransferModal';
@@ -19,7 +20,7 @@ const getStatusBadge = (status: StockTransfer['status']) => {
 };
 
 const StockTransfersPage: React.FC = () => {
-    const { stockTransfers, setStockTransfers, branches, products, setProducts, setInventoryAdjustmentLogs } = useAppContext();
+    const { stockTransfers, setStockTransfers, branches, products, setProducts, setInventoryAdjustmentLogs, session } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleStartNewTransfer = () => {
@@ -66,12 +67,12 @@ const StockTransfersPage: React.FC = () => {
                     };
                 });
 
-                const newLog = {
+                const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: 'Admin User', // Or from session
+                    user: session?.user?.user_metadata?.name || 'Admin User',
                     branchId: transfer.fromBranchId,
-                    type: 'Stock Transfer Out' as const,
+                    type: 'Stock Transfer Out',
                     referenceId: transfer.id,
                     items: logItems,
                 };
@@ -120,12 +121,12 @@ const StockTransfersPage: React.FC = () => {
                     };
                 });
     
-                const newLog = {
+                const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: 'Admin User',
+                    user: session?.user?.user_metadata?.name || 'Admin User',
                     branchId: transfer.toBranchId,
-                    type: 'Stock Transfer In' as const,
+                    type: 'Stock Transfer In',
                     referenceId: transfer.id,
                     items: logItems,
                 };

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
 import { Sale, Payment } from '../../types';
