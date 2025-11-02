@@ -40,7 +40,6 @@ const ReceivePOModal: React.FC<ReceivePOModalProps> = ({ po, onSave, onClose }) 
         let allItemsReceived = true;
 
         const updatedItems = po.items.map(item => {
-            // FIX: Explicitly cast property access to string as it can be unknown.
             const quantityReceivedNow = parseInt((receivingQuantities[item.productId] as string) || '0', 10);
             if (isNaN(quantityReceivedNow)) {
                 return item;

@@ -28,8 +28,6 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
   };
 
   const totalPaid = useMemo(() => {
-    // FIX: Explicitly type the accumulator in the reduce function to prevent type inference issues.
-    // FIX: Cast `val` to string as Object.values can return unknown[] with certain TS configs.
     return Object.values(amounts).reduce((sum: number, val) => sum + (parseFloat(val as string) || 0), 0);
   }, [amounts]);
   
@@ -41,11 +39,9 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
         return;
     }
     const appliedPayments: Payment[] = Object.entries(amounts)
-        // FIX: Cast `amount` to string as Object.entries can return [string, unknown][] with certain TS configs.
         .filter(([, amount]) => parseFloat(amount as string) > 0)
         .map(([method, amount]) => ({
             method: method as PaymentMethod,
-            // FIX: Cast `amount` to string as Object.entries can return [string, unknown][] with certain TS configs.
             amount: parseFloat(amount as string),
         }));
     

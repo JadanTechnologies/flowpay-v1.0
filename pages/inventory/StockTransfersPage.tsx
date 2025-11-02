@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import * as ReactRouterDOM from 'react-router-dom';
@@ -37,9 +38,7 @@ const StockTransfersPage: React.FC = () => {
         if (window.confirm('Are you sure you want to dispatch this transfer? Stock will be deducted from the source branch.')) {
             // 1. Deduct stock from the source branch
             setProducts(currentProducts => {
-                // FIX: Explicitly type the map to ensure product is correctly typed.
                 const productsMap = new Map<string, Product>(currentProducts.map(p => [p.id, JSON.parse(JSON.stringify(p)) as Product]));
-                // FIX: Iterate through transfer items and update stock based on variantId.
                 transfer.items.forEach(item => {
                     for (const product of productsMap.values()) {
                         const variantToUpdate = product.variants.find((v: ProductVariant) => v.id === item.variantId);
@@ -54,7 +53,6 @@ const StockTransfersPage: React.FC = () => {
 
             // 2. Create an inventory adjustment log
             setInventoryAdjustmentLogs(prev => {
-                // FIX: Find product and variant details using variantId to create correct log items.
                 const logItems = transfer.items.map(item => {
                     const product = products.find(p => p.variants.some(v => v.id === item.variantId));
                     const variant = product?.variants.find(v => v.id === item.variantId);
@@ -94,9 +92,7 @@ const StockTransfersPage: React.FC = () => {
         if (window.confirm('Are you sure you want to mark this transfer as received? Stock will be added to the destination branch.')) {
             // 1. Add stock to the destination branch
             setProducts(currentProducts => {
-                // FIX: Explicitly type the map to ensure product is correctly typed.
                 const productsMap = new Map<string, Product>(currentProducts.map(p => [p.id, JSON.parse(JSON.stringify(p)) as Product]));
-                // FIX: Iterate through transfer items and update stock based on variantId.
                 transfer.items.forEach(item => {
                     for (const product of productsMap.values()) {
                         const variantToUpdate = product.variants.find((v: ProductVariant) => v.id === item.variantId);
@@ -111,7 +107,6 @@ const StockTransfersPage: React.FC = () => {
     
             // 2. Create an inventory adjustment log
             setInventoryAdjustmentLogs(prev => {
-                // FIX: Find product and variant details using variantId to create correct log items.
                 const logItems = transfer.items.map(item => {
                     const product = products.find(p => p.variants.some(v => v.id === item.variantId));
                     const variant = product?.variants.find(v => v.id === item.variantId);

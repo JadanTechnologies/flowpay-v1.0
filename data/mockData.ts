@@ -115,7 +115,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     features: ['5 Branches', '25 Users', 'Full Accounting', 'Advanced Reporting', 'API Access'],
     branchLimit: 5,
     userLimit: 25,
-    enabledModules: ['dashboard', 'pos', 'inventory', 'reports', 'branches', 'staff', 'invoicing', 'credit_management', 'automations', 'activityLog'],
+    enabledModules: ['dashboard', 'pos', 'inventory', 'reports', 'branches', 'staff', 'invoicing', 'credit_management', 'automations', 'logistics', 'activityLog'],
   },
   {
     id: 'plan_premium_789',

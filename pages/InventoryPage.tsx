@@ -34,14 +34,11 @@ const InventoryPage: React.FC = () => {
     const productsWithTotalStock = useMemo(() => {
         return products.map(p => ({
             ...p,
-            // FIX: Explicitly type accumulators and values in reduce functions to resolve type inference issues.
-            // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
             totalStock: p.variants.reduce((variantSum: number, v) => variantSum + Object.keys(v.stockByBranch).reduce((branchSum: number, key) => branchSum + v.stockByBranch[key], 0), 0)
         }));
     }, [products]);
 
     const filteredProducts = useMemo(() => {
-        // FIX: Explicitly type accumulator to resolve type errors with reduce.
         const branchStock = (p: Product) => p.variants.reduce((sum: number, v) => sum + (v.stockByBranch[branchFilter] || 0), 0);
         return products
             .filter(p => {
@@ -273,9 +270,7 @@ const InventoryPage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredProducts.map(product => {
-                                // FIX: Explicitly type accumulators to resolve type errors with reduce.
                                 const branchStock = product.variants.reduce((sum: number, v) => sum + (v.stockByBranch[branchFilter] || 0), 0);
-                                // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                                 const totalStock = product.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0);
                                 const hasMultipleVariants = product.variants.length > 1;
                                 return (
@@ -330,7 +325,6 @@ const InventoryPage: React.FC = () => {
                                                             <tbody>
                                                                 {product.variants.map(variant => {
                                                                     const vBranchStock = variant.stockByBranch[branchFilter] || 0;
-                                                                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                                                                     const vTotalStock = Object.keys(variant.stockByBranch).reduce((s: number, key) => s + variant.stockByBranch[key], 0);
                                                                     return (
                                                                         <tr key={variant.id} className="border-b border-border/50 last:border-b-0">

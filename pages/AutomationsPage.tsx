@@ -77,34 +77,26 @@ const AutomationsPage: React.FC = () => {
         switch (job.taskType) {
             case 'email_report':
                 if (job.config.reportType === 'daily_sales') {
-                    // FIX: Explicitly type the accumulator in reduce to prevent 'unknown' type errors.
-                    // FIX: Use Number() to ensure sale.amount is treated as a number.
                     const totalSales = recentSales.reduce((sum: number, sale) => sum + Number(sale.amount), 0);
                     executionMessage = `Email Report Sent to ${job.config.recipientEmail} as a .${attachmentFormat.toUpperCase()} file.\n\nReport Type: Daily Sales Summary\nTotal Sales Today: ${formatCurrency(totalSales, currency)}\nTransactions: ${recentSales.length}`;
                 } else if (job.config.reportType === 'inventory_summary') {
                     const totalProducts = products.length;
-                    // FIX: Correctly calculate stock from variants.
                     const lowStockItemsCount = products.filter(p => {
-                        // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                         const totalStock = p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0);
                         const lowStockThreshold = p.variants[0]?.lowStockThreshold || 0; // Simplified threshold
                         return totalStock > 0 && totalStock <= lowStockThreshold;
                     }).length;
-                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                     const outOfStockItemsCount = products.filter(p => p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0) <= 0).length;
                     executionMessage = `Email Report Sent to ${job.config.recipientEmail} as a .${attachmentFormat.toUpperCase()} file.\n\nReport Type: Inventory Summary\nTotal Products: ${totalProducts}\nItems with Low Stock: ${lowStockItemsCount}\nItems Out of Stock: ${outOfStockItemsCount}`;
                 }
                 break;
             case 'low_stock_alert':
-                // FIX: Correctly calculate stock from variants.
                 const lowStockProducts = products.filter(p => {
-                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                     const totalStock = p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0);
                     const lowStockThreshold = p.variants[0]?.lowStockThreshold || 0; // Simplified threshold
                     return totalStock > 0 && totalStock <= lowStockThreshold;
                 });
                 if (lowStockProducts.length > 0) {
-                    // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                     const productDetails = lowStockProducts.map(p => `${p.name} (Stock: ${p.variants.reduce((sum: number, v) => sum + Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0), 0)})`).join('\n - ');
                     executionMessage = `Low Stock Alert Sent to ${job.config.recipientEmail}.\n\nItems needing attention:\n - ${productDetails}`;
                 } else {
@@ -117,13 +109,11 @@ const AutomationsPage: React.FC = () => {
                 if (job.config.backupFormat === 'json') {
                     backupContent = JSON.stringify(backupData, null, 2);
                 } else if (job.config.backupFormat === 'csv') {
-                    // FIX: Iterate through variants to create correct CSV data.
                     const productHeaders = 'sku,name,price,total_stock\n';
                     const productRows = products.flatMap(p => 
                         p.variants.map(v => {
                             const variantName = Object.values(v.options).join(' ');
                             const displayName = variantName ? `${p.name} - ${variantName}` : p.name;
-                            // FIX: Use Object.keys for type-safe reduction to resolve operator '+' error.
                             const totalStock = Object.keys(v.stockByBranch).reduce((s: number, key) => s + v.stockByBranch[key], 0);
                             return `${v.sku},"${displayName}",${v.price},${totalStock}`;
                         })
