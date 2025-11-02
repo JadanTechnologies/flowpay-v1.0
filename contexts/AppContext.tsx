@@ -1,6 +1,7 @@
 
 
 
+
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
 import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant } from '../types';
 import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaff } from '../data/mockData';
@@ -153,11 +154,21 @@ const loginWithApi = async (email: string, pass: string, setSession: Function, s
         body: JSON.stringify({ email, password: pass }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        let errorMessage = `Login failed with status: ${response.status}`;
+        try {
+            // Try to parse a JSON error response from the backend
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+            // If parsing fails, it means the response was not JSON (e.g., HTML 404 page).
+            // The default error message is sufficient.
+            console.error("Could not parse error response as JSON.");
+        }
+        throw new Error(errorMessage);
     }
+    
+    const data = await response.json();
     
     localStorage.setItem('flowpay_token', data.token);
 

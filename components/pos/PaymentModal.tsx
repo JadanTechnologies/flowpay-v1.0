@@ -30,8 +30,14 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
   const totalPaid = useMemo(() => {
     return Object.values(amounts).reduce((sum: number, val) => sum + (parseFloat(val as string) || 0), 0);
   }, [amounts]);
+
+  const totalPaidByCardAndTransfer = useMemo(() => {
+    return (parseFloat(amounts.Card) || 0) + (parseFloat(amounts.Transfer) || 0);
+  }, [amounts]);
   
   const remainingBalance = totalAmount - totalPaid;
+
+  const isOverpayingNonCash = totalPaidByCardAndTransfer > totalAmount;
   
   const handleFinalize = () => {
     if (!customer) {
@@ -58,7 +64,7 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
     }
   }
   
-  const canFinalize = totalPaid > 0 || (customer && customer.id !== 'cust_4' && remainingBalance > 0);
+  const canFinalize = (totalPaid > 0 || (customer && customer.id !== 'cust_4' && remainingBalance > 0)) && !isOverpayingNonCash;
   
   const paymentMethods: { name: PaymentMethod; icon: React.ReactNode; }[] = [
       { name: 'Cash', icon: <Banknote /> },
@@ -98,6 +104,11 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
                         </div>
                     </div>
                 ))}
+                 {isOverpayingNonCash && (
+                    <div className="!mt-2 text-xs text-red-400 bg-red-900/50 p-2 rounded-lg">
+                        Amount paid by Card and/or Transfer cannot exceed the total bill.
+                    </div>
+                )}
             </div>
             
             {/* Right - Summary */}

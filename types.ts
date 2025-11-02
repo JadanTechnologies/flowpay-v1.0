@@ -343,11 +343,6 @@ export interface SystemSettings {
   branding: BrandingSettings;
   mobileApp: MobileAppSettings;
   featureFlags: { [key in ModuleId]?: boolean };
-  // FIX: Add missing properties to align with mock data.
-  supabaseUrl: string;
-  supabaseAnonKey: string;
-  supabaseBucket: string;
-  isSupabaseConfigured: boolean;
   footerCredits: string;
   termsUrl: string;
   privacyUrl: string;
