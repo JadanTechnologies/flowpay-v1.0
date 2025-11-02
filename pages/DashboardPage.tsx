@@ -11,7 +11,8 @@ import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 import { useTranslation } from '../hooks/useTranslation';
 import Skeleton from '../components/ui/Skeleton';
-import { ProductVariant } from '../types';
+import { ProductVariant, Sale } from '../types';
+import CashierSalesDetailModal from '../components/dashboard/CashierSalesDetailModal';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -33,6 +34,8 @@ const DashboardPage: React.FC = () => {
     const { session, currency, recentSales, products, currentBranchId } = useAppContext();
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
+    const [modalData, setModalData] = useState<{ title: string; sales: Sale[], type: 'general' | 'credit' } | null>(null);
+
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -81,49 +84,82 @@ const DashboardPage: React.FC = () => {
         const salesToday = recentSales.filter(s => s.cashierName === cashierName && isToday(s.date) && s.status !== 'Refunded');
 
         const totalSales = salesToday.reduce((sum, s) => sum + s.amount, 0);
-        const creditSales = salesToday.filter(s => s.status === 'Credit').reduce((sum, s) => sum + s.amount, 0);
-        const cardTransferSales = salesToday.flatMap(s => s.payments)
+
+        const creditSalesList = salesToday.filter(s => s.status === 'Credit');
+        const creditSales = creditSalesList.reduce((sum, s) => sum + s.amount, 0);
+        
+        const cardTransferSalesList = salesToday.filter(s => s.payments.some(p => p.method === 'Card' || p.method === 'Transfer'));
+        const cardTransferSales = cardTransferSalesList.flatMap(s => s.payments)
             .filter(p => p.method === 'Card' || p.method === 'Transfer')
             .reduce((sum, p) => sum + p.amount, 0);
         
         const keyStockProducts = products.filter(p => p.isFavorite).slice(0, 8);
 
         return (
-            <div className="space-y-8">
-                <h1 className="text-3xl font-bold text-text-primary">Daily Summary</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <DashboardCard title="Your Total Sales Today" value={formatCurrency(totalSales, currency)} change={`${salesToday.length} transactions`} icon={<DollarSign className="text-green-500"/>} />
-                    <DashboardCard title="Credit Sales" value={formatCurrency(creditSales, currency)} change="From your sales today" icon={<Handshake className="text-blue-500"/>} />
-                    <DashboardCard title="Card/Transfer Sales" value={formatCurrency(cardTransferSales, currency)} change="From your sales today" icon={<CreditCard className="text-yellow-500"/>} />
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg">
-                        <h2 className="text-xl font-semibold text-text-primary mb-4">Your Transactions Today</h2>
-                        {salesToday.length > 0 ? (
-                            <RecentSalesTable sales={salesToday} />
-                        ) : (
-                            <p className="text-text-secondary text-center py-12">You haven't made any sales today.</p>
-                        )}
+            <>
+                <div className="space-y-8">
+                    <h1 className="text-3xl font-bold text-text-primary">Daily Summary</h1>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <DashboardCard 
+                            title="Your Total Sales Today" 
+                            value={formatCurrency(totalSales, currency)} 
+                            change={`${salesToday.length} transactions`} 
+                            icon={<DollarSign className="text-green-500"/>}
+                            onClick={() => setModalData({ title: 'Total Sales Today', sales: salesToday, type: 'general' })}
+                        />
+                        <DashboardCard 
+                            title="Credit Sales" 
+                            value={formatCurrency(creditSales, currency)} 
+                            change={`${creditSalesList.length} transactions`} 
+                            icon={<Handshake className="text-blue-500"/>}
+                            onClick={() => setModalData({ title: 'Credit Sales Today', sales: creditSalesList, type: 'credit' })}
+                        />
+                        <DashboardCard 
+                            title="Card/Transfer Sales" 
+                            value={formatCurrency(cardTransferSales, currency)} 
+                            change={`${cardTransferSalesList.length} transactions`} 
+                            icon={<CreditCard className="text-yellow-500"/>}
+                            onClick={() => setModalData({ title: 'Card/Transfer Sales Today', sales: cardTransferSalesList, type: 'general' })}
+                        />
                     </div>
-                    <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
-                        <h2 className="text-xl font-semibold text-text-primary mb-4">Key Stock Levels</h2>
-                        <ul className="space-y-3 max-h-96 overflow-y-auto">
-                            {keyStockProducts.map(p => {
-                                const stock = p.variants.reduce((sum, v) => sum + (v.stockByBranch[currentBranchId] || 0), 0);
-                                const lowStockThreshold = p.variants[0]?.lowStockThreshold || 5;
-                                const isLow = stock > 0 && stock <= lowStockThreshold;
-                                const isOut = stock <= 0;
-                                return (
-                                    <li key={p.id} className="flex justify-between items-center bg-background p-3 rounded-md">
-                                        <span className="font-medium text-sm">{p.name}</span>
-                                        <span className={`font-bold text-lg ${isOut ? 'text-red-500' : isLow ? 'text-yellow-400' : 'text-text-primary'}`}>{stock}</span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg">
+                            <h2 className="text-xl font-semibold text-text-primary mb-4">Your Transactions Today</h2>
+                            {salesToday.length > 0 ? (
+                                <RecentSalesTable sales={salesToday.slice(0, 5)} />
+                            ) : (
+                                <p className="text-text-secondary text-center py-12">You haven't made any sales today.</p>
+                            )}
+                        </div>
+                        <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
+                            <h2 className="text-xl font-semibold text-text-primary mb-4">Key Stock Levels</h2>
+                            <ul className="space-y-3 max-h-96 overflow-y-auto">
+                                {keyStockProducts.map(p => {
+                                    const stock = p.variants.reduce((sum, v) => sum + (v.stockByBranch[currentBranchId] || 0), 0);
+                                    const lowStockThreshold = p.variants[0]?.lowStockThreshold || 5;
+                                    const isLow = stock > 0 && stock <= lowStockThreshold;
+                                    const isOut = stock <= 0;
+                                    return (
+                                        <li key={p.id} className="flex justify-between items-center bg-background p-3 rounded-md">
+                                            <span className="font-medium text-sm">{p.name}</span>
+                                            <span className={`font-bold text-lg ${isOut ? 'text-red-500' : isLow ? 'text-yellow-400' : 'text-text-primary'}`}>{stock}</span>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                {modalData && (
+                    <CashierSalesDetailModal 
+                        title={modalData.title}
+                        sales={modalData.sales}
+                        type={modalData.type}
+                        onClose={() => setModalData(null)}
+                    />
+                )}
+            </>
         );
     }
 
