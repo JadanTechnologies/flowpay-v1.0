@@ -63,7 +63,6 @@ import TemplatesPage from './pages/superadmin/TemplatesPage';
 import CronJobsPage from './pages/superadmin/CronJobsPage';
 import TenantActivityLogPage from './pages/superadmin/TenantActivityLogPage';
 import AccessControlPage from './pages/superadmin/AccessControlPage';
-import AppManagementPage from './pages/superadmin/AppManagementPage';
 import FeatureControlPage from './pages/superadmin/FeatureControlPage';
 
 const DynamicHead: React.FC = () => {
@@ -214,7 +213,6 @@ const AppRoutes: React.FC = () => {
           <Route path="team" element={<TeamManagementPage />} />
           <Route path="cron-jobs" element={<CronJobsPage />} />
           <Route path="access-control" element={<AccessControlPage />} />
-          <Route path="app-management" element={<AppManagementPage />} />
           <Route path="feature-control" element={<FeatureControlPage />} />
           <Route path="system-settings" element={<SystemSettingsPage />} />
       </Route>

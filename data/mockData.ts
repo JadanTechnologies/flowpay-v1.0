@@ -1,5 +1,6 @@
 
 
+
 import { Sale, Product as InventoryProduct, SalesDataPoint, BranchPerformance, Product, SubscriptionPlan, UserSubscription, PaymentHistory, SystemSettings, Tenant, Driver, Delivery, Branch, Staff, Invoice, Customer, CreditTransaction, TenantSettings, ActivityLog, Supplier, PurchaseOrder, StockCount, StockTransfer, PlatformPayment, Announcement, SuperAdminStaff, SuperAdminRole, EmailSmsTemplate, CronJob, ScheduledJob, InventoryAdjustmentLog, BlockRule, TenantRole, Device, ActiveSubscription, ProductVariant, CartItem, Truck, Consignment } from '../types';
 
 export const salesData: SalesDataPoint[] = [
@@ -489,24 +490,6 @@ export const systemSettings: SystemSettings = {
           { title: 'Product', links: [{ name: 'Features', href: '#features' }, { name: 'Pricing', href: '#pricing' }, { name: 'Integrations', href: '#' }] },
           { title: 'Company', links: [{ name: 'About Us', href: '#' }, { name: 'Careers', href: '#' }, { name: 'Contact Us', href: '#' }] },
       ]
-  },
-  mobileApp: {
-    enabled: true,
-    forceUpdate: false,
-    minVersionAndroid: '1.2.0',
-    minVersionIos: '1.2.1',
-    storeUrlAndroid: 'https://play.google.com',
-    storeUrlIos: 'https://www.apple.com/app-store/',
-    maintenanceMode: false,
-    maintenanceMessage: 'The mobile app is currently down for maintenance. Please check back later.',
-    appLogoUrl: '',
-    splashScreenUrl: '',
-    androidFileName: '',
-    androidFileSize: 0,
-    androidLastUpdated: '',
-    iosFileName: '',
-    iosFileSize: 0,
-    iosLastUpdated: '',
   },
   featureFlags: {
     dashboard: true,

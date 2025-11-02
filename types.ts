@@ -1,6 +1,7 @@
 
 
 
+
 export interface Sale {
   id: string;
   customerName: string;
@@ -310,27 +311,6 @@ export interface IpGeolocationSettings {
     apiKey?: string;
 }
 
-// NEW - Mobile App Settings
-export interface MobileAppSettings {
-  enabled: boolean;
-  forceUpdate: boolean;
-  minVersionAndroid: string;
-  minVersionIos: string;
-  storeUrlAndroid: string;
-  storeUrlIos: string;
-  maintenanceMode: boolean;
-  maintenanceMessage: string;
-  // New properties for direct uploads
-  androidFileName?: string;
-  androidFileSize?: number; // in bytes
-  androidLastUpdated?: string; // ISO string
-  iosFileName?: string;
-  iosFileSize?: number;
-  iosLastUpdated?: string;
-  appLogoUrl?: string;
-  splashScreenUrl?: string;
-}
-
 export interface SystemSettings {
   id: number;
   isMaintenanceMode: boolean;
@@ -341,7 +321,6 @@ export interface SystemSettings {
   notifications: NotificationService;
   ipGeolocation: IpGeolocationSettings;
   branding: BrandingSettings;
-  mobileApp: MobileAppSettings;
   featureFlags: { [key in ModuleId]?: boolean };
   footerCredits: string;
   termsUrl: string;

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link, useLocation } from 'react-router-dom';
@@ -18,7 +19,6 @@ import {
     Clock,
     DollarSign,
     Ban,
-    TabletSmartphone,
     ToggleRight
 } from 'lucide-react';
 
@@ -90,7 +90,6 @@ const SuperAdminSidebar: React.FC = () => {
             title: 'Platform',
             items: [
                  { icon: <Users2 size={20} />, text: 'Team', to: '/admin/team' },
-                 { icon: <TabletSmartphone size={20} />, text: 'App Management', to: '/admin/app-management' },
                  { icon: <ToggleRight size={20} />, text: 'Feature Control', to: '/admin/feature-control' },
                  { icon: <Clock size={20} />, text: 'Cron Jobs', to: '/admin/cron-jobs' },
                  { icon: <Ban size={20} />, text: 'Access Control', to: '/admin/access-control' },
