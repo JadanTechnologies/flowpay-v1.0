@@ -71,7 +71,7 @@ const DashboardPage: React.FC = () => {
         const newLog: InventoryAdjustmentLog = {
             id: `adj_${Date.now()}`,
             timestamp: new Date().toISOString(),
-            user: session?.user?.name || 'Manager',
+            user: session?.user?.user_metadata?.name || 'Manager',
             branchId: branchId,
             type: 'Sale Return',
             referenceId: originalSale.id,
@@ -127,7 +127,8 @@ const DashboardPage: React.FC = () => {
 
     // Notify manager/admin of pending returns on load
     useEffect(() => {
-        if (!loading && !returnNotifSent && (session?.user?.role === 'Manager' || session?.user?.role === 'Admin')) {
+        const userRole = session?.user?.app_metadata?.role;
+        if (!loading && !returnNotifSent && (userRole === 'Manager' || userRole === 'Admin')) {
             if (returnsForApproval.length > 0) {
                 addNotification({
                     message: `You have ${returnsForApproval.length} return request(s) waiting for approval. Click the 'Pending Returns' widget to review.`,
@@ -137,7 +138,7 @@ const DashboardPage: React.FC = () => {
                 setReturnNotifSent(true);
             }
         }
-    }, [returnsForApproval.length, session?.user?.role, addNotification, loading, returnNotifSent]);
+    }, [returnsForApproval.length, session?.user?.app_metadata?.role, addNotification, loading, returnNotifSent]);
 
     const isToday = (someDate: string) => {
         const today = new Date();
@@ -208,8 +209,8 @@ const DashboardPage: React.FC = () => {
     }
     
     // CASHIER DASHBOARD
-    if (session?.user?.role === 'Cashier') {
-        const cashierName = session.user.name;
+    if (session?.user?.app_metadata?.role === 'Cashier') {
+        const cashierName = session.user.user_metadata.name;
         const salesToday = recentSales.filter(s => s.cashierName === cashierName && isToday(s.date) && s.status !== 'Refunded');
         const totalSales = salesToday.reduce((sum, s) => sum + s.amount, 0);
         const creditSalesList = salesToday.filter(s => s.status === 'Credit');
@@ -238,7 +239,8 @@ const DashboardPage: React.FC = () => {
     }
 
     // ADMIN/MANAGER DASHBOARD
-    const isManagerOrAdmin = session?.user?.role === 'Manager' || session?.user?.role === 'Admin';
+    const userRole = session?.user?.app_metadata?.role;
+    const isManagerOrAdmin = userRole === 'Manager' || userRole === 'Admin';
     const layout = tenantSettings?.dashboardLayout || [];
 
     return (

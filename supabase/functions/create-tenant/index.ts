@@ -1,7 +1,7 @@
 // supabase/functions/create-tenant/index.ts
 
 // FIX: The Deno types reference was pointing to an invalid URL, causing TypeScript errors. This has been updated to a valid path.
-/// <reference types="https://raw.githubusercontent.com/denoland/deno/main/cli/tsc/dts/lib.deno.ns.d.ts" />
+/// <reference types="https://raw.githubusercontent.com/denoland/deno/v1.29.0/cli/tsc/dts/lib.deno.ns.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'

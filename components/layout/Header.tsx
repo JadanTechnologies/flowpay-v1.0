@@ -89,7 +89,7 @@ const Header: React.FC = () => {
   } = useAppContext();
   const [showCalculator, setShowCalculator] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const isCashier = session?.user?.role === 'Cashier';
+  const isCashier = session?.user?.app_metadata?.role === 'Cashier';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -138,8 +138,8 @@ const Header: React.FC = () => {
   }
 
   const currentBranch = branches.find(b => b.id === currentBranchId);
-  const userName = session?.user?.name || session?.user?.email;
-  const userRole = session?.user?.role?.replace(/_/g, ' ') || 'User';
+  const userName = session?.user?.user_metadata?.name || session?.user?.email;
+  const userRole = session?.user?.app_metadata?.role?.replace(/_/g, ' ') || 'User';
 
   return (
     <>

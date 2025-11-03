@@ -4,7 +4,6 @@ import { Invoice } from '../types';
 import Table, { Column } from '../components/ui/Table';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import Modal from '../components/ui/Modal';
-import { invoices as mockInvoices } from '../data/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 import InvoiceViewModal from '../components/invoicing/InvoiceViewModal';
@@ -19,8 +18,7 @@ const getStatusBadge = (status: Invoice['status']) => {
 };
 
 const InvoicingPage: React.FC = () => {
-    const { currency, scheduledJobs, setScheduledJobs, session } = useAppContext();
-    const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+    const { currency, scheduledJobs, setScheduledJobs, session, invoices, setInvoices } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
     const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
@@ -153,7 +151,9 @@ const InvoicingPage: React.FC = () => {
         { header: 'Status', accessor: 'status', sortable: true, render: (row) => getStatusBadge(row.status) },
         { header: 'Amount', accessor: 'amount', sortable: true, render: (row) => <div className="text-right font-medium text-text-primary">{formatCurrency(row.amount, currency)}</div> },
         {
-            header: 'Actions', accessor: 'actions', render: (row) => (
+            header: 'Actions',
+            accessor: 'actions',
+            render: (row) => (
                 <div className="group relative text-right">
                     <button className="p-1.5 rounded-md hover:bg-border"><MoreVertical size={16} /></button>
                     <div className="absolute right-0 mt-1 w-40 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">

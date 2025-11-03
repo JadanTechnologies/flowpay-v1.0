@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { PurchaseOrder, PurchaseOrderItem, Supplier, Product, ProductVariant } from '../../types';
 import Modal from '../ui/Modal';
@@ -26,7 +24,7 @@ const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({ po, onSave, onC
     });
     
     // FIX: Use variantId in newItem state.
-    const [newItem, setNewItem] = useState({ productId: '', quantity: '1', costPrice: '' });
+    const [newItem, setNewItem] = useState({ variantId: '', quantity: '1', costPrice: '' });
 
     const totalCost = useMemo(() => {
         return formData.items.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
@@ -34,7 +32,7 @@ const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({ po, onSave, onC
 
     // FIX: Update handleAddItem to work with variants.
     const handleAddItem = () => {
-        if (!newItem.productId || parseFloat(newItem.quantity) <= 0 || parseFloat(newItem.costPrice) < 0) {
+        if (!newItem.variantId || parseFloat(newItem.quantity) <= 0 || parseFloat(newItem.costPrice) < 0) {
             alert('Please select a product and enter a valid quantity and cost price.');
             return;
         }
@@ -42,7 +40,7 @@ const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({ po, onSave, onC
         let product: Product | undefined;
         let variant: ProductVariant | undefined;
         for (const p of products) {
-            const v = p.variants.find(v => v.id === newItem.productId);
+            const v = p.variants.find(v => v.id === newItem.variantId);
             if (v) {
                 product = p;
                 variant = v;
@@ -64,7 +62,7 @@ const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({ po, onSave, onC
         };
         
         setFormData(prev => ({ ...prev, items: [...prev.items, poItem] }));
-        setNewItem({ productId: '', quantity: '1', costPrice: '' }); // Reset for next item
+        setNewItem({ variantId: '', quantity: '1', costPrice: '' }); // Reset for next item
     };
     
     const handleRemoveItem = (productId: string) => {
@@ -85,7 +83,7 @@ const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({ po, onSave, onC
         }
 
         setNewItem({
-            productId: variantId,
+            variantId: variantId,
             quantity: '1',
             costPrice: variant ? variant.costPrice.toString() : ''
         });
@@ -162,7 +160,7 @@ const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({ po, onSave, onC
                             <div className="flex-grow">
                                 <label className="text-xs text-text-secondary">Product</label>
                                 {/* FIX: Change product selector to variant selector */}
-                                <select value={newItem.productId} onChange={e => handleProductSelect(e.target.value)} className="w-full text-sm bg-surface border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary">
+                                <select value={newItem.variantId} onChange={e => handleProductSelect(e.target.value)} className="w-full text-sm bg-surface border border-border rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary">
                                     <option value="">Select Product...</option>
                                     {products.flatMap(p => 
                                         p.variants.map(v => {

@@ -1,8 +1,8 @@
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
 import { User as AuthUser, Session as AuthSession } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest } from '../types';
-import { systemSettings as mockSettingsData } from '../data/mockData';
+import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest, Invoice } from '../types';
+import { systemSettings as mockSettingsData, invoices as mockInvoices } from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -90,6 +90,8 @@ interface AppContextType {
   setRecentSales: React.Dispatch<React.SetStateAction<Sale[]>>;
   pendingReturns: PendingReturnRequest[];
   setPendingReturns: React.Dispatch<React.SetStateAction<PendingReturnRequest[]>>;
+  invoices: Invoice[];
+  setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
 }
 
 
@@ -136,6 +138,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [consignments, setConsignments] = useState<Consignment[]>([]);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>([]);
+  // FIX: Add invoices to context
+  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
 
   // Local preferences
   const [language, setLanguage] = useState<Language>('en');
@@ -317,6 +321,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       markNotificationsAsRead, userSubscription, setUserSubscription, subscriptionPlans, setSubscriptionPlans,
       hasUnreadNotifications, customers, setCustomers, trucks, setTrucks, drivers, setDrivers,
       consignments, setConsignments, impersonateStaff, recentSales, setRecentSales, pendingReturns, setPendingReturns,
+      invoices, setInvoices,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
