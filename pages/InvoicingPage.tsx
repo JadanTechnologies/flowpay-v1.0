@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download } from 'lucide-react';
+import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download, Repeat } from 'lucide-react';
 import { Invoice } from '../types';
 import Table, { Column } from '../components/ui/Table';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import Modal from '../components/ui/Modal';
 import { invoices as mockInvoices } from '../data/mockData';
 import { useAppContext } from '../contexts/AppContext';
-import { formatCurrency } from '../../utils/formatting';
+import { formatCurrency } from '../utils/formatting';
 import InvoiceViewModal from '../components/invoicing/InvoiceViewModal';
 
 
@@ -85,7 +85,18 @@ const InvoicingPage: React.FC = () => {
     };
 
     const columns: Column<Invoice>[] = [
-        { header: 'Invoice ID', accessor: 'id', sortable: true, render: (row) => <span className="font-mono text-text-secondary">{row.id}</span> },
+        { 
+            header: 'Invoice ID', 
+            accessor: 'id', 
+            sortable: true, 
+            render: (row) => (
+                <div className="flex items-center gap-2">
+                    <span className="font-mono text-text-secondary">{row.id}</span>
+                    {/* FIX: Wrap the lucide-react 'Repeat' icon in a span with a title attribute for the tooltip, as lucide-react icons do not accept a 'title' prop directly. */}
+                    {row.isRecurring && <span title={`Recurring ${row.recurringFrequency}`}><Repeat size={12} className="text-blue-400" /></span>}
+                </div>
+            )
+        },
         { header: 'Customer', accessor: 'customerName', sortable: true },
         { header: 'Issue Date', accessor: 'issueDate', sortable: true },
         { header: 'Due Date', accessor: 'dueDate', sortable: true },
@@ -143,16 +154,26 @@ const InvoicingPage: React.FC = () => {
 
 
 const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: Invoice) => void; onClose: () => void; }> = ({ invoice, onSave, onClose }) => {
-    const [formData, setFormData] = useState<Omit<Invoice, 'id'>>(invoice || {
-        customerName: '',
-        issueDate: new Date().toISOString().split('T')[0],
-        dueDate: '',
-        amount: 0,
-        status: 'Due'
+    const [formData, setFormData] = useState<Omit<Invoice, 'id'>>({
+        customerName: invoice?.customerName || '',
+        issueDate: invoice?.issueDate || new Date().toISOString().split('T')[0],
+        dueDate: invoice?.dueDate || '',
+        amount: invoice?.amount || 0,
+        status: invoice?.status || 'Due',
+        isRecurring: invoice?.isRecurring || false,
+        recurringFrequency: invoice?.recurringFrequency || 'monthly',
+        recurringEndDate: invoice?.recurringEndDate || '',
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
+        
+        if (type === 'checkbox') {
+            const { checked } = e.target as HTMLInputElement;
+            setFormData(prev => ({...prev, [name]: checked }));
+            return;
+        }
+
         setFormData(prev => ({...prev, [name]: type === 'number' ? parseFloat(value) : value }));
     };
 
@@ -177,6 +198,30 @@ const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: In
                         </div>
                     </div>
                      <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required step="0.01" className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                    
+                    <div className="pt-4 border-t border-border">
+                        <div className="flex items-center gap-2">
+                            <input type="checkbox" id="isRecurring" name="isRecurring" checked={formData.isRecurring} onChange={handleChange} className="h-4 w-4 rounded border-gray-600 text-primary focus:ring-primary bg-surface"/>
+                            <label htmlFor="isRecurring" className="text-sm font-medium">Set as Recurring Invoice</label>
+                        </div>
+
+                        {formData.isRecurring && (
+                            <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-background rounded-lg border border-border">
+                                <div>
+                                    <label className="text-xs text-text-secondary block mb-1">Frequency</label>
+                                    <select name="recurringFrequency" value={formData.recurringFrequency} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary block mb-1">End Date (Optional)</label>
+                                    <input type="date" name="recurringEndDate" value={formData.recurringEndDate} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"/>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
                     <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>

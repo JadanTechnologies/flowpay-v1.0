@@ -1,4 +1,5 @@
 
+
 // Basic types
 export type Language = 'en' | 'es' | 'fr';
 export type Currency = 'USD' | 'EUR' | 'NGN';
@@ -228,6 +229,9 @@ export interface Invoice {
     dueDate: string;
     amount: number;
     status: 'Paid' | 'Due' | 'Overdue';
+    isRecurring?: boolean;
+    recurringFrequency?: 'weekly' | 'monthly' | 'yearly';
+    recurringEndDate?: string;
 }
 
 export interface CreditTransaction {
