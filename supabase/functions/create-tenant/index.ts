@@ -1,7 +1,8 @@
 // supabase/functions/create-tenant/index.ts
 
 // FIX: Update Deno types reference for Supabase edge functions to resolve Deno namespace issues.
-/// <reference types="https://deno.land/x/supabase/ts/edge-runtime.d.ts" />
+// FIX: Updated the Deno types reference for Supabase edge functions. This resolves issues with finding the type definition file and accessing `Deno.env`.
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'

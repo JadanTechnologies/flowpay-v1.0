@@ -44,7 +44,7 @@ import StockTransfersPage from './pages/inventory/StockTransfersPage';
 import InventoryHistoryPage from './pages/inventory/InventoryHistoryPage';
 import AutomationsPage from './pages/AutomationsPage';
 import ViewSubscriptionDetailsPage from './pages/settings/ViewSubscriptionDetailsPage';
-import ManageBillingPage from './pages/settings/ManageBillingPage';
+import BillingPage from './pages/settings/BillingPage';
 import PaymentHistoryPage from './pages/settings/PaymentHistoryPage';
 import FleetPage from './pages/logistics/FleetPage';
 import ConsignmentsPage from './pages/logistics/ConsignmentsPage';
@@ -199,7 +199,7 @@ const AppRoutes: React.FC = () => {
           <ReactRouterDOM.Route index element={<ReactRouterDOM.Navigate to="profile" replace />} />
           <ReactRouterDOM.Route path="profile" element={<ProfilePage />} />
           <ReactRouterDOM.Route path="subscription-details" element={<ViewSubscriptionDetailsPage />} />
-          <ReactRouterDOM.Route path="manage-billing" element={<ManageBillingPage />} />
+          <ReactRouterDOM.Route path="manage-billing" element={<BillingPage />} />
           <ReactRouterDOM.Route path="payment-history" element={<PaymentHistoryPage />} />
           <ReactRouterDOM.Route path="notifications" element={<NotificationsPage />} />
           <ReactRouterDOM.Route path="security" element={<SecurityPage />} />
