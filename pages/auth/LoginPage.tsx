@@ -8,21 +8,12 @@ const LoginPage: React.FC = () => {
     const navigate = ReactRouterDOM.useNavigate();
     const location = ReactRouterDOM.useLocation();
     const { login } = useAppContext();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const isSuperAdminLogin = location.pathname.startsWith('/admin');
+    
+    const [email, setEmail] = useState(isSuperAdminLogin ? 'superadmin@flowpay.com' : 'tenantadmin@jadan.com');
+    const [password, setPassword] = useState('12345');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
-    // For demo purposes, pre-fill credentials based on which login page was likely intended
-    useState(() => {
-        if (location.pathname.startsWith('/admin')) {
-            setEmail('superadmin@flowpay.com');
-            setPassword('12345');
-        } else {
-            setEmail('tenantadmin@jadan.com');
-            setPassword('12345');
-        }
-    });
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

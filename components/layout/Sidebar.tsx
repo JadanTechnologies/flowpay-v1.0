@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import * as ReactRouterDOM from 'react-router-dom';
@@ -111,7 +112,7 @@ const Sidebar: React.FC = () => {
     const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
     const location = ReactRouterDOM.useLocation();
     const { t } = useTranslation();
-    const { logout, userSubscription, subscriptionPlans, settings, currentUserPermissions } = useAppContext();
+    const { logout, userSubscription, subscriptionPlans, settings, currentUserPermissions, session } = useAppContext();
     const navigate = ReactRouterDOM.useNavigate();
 
     const allowedBySubscriptionAndFlags = useMemo(() => {
@@ -211,6 +212,8 @@ const Sidebar: React.FC = () => {
         setOpenSubMenu(openSubMenu === text ? null : text);
     };
 
+    const userName = session?.user?.user_metadata?.name || session?.user?.email || 'User';
+    const userEmail = session?.user?.email || 'no-email@flowpay.com';
 
     return (
         <aside className="h-screen sticky top-0">
@@ -295,8 +298,8 @@ const Sidebar: React.FC = () => {
                     <img src="https://picsum.photos/seed/user/100/100" alt="avatar" className="w-10 h-10 rounded-md" />
                     <div className={`flex justify-between items-center overflow-hidden transition-all ${expanded ? 'w-40 ml-3' : 'w-0'}`}>
                         <div className="leading-4">
-                            <h4 className="font-semibold text-text-primary">Admin User</h4>
-                            <span className="text-xs text-text-secondary">admin@flowpay.com</span>
+                            <h4 className="font-semibold text-text-primary">{userName}</h4>
+                            <span className="text-xs text-text-secondary">{userEmail}</span>
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,12 @@ import React, { createContext, useState, useMemo, useContext, useEffect, useCall
 import { User as AuthUser, Session as AuthSession } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest, Invoice } from '../types';
-import { systemSettings as mockSettingsData, invoices as mockInvoices } from '../data/mockData';
+import { 
+    systemSettings as mockSettingsData, 
+    invoices as mockInvoices,
+    userSubscription as mockUserSubscription,
+    subscriptionPlans as mockSubscriptionPlans 
+} from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -130,8 +135,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [tenantRoles, setTenantRoles] = useState<TenantRole[]>([]);
   const [approvedDevices, setApprovedDevices] = useState<Device[]>([]);
   const [pendingDevices, setPendingDevices] = useState<Device[]>([]);
-  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(mockUserSubscription);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>(mockSubscriptionPlans);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -210,6 +215,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setStaff([]);
         setTenantRoles([]);
         setRecentSales([]);
+        setUserSubscription(null);
+        setSubscriptionPlans([]);
         // Clear other states...
     }
   }, [session, fetchAllData]);

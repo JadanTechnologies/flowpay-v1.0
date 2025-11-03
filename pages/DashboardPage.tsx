@@ -210,7 +210,7 @@ const DashboardPage: React.FC = () => {
     
     // CASHIER DASHBOARD
     if (session?.user?.app_metadata?.role === 'Cashier') {
-        const cashierName = session.user.user_metadata.name;
+        const cashierName = session.user?.user_metadata?.name;
         const salesToday = recentSales.filter(s => s.cashierName === cashierName && isToday(s.date) && s.status !== 'Refunded');
         const totalSales = salesToday.reduce((sum, s) => sum + s.amount, 0);
         const creditSalesList = salesToday.filter(s => s.status === 'Credit');
