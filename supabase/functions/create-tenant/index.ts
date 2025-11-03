@@ -1,7 +1,8 @@
 // supabase/functions/create-tenant/index.ts
 
-// FIX: Corrected the Deno types reference for Supabase Edge Functions to a valid URL to resolve errors with the Deno namespace.
-/// <reference types="https://esm.sh/@supabase/functions-js@2/src/edge-runtime.d.ts" />
+// FIX: Corrected the Deno types reference to point to the self-contained 'src' version of the definition file, which properly defines the Deno namespace and resolves the 'Deno.env' errors. The 'dist' version uses relative paths that do not resolve correctly from the CDN.
+// FIX: Switched from unpkg to esm.sh for the Deno types reference to resolve type definition loading errors.
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'

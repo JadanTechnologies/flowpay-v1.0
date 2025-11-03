@@ -544,15 +544,6 @@ const PosPage: React.FC = () => {
             />
           )}
 
-          {isHeldSalesModalOpen && (
-            <HeldSalesModal
-                heldSales={heldSales}
-                onClose={() => setHeldSalesModalOpen(false)}
-                onRestore={handleRestoreSale}
-                onDelete={handleDeleteHeldSale}
-            />
-          )}
-
           {isCustomerModalOpen && (
               <CustomerFormModal
                 onClose={() => setIsCustomerModalOpen(false)}

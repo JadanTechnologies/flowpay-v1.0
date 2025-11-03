@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Repeat, PlusCircle, Edit, Trash2, Play, Pause, PlayCircle } from 'lucide-react';
-import { ScheduledJob, Invoice } from '../../types';
-import { useAppContext } from '../../contexts/AppContext';
-import Table, { Column } from '../../components/ui/Table';
-import JobModal from '../../components/automations/JobModal';
-import { customers as mockCustomers, recentSales } from '../../data/mockData';
-import { formatCurrency } from '../../utils/formatting';
+import { ScheduledJob, Invoice } from '../types';
+import { useAppContext } from '../contexts/AppContext';
+import Table, { Column } from '../components/ui/Table';
+import JobModal from '../components/automations/JobModal';
+import { customers as mockCustomers, recentSales } from '../data/mockData';
+import { formatCurrency } from '../utils/formatting';
 
 const getStatusBadge = (status: ScheduledJob['status']) => {
     switch (status) {

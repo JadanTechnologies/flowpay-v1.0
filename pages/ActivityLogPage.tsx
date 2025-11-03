@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ActivityLog, Staff } from '../../types';
+import { ActivityLog, Staff } from '../types';
 import { activityLogs as mockLogs, staff as mockStaff } from '../data/mockData';
 import Table, { Column } from '../components/ui/Table';
 
