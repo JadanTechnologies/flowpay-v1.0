@@ -431,7 +431,7 @@ export const tenantRoles: TenantRole[] = [
 ];
 
 export const invoices: Invoice[] = [
-    { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid' },
+    { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid', isRecurring: true, recurringFrequency: 'monthly', recurringEndDate: '2024-10-01' },
     { id: 'inv_1002', customerName: 'Local Blooms', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 750.50, status: 'Due' },
     { id: 'inv_1003', customerName: 'Gadget Galaxy', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450.00, status: 'Overdue' },
 ];
@@ -526,6 +526,7 @@ export const scheduledJobs: ScheduledJob[] = [
     { id: 'job_2', tenantId: 'tnt_2', name: 'Weekly Inventory Summary', taskType: 'email_report', schedule: '0 2 * * 0', lastRun: '2023-10-22 02:00:00', nextRun: '2023-10-29 02:00:00', status: 'paused', config: { recipientEmail: 'admin@flowpay.com', reportType: 'inventory_summary', attachmentFormat: 'csv' } },
     { id: 'job_3', tenantId: 'tnt_1', name: 'Hourly Low Stock Check', taskType: 'low_stock_alert', schedule: '0 * * * *', lastRun: '2023-10-26 10:00:00', nextRun: '2023-10-26 11:00:00', status: 'active', config: { recipientEmail: 'ops@innovate.com' } },
     { id: 'job_4', tenantId: 'tnt_2', name: 'Monthly Credit Reminders', taskType: 'credit_reminder', schedule: '0 9 25 * *', lastRun: '2023-09-25 09:00:00', nextRun: '2023-10-25 09:00:00', status: 'active', config: {} },
+    { id: 'job_inv_1001', tenantId: 'tnt_2', name: 'Monthly Invoice for Innovate Inc.', taskType: 'recurring_invoice', schedule: '0 9 15 * *', lastRun: '2023-10-15 09:00:00', nextRun: '2023-11-15 09:00:00', status: 'active', config: { sourceInvoiceId: 'inv_1001' } },
 ];
 
 // SUPER ADMIN - Access Control

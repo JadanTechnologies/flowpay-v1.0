@@ -17,9 +17,11 @@ const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onRequ
     const [error, setError] = useState<string | null>(null);
     const [itemsToReturn, setItemsToReturn] = useState<Record<string, number>>({});
     const { currency } = useAppContext();
+    const [returnError, setReturnError] = useState<string | null>(null);
 
     const handleFindSale = () => {
         setError(null);
+        setReturnError(null);
         setSearchedSale(null);
         setItemsToReturn({});
         const foundSale = salesHistory.find(s => s.id === saleIdSearch);
@@ -52,6 +54,7 @@ const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onRequ
     }, [itemsToReturn, searchedSale]);
 
     const handleConfirmRefund = () => {
+        setReturnError(null);
         if (!searchedSale) return;
 
         const returnedItems: CartItem[] = Object.entries(itemsToReturn)
@@ -64,7 +67,7 @@ const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onRequ
             });
 
         if (returnedItems.length === 0) {
-            alert("No items selected for return.");
+            setReturnError("No items selected for return. Please select a quantity for at least one item.");
             return;
         }
 
@@ -118,6 +121,11 @@ const ReturnModal: React.FC<ReturnModalProps> = ({ salesHistory, onClose, onRequ
                          </div>
                     </div>
                      <div className="p-4 bg-background rounded-b-xl border-t border-border">
+                        {returnError && (
+                            <div className="mb-4 flex items-center gap-2 text-sm text-red-400 bg-red-900/50 p-3 rounded-lg">
+                                <AlertTriangle size={16}/> {returnError}
+                            </div>
+                        )}
                         <div className="flex justify-between items-center mb-4">
                             <span className="text-xl font-bold text-text-primary">Total Refund:</span>
                             <span className="text-2xl font-bold text-primary">{formatCurrency(totalRefund, currency)}</span>

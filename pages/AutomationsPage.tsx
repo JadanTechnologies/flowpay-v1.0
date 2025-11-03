@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Repeat, PlusCircle, Edit, Trash2, Play, Pause, PlayCircle } from 'lucide-react';
-import { ScheduledJob } from '../../types';
+import { ScheduledJob, Invoice } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
-import Table, { Column } from '../../components/ui/Table';
-import JobModal from '../../components/automations/JobModal';
+import Table, { Column } from '../components/ui/Table';
+import JobModal from '../components/automations/JobModal';
 import { customers as mockCustomers, recentSales } from '../data/mockData';
-import { formatCurrency } from '../../utils/formatting';
+import { formatCurrency } from '../utils/formatting';
 
 const getStatusBadge = (status: ScheduledJob['status']) => {
     switch (status) {
@@ -19,22 +19,18 @@ const taskTypeLabels: Record<ScheduledJob['taskType'], string> = {
     'email_report': 'Email Report',
     'low_stock_alert': 'Low Stock Alert',
     'data_backup': 'Data Backup',
-    'credit_reminder': 'Credit Reminders'
+    'credit_reminder': 'Credit Reminders',
+    'recurring_invoice': 'Recurring Invoice',
 };
 
 const AutomationsPage: React.FC = () => {
-    const { scheduledJobs, setScheduledJobs, session, products, currency } = useAppContext();
+    const { scheduledJobs, setScheduledJobs, session, products, currency, invoices, setInvoices } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState<ScheduledJob | null>(null);
 
     const tenantJobs = useMemo(() => {
-        const mockTenantId = 'stf_5'; // Default admin user ID for demo
-        const userId = session?.user?.id || mockTenantId;
-        // In a real app this would be `job.tenantId === session.tenant.id`
-        // For demo, we assign some jobs to the default user
-        return scheduledJobs.map(j => (j.id === 'job_1' || j.id === 'job_2' || j.id === 'job_4') ? {...j, tenantId: userId} : j)
-                          .filter(job => job.tenantId === userId);
-    }, [scheduledJobs, session?.user?.id]);
+        return scheduledJobs.filter(job => job.tenantId === session?.user.tenantId);
+    }, [scheduledJobs, session?.user?.tenantId]);
 
 
     const openModalForNew = () => {
@@ -133,6 +129,47 @@ const AutomationsPage: React.FC = () => {
                      executionMessage = `Credit Reminder process ran. No customers with outstanding credit found.`;
                 }
                 break;
+            case 'recurring_invoice': {
+                if (!job.config.sourceInvoiceId) {
+                    executionMessage = 'Error: Source Invoice ID is missing from job config.';
+                    break;
+                }
+                const sourceInvoice = invoices.find(inv => inv.id === job.config.sourceInvoiceId);
+                if (!sourceInvoice) {
+                    executionMessage = `Error: Source invoice with ID ${job.config.sourceInvoiceId} not found.`;
+                    setScheduledJobs(prev => prev.map(j => j.id === job.id ? {...j, status: 'error'} : j));
+                    break;
+                }
+
+                if (sourceInvoice.recurringEndDate && new Date() > new Date(sourceInvoice.recurringEndDate)) {
+                    executionMessage = `Recurring invoice cycle ended on ${sourceInvoice.recurringEndDate}. Job has been paused.`;
+                    setScheduledJobs(prev => prev.map(j => j.id === job.id ? {...j, status: 'paused'} : j));
+                    break;
+                }
+
+                const issueDate = new Date();
+                const originalIssueDate = new Date(sourceInvoice.issueDate);
+                const originalDueDate = new Date(sourceInvoice.dueDate);
+                const dueDays = (originalDueDate.getTime() - originalIssueDate.getTime()) / (1000 * 3600 * 24);
+                const dueDate = new Date();
+                dueDate.setDate(issueDate.getDate() + Math.round(dueDays));
+
+                const newInvoice: Invoice = {
+                    id: `inv_${Date.now()}`,
+                    customerName: sourceInvoice.customerName,
+                    issueDate: issueDate.toISOString().split('T')[0],
+                    dueDate: dueDate.toISOString().split('T')[0],
+                    amount: sourceInvoice.amount,
+                    status: 'Due',
+                    isRecurring: sourceInvoice.isRecurring,
+                    recurringFrequency: sourceInvoice.recurringFrequency,
+                    recurringEndDate: sourceInvoice.recurringEndDate,
+                };
+                
+                setInvoices(prev => [newInvoice, ...prev]);
+                executionMessage = `Successfully generated new invoice ${newInvoice.id} for ${newInvoice.customerName}.`;
+                break;
+            }
             default:
                 executionMessage = `Unknown job type: ${job.taskType}`;
         }

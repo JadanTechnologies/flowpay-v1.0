@@ -547,7 +547,7 @@ export interface CronJob {
     status: 'OK' | 'Failed' | 'Running';
 }
 
-export type ScheduledJobTaskType = 'email_report' | 'low_stock_alert' | 'data_backup' | 'credit_reminder';
+export type ScheduledJobTaskType = 'email_report' | 'low_stock_alert' | 'data_backup' | 'credit_reminder' | 'recurring_invoice';
 
 export interface ScheduledJobConfig {
     recipientEmail?: string;
@@ -555,6 +555,7 @@ export interface ScheduledJobConfig {
     attachmentFormat?: 'csv' | 'pdf';
     backupLocation?: 's3_bucket' | 'google_drive' | 'local_storage';
     backupFormat?: 'json' | 'csv' | 'sql';
+    sourceInvoiceId?: string;
 }
 
 export interface ScheduledJob {

@@ -1,4 +1,4 @@
-import { SubscriptionPlan, PaymentGateway } from '../types';
+import { SubscriptionPlan, PaymentGateway, Payment } from '../types';
 
 /**
  * Simulates processing a payment with a selected gateway.
@@ -30,4 +30,28 @@ export const handlePaymentProcessing = async (plan: SubscriptionPlan, gateway: P
     console.error(`Payment for ${plan.name} failed.`);
     return { success: false, message: 'Payment failed. Please try again or use another payment method.' };
   }
+};
+
+
+/**
+ * Simulates processing a payment for a POS transaction.
+ * Randomly fails to simulate real-world scenarios.
+ */
+export const handlePosPayment = async (totalAmount: number, payments: Payment[]): Promise<{ success: boolean; message: string }> => {
+    console.log(`Processing POS payment of ${totalAmount}...`);
+  
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+  
+    // Simulate various failure scenarios
+    const randomFactor = Math.random();
+    if (randomFactor < 0.2) { // 20% chance of failure
+      const errors = ["Insufficient funds.", "Card declined.", "Network error. Please try again.", "Payment processor unavailable."];
+      const errorMessage = errors[Math.floor(Math.random() * errors.length)];
+      console.error(`POS Payment failed: ${errorMessage}`);
+      return { success: false, message: errorMessage };
+    }
+  
+    console.log('POS Payment successful!');
+    return { success: true, message: 'Payment processed successfully!' };
 };

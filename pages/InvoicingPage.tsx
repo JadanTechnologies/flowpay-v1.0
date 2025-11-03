@@ -19,10 +19,10 @@ const getStatusBadge = (status: Invoice['status']) => {
 };
 
 const InvoicingPage: React.FC = () => {
+    const { currency, scheduledJobs, setScheduledJobs, session } = useAppContext();
     const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-    const { currency } = useAppContext();
     const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
 
     const totalOutstanding = invoices.filter(i => i.status === 'Due' || i.status === 'Overdue').reduce((sum, i) => sum + i.amount, 0);
@@ -34,12 +34,58 @@ const InvoicingPage: React.FC = () => {
     };
 
     const handleSaveInvoice = (invoice: Invoice) => {
+        let finalInvoice: Invoice;
         if (editingInvoice) {
+            finalInvoice = { ...invoice };
             setInvoices(invoices.map(i => i.id === invoice.id ? invoice : i));
         } else {
             const newInvoice = { ...invoice, id: `inv_${new Date().getTime()}`};
+            finalInvoice = newInvoice;
             setInvoices([newInvoice, ...invoices]);
         }
+
+        const job_id = `job_inv_${finalInvoice.id}`;
+        const existingJob = scheduledJobs.find(j => j.id === job_id);
+
+        if (finalInvoice.isRecurring) {
+            const issueDate = new Date(finalInvoice.issueDate);
+            const dayOfMonth = issueDate.getUTCDate();
+            const dayOfWeek = issueDate.getUTCDay();
+            const month = issueDate.getUTCMonth() + 1;
+
+            let cronSchedule = '';
+            switch (finalInvoice.recurringFrequency) {
+                case 'weekly':
+                    cronSchedule = `0 9 * * ${dayOfWeek}`;
+                    break;
+                case 'monthly':
+                    cronSchedule = `0 9 ${dayOfMonth} * *`;
+                    break;
+                case 'yearly':
+                    cronSchedule = `0 9 ${dayOfMonth} ${month} *`;
+                    break;
+            }
+
+            const jobData = {
+                name: `Recurring invoice for ${finalInvoice.customerName}`,
+                taskType: 'recurring_invoice' as const,
+                schedule: cronSchedule,
+                config: { sourceInvoiceId: finalInvoice.id },
+                status: 'active' as const,
+                tenantId: session?.user?.tenantId || '',
+                lastRun: null,
+                nextRun: 'Pending calculation',
+            };
+
+            if (existingJob) {
+                setScheduledJobs(jobs => jobs.map(j => j.id === job_id ? { ...j, ...jobData, id: job_id } : j));
+            } else {
+                setScheduledJobs(jobs => [{ ...jobData, id: job_id }, ...jobs]);
+            }
+        } else if (existingJob) {
+            setScheduledJobs(jobs => jobs.filter(j => j.id !== job_id));
+        }
+
         setIsModalOpen(false);
     };
 
@@ -52,6 +98,11 @@ const InvoicingPage: React.FC = () => {
     const handleDelete = (id: string) => {
         if (window.confirm('Are you sure you want to delete this invoice?')) {
             setInvoices(invoices.filter(i => i.id !== id));
+            const job_id = `job_inv_${id}`;
+            const existingJob = scheduledJobs.find(j => j.id === job_id);
+            if(existingJob) {
+                setScheduledJobs(jobs => jobs.filter(j => j.id !== job_id));
+            }
         }
     };
 
@@ -92,7 +143,6 @@ const InvoicingPage: React.FC = () => {
             render: (row) => (
                 <div className="flex items-center gap-2">
                     <span className="font-mono text-text-secondary">{row.id}</span>
-                    {/* FIX: Wrap the lucide-react 'Repeat' icon in a span with a title attribute for the tooltip, as lucide-react icons do not accept a 'title' prop directly. */}
                     {row.isRecurring && <span title={`Recurring ${row.recurringFrequency}`}><Repeat size={12} className="text-blue-400" /></span>}
                 </div>
             )
@@ -217,7 +267,7 @@ const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: In
                                 </div>
                                 <div>
                                     <label className="text-xs text-text-secondary block mb-1">End Date (Optional)</label>
-                                    <input type="date" name="recurringEndDate" value={formData.recurringEndDate} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"/>
+                                    <input type="date" name="recurringEndDate" value={formData.recurringEndDate || ''} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"/>
                                 </div>
                             </div>
                         )}

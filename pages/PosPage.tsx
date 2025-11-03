@@ -318,6 +318,11 @@ const PosPage: React.FC = () => {
   };
   
   const handleAddToCart = (product: Product, variant: ProductVariant) => {
+    if (typeof variant.price !== 'number' || variant.price < 0) {
+        addNotification({ message: `'${product.name}' has an invalid price and cannot be added to the cart.`, type: 'error' });
+        return;
+    }
+    
     const stockInBranch = variant.stockByBranch[currentBranchId] || 0;
     if (stockInBranch <= 0) {
       addNotification({ message: `'${product.name}' is out of stock in this branch.`, type: 'error'});

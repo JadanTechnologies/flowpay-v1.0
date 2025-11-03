@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -274,15 +271,23 @@ const Sidebar: React.FC = () => {
                 </ul>
 
                 <div className="px-3 py-2">
-                    <button onClick={handleSignOut} className="w-full">
-                         <div className={`
-                            relative flex items-center py-2 px-3
-                            font-medium rounded-md cursor-pointer
-                            transition-colors group text-red-400 hover:bg-red-900/50
-                        `}>
-                            <LogOut size={20} />
-                            <span className={`overflow-hidden transition-all ${expanded ? 'w-40 ml-3' : 'w-0'}`}>Sign Out</span>
-                        </div>
+                    <button onClick={handleSignOut} className={`
+                        w-full relative flex items-center py-2 px-3
+                        font-medium rounded-md cursor-pointer
+                        transition-colors group text-red-400 hover:bg-red-900/50
+                    `}>
+                        <LogOut size={20} />
+                        <span className={`overflow-hidden transition-all ${expanded ? 'w-40 ml-3' : 'w-0'}`}>Sign Out</span>
+                        {!expanded && (
+                            <div className={`
+                                absolute left-full rounded-md px-2 py-1 ml-6
+                                bg-surface text-text-primary text-sm
+                                invisible opacity-20 -translate-x-3 transition-all
+                                group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+                            `}>
+                                Sign Out
+                            </div>
+                        )}
                     </button>
                 </div>
 

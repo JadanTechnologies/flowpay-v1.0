@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, LogOut, User, Settings, Calculator as CalculatorIcon, Store, CheckCircle, AlertTriangle, XCircle, Handshake, CreditCard } from 'lucide-react';
+import { Search, Bell, ChevronDown, User, Settings, Calculator as CalculatorIcon, Store, CheckCircle, AlertTriangle, XCircle, Handshake, CreditCard } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import DigitalClock from '../ui/DigitalClock';
 import Calculator from '../ui/Calculator';
@@ -18,10 +19,8 @@ const NotificationIcon: React.FC<{type: Notification['type']}> = ({ type }) => {
 }
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
   const { 
       session, 
-      logout, 
       branches, 
       currentBranchId, 
       setCurrentBranchId,
@@ -33,11 +32,6 @@ const Header: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const isCashier = session?.user?.role === 'Cashier';
 
-  const handleSignOut = async () => {
-    await logout();
-    navigate('/login');
-  };
-  
   const handleBellClick = () => {
     setShowNotifications(prev => !prev);
     if (!showNotifications) { // When opening
@@ -149,16 +143,12 @@ const Header: React.FC = () => {
                   <ChevronDown size={16} className="text-text-secondary group-hover:rotate-180 transition-transform" />
               </button>
               <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible z-10">
-                  <a href="#profile" className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-background hover:text-text-primary">
+                  <Link to="/app/settings/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-background hover:text-text-primary">
                       <User size={16} /> Profile
-                  </a>
-                  <a href="#settings" className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-background hover:text-text-primary">
+                  </Link>
+                  <Link to="/app/settings" className="flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-background hover:text-text-primary">
                       <Settings size={16} /> Settings
-                  </a>
-                  <hr className="border-border"/>
-                  <button onClick={handleSignOut} className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-background">
-                      <LogOut size={16} /> Sign Out
-                  </button>
+                  </Link>
               </div>
           </div>
         </div>

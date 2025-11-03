@@ -1,8 +1,9 @@
 import React, { useState, useMemo, FC, ChangeEvent } from 'react';
-import { X, CreditCard, Banknote, Smartphone, Handshake } from 'lucide-react';
+import { X, CreditCard, Banknote, Smartphone, Handshake, Loader, AlertTriangle } from 'lucide-react';
 import { Payment, Customer, Sale } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
 import { formatCurrency } from '../../utils/formatting';
+import { handlePosPayment } from '../../lib/payment';
 
 interface PaymentModalProps {
   totalAmount: number;
@@ -17,6 +18,8 @@ type PaymentAmounts = Record<PaymentMethod, string>;
 const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, onConfirm }) => {
   const [amounts, setAmounts] = useState<PaymentAmounts>({ Cash: '', Card: '', Transfer: '' });
   const { currency, addNotification } = useAppContext();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target as { name: PaymentMethod, value: string };
@@ -39,17 +42,32 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
 
   const isOverpayingNonCash = totalPaidByCardAndTransfer > totalAmount;
   
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     if (!customer) {
         addNotification({ message: 'Error: Customer information is missing.', type: 'error' });
         return;
     }
+    setErrorMessage(null);
+
     const appliedPayments: Payment[] = Object.entries(amounts)
         .filter(([, amount]) => parseFloat(amount as string) > 0)
         .map(([method, amount]) => ({
             method: method as PaymentMethod,
             amount: parseFloat(amount as string),
         }));
+    
+    // Simulate payment processing for card/transfer
+    const nonCashPayments = appliedPayments.filter(p => p.method !== 'Cash');
+    if (nonCashPayments.length > 0) {
+        setIsProcessing(true);
+        const result = await handlePosPayment(totalPaid, appliedPayments);
+        setIsProcessing(false);
+
+        if (!result.success) {
+            setErrorMessage(result.message);
+            return; // Stop execution if payment fails
+        }
+    }
     
     if(remainingBalance > 0) {
        if (customer.id === 'cust_4') { // 'cust_4' is the Walk-in Customer
@@ -64,7 +82,7 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
     }
   }
   
-  const canFinalize = (totalPaid > 0 || (customer && customer.id !== 'cust_4' && remainingBalance > 0)) && !isOverpayingNonCash;
+  const canFinalize = (totalPaid > 0 || (customer && customer.id !== 'cust_4' && remainingBalance > 0)) && !isOverpayingNonCash && !isProcessing;
   
   const paymentMethods: { name: PaymentMethod; icon: React.ReactNode; }[] = [
       { name: 'Cash', icon: <Banknote /> },
@@ -109,6 +127,11 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
                         Amount paid by Card and/or Transfer cannot exceed the total bill.
                     </div>
                 )}
+                 {errorMessage && (
+                    <div className="!mt-2 text-xs text-red-400 bg-red-900/50 p-2 rounded-lg flex items-center gap-2">
+                        <AlertTriangle size={14}/> {errorMessage}
+                    </div>
+                )}
             </div>
             
             {/* Right - Summary */}
@@ -124,8 +147,8 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
                 </div>
 
                 <div className="mt-auto pt-4 flex flex-col gap-2">
-                    <button onClick={handleFinalize} disabled={!canFinalize} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-700 disabled:text-text-secondary disabled:cursor-not-allowed">
-                       {remainingBalance > 0 && customer && customer.id !== 'cust_4' ? 'Finalize with Credit' : 'Finalize Sale'}
+                    <button onClick={handleFinalize} disabled={!canFinalize} className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-dark transition-colors disabled:bg-gray-700 disabled:text-text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                       {isProcessing ? <><Loader size={18} className="animate-spin" /> Processing...</> : (remainingBalance > 0 && customer && customer.id !== 'cust_4' ? 'Finalize with Credit' : 'Finalize Sale')}
                     </button>
                 </div>
             </div>
