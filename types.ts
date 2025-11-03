@@ -94,7 +94,8 @@ export interface CartItem {
     sku: string;
     price: number;
     costPrice: number;
-    imageUrl?: string;
+    // FIX: Made imageUrl required as it is always provided and expected. This resolves type predicate errors elsewhere.
+    imageUrl: string;
     quantity: number;
     stock: number;
     discount?: number;
@@ -585,6 +586,8 @@ export type TrackerProvider = 'teltonika' | 'ruptela' | 'queclink' | 'calamp' | 
 export interface TenantSettings {
     id: string;
     tenantId: string;
+    // FIX: Added missing property to allow tenant-specific session timeout overrides.
+    inactivityLogoutTimer: number;
     trackerIntegration: {
         provider: TrackerProvider;
         enableWeightSensors: boolean;

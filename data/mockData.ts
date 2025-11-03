@@ -1,3 +1,4 @@
+
 import { Sale, Product as InventoryProduct, SalesDataPoint, BranchPerformance, Product, SubscriptionPlan, UserSubscription, PaymentHistory, SystemSettings, Tenant, Driver, Delivery, Branch, Staff, Invoice, Customer, CreditTransaction, TenantSettings, ActivityLog, Supplier, PurchaseOrder, StockCount, StockTransfer, PlatformPayment, Announcement, SuperAdminStaff, SuperAdminRole, EmailSmsTemplate, CronJob, ScheduledJob, InventoryAdjustmentLog, BlockRule, TenantRole, Device, ActiveSubscription, ProductVariant, CartItem, Truck, Consignment } from '../types';
 
 export const salesData: SalesDataPoint[] = [
@@ -377,6 +378,8 @@ contactUsContent: "This is the Contact Us page content. It can be edited from th
 export const tenantSettings: TenantSettings = {
     id: 'ts_1',
     tenantId: 'tnt_1',
+    // FIX: Added inactivityLogoutTimer to match the updated TenantSettings type.
+    inactivityLogoutTimer: 10, // Tenant-specific override (system default is 15)
     trackerIntegration: {
         provider: 'teltonika',
         enableWeightSensors: true,
@@ -456,7 +459,8 @@ export const suppliers: Supplier[] = [
 export const purchaseOrders: PurchaseOrder[] = [
     { id: 'PO-2023-001', supplierId: 'sup_1', supplierName: 'Global Coffee Co.', deliveryBranchId: 'br_1', createdDate: '2023-10-15', expectedDate: '2023-10-25', status: 'Received', items: [{ productId: 'v-pos-1', name: 'Espresso', sku: 'COF-ESP-SGL', quantity: 100, costPrice: 1.10, quantityReceived: 100 }], totalCost: 110.00 },
     { id: 'PO-2023-002', supplierId: 'sup_2', supplierName: 'Fresh Pastries Inc.', deliveryBranchId: 'br_2', createdDate: '2023-10-20', expectedDate: '2023-10-28', status: 'Partial', items: [{ productId: 'v-pos-4', name: 'Croissant', sku: 'PST-CRS-BTR', quantity: 50, costPrice: 0.85, quantityReceived: 25 }], totalCost: 42.50 },
-    { id: 'PO-2023-003', supplierId: 'sup_1', supplierName: 'Global Coffee Co.', deliveryBranchId: 'br_1', createdDate: '2023-10-26', expectedDate: '2023-11-05', status: 'Pending', items: [{ productId: 'v-pos-2-m', name: 'Latte - Medium', sku: 'COF-LAT-MED', quantity: 50, costPrice: 1.60 }], totalCost: 80.00 },
+    // FIX: Added missing 'quantityReceived' property to satisfy the PurchaseOrderItem type.
+    { id: 'PO-2023-003', supplierId: 'sup_1', supplierName: 'Global Coffee Co.', deliveryBranchId: 'br_1', createdDate: '2023-10-26', expectedDate: '2023-11-05', status: 'Pending', items: [{ productId: 'v-pos-2-m', name: 'Latte - Medium', sku: 'COF-LAT-MED', quantity: 50, costPrice: 1.60, quantityReceived: 0 }], totalCost: 80.00 },
 ];
 
 export const stockCounts: StockCount[] = [

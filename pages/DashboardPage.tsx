@@ -39,7 +39,7 @@ const DashboardPage: React.FC = () => {
     } = useAppContext();
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
-    const [modalData, setModalData] = useState<{ title: string; sales: Sale[], type: 'general' | 'credit' } | null>(null);
+    const [modalData, setModalData] = useState<{ title: string; sales: Sale[], type: 'general' | 'credit' | 'card_transfer' } | null>(null);
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
 
     const returnsForApproval = useMemo(() => 
@@ -204,7 +204,7 @@ const DashboardPage: React.FC = () => {
                             value={formatCurrency(cardTransferSales, currency)} 
                             change={`${cardTransferSalesList.length} transactions`} 
                             icon={<CreditCard className="text-yellow-500"/>}
-                            onClick={() => setModalData({ title: 'Card/Transfer Sales Today', sales: cardTransferSalesList, type: 'general' })}
+                            onClick={() => setModalData({ title: 'Card/Transfer Sales Today', sales: cardTransferSalesList, type: 'card_transfer' })}
                         />
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

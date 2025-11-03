@@ -5,11 +5,12 @@ import { formatCurrency } from '../../utils/formatting';
 import { useAppContext } from '../../contexts/AppContext';
 import DetailedCashierSalesTable from './DetailedCashierSalesTable';
 import DetailedCashierCreditSalesTable from './DetailedCashierCreditSalesTable';
+import DetailedCardSalesTable from './DetailedCardSalesTable';
 
 interface CashierSalesDetailModalProps {
   title: string;
   sales: Sale[];
-  type: 'general' | 'credit';
+  type: 'general' | 'credit' | 'card_transfer';
   onClose: () => void;
 }
 
@@ -21,7 +22,13 @@ const CashierSalesDetailModal: React.FC<CashierSalesDetailModalProps> = ({ title
     <Modal title={title} onClose={onClose}>
       <div className="p-6 max-h-[70vh] overflow-y-auto">
         {sales.length > 0 ? (
-          type === 'credit' ? <DetailedCashierCreditSalesTable sales={sales} /> : <DetailedCashierSalesTable sales={sales} />
+          type === 'credit' ? (
+            <DetailedCashierCreditSalesTable sales={sales} />
+          ) : type === 'card_transfer' ? (
+            <DetailedCardSalesTable sales={sales} />
+          ) : (
+            <DetailedCashierSalesTable sales={sales} />
+          )
         ) : (
           <p className="text-center text-text-secondary py-10">No transactions found for this category today.</p>
         )}
