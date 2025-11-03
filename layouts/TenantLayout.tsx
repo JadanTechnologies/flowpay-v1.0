@@ -70,7 +70,7 @@ const TenantLayout: React.FC = () => {
     return <ReactRouterDOM.Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  if (session.user.app_metadata.role === 'super_admin') {
+  if (session.user?.app_metadata?.role === 'super_admin') {
     return <ReactRouterDOM.Navigate to="/admin/dashboard" replace />;
   }
   

@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Repeat, PlusCircle, Edit, Trash2, Play, Pause, PlayCircle } from 'lucide-react';
-import { ScheduledJob, Invoice } from '../types';
-import { useAppContext } from '../contexts/AppContext';
-import Table, { Column } from '../components/ui/Table';
-import JobModal from '../components/automations/JobModal';
-import { customers as mockCustomers, recentSales } from '../data/mockData';
-import { formatCurrency } from '../utils/formatting';
+import { ScheduledJob, Invoice } from '../../types';
+import { useAppContext } from '../../contexts/AppContext';
+import Table, { Column } from '../../components/ui/Table';
+import JobModal from '../../components/automations/JobModal';
+import { customers as mockCustomers, recentSales } from '../../data/mockData';
+import { formatCurrency } from '../../utils/formatting';
 
 const getStatusBadge = (status: ScheduledJob['status']) => {
     switch (status) {
@@ -30,8 +30,8 @@ const AutomationsPage: React.FC = () => {
 
     const tenantJobs = useMemo(() => {
         // FIX: Access tenant_id from user's app_metadata
-        return scheduledJobs.filter(job => job.tenantId === session?.user.app_metadata.tenant_id);
-    }, [scheduledJobs, session?.user?.app_metadata.tenant_id]);
+        return scheduledJobs.filter(job => job.tenantId === session?.user?.app_metadata?.tenant_id);
+    }, [scheduledJobs, session?.user?.app_metadata?.tenant_id]);
 
 
     const openModalForNew = () => {

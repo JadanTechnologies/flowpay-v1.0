@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download, Repeat } from 'lucide-react';
-import { Invoice } from '../types';
-import Table, { Column } from '../components/ui/Table';
-import DashboardCard from '../components/dashboard/DashboardCard';
-import Modal from '../components/ui/Modal';
-import { useAppContext } from '../contexts/AppContext';
-import { formatCurrency } from '../utils/formatting';
-import InvoiceViewModal from '../components/invoicing/InvoiceViewModal';
+import { Invoice } from '../../types';
+import Table, { Column } from '../../components/ui/Table';
+import DashboardCard from '../../components/dashboard/DashboardCard';
+import Modal from '../../components/ui/Modal';
+import { useAppContext } from '../../contexts/AppContext';
+import { formatCurrency } from '../../utils/formatting';
+import InvoiceViewModal from '../../components/invoicing/InvoiceViewModal';
 
 
 const getStatusBadge = (status: Invoice['status']) => {
@@ -71,7 +71,7 @@ const InvoicingPage: React.FC = () => {
                 config: { sourceInvoiceId: finalInvoice.id },
                 status: 'active' as const,
                 // FIX: Access tenant_id from user's app_metadata
-                tenantId: session?.user?.app_metadata.tenant_id || '',
+                tenantId: session?.user?.app_metadata?.tenant_id || '',
                 lastRun: null,
                 nextRun: 'Pending calculation',
             };

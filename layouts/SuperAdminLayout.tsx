@@ -25,7 +25,7 @@ const SuperAdminLayout: React.FC = () => {
     return <ReactRouterDOM.Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  if (session.user.app_metadata.role !== 'super_admin') {
+  if (session.user?.app_metadata?.role !== 'super_admin') {
       console.warn("User is not a super admin, redirecting.");
       return <ReactRouterDOM.Navigate to="/login" state={{ from: location }} replace />;
   }
