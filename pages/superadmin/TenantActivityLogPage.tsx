@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { useParams, Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { ActivityLog } from '../../types';
 import { activityLogs as mockLogs, tenants as mockTenants } from '../../data/mockData';
 import Table, { Column } from '../../components/ui/Table';
 import { ArrowLeft } from 'lucide-react';
 
 const TenantActivityLogPage: React.FC = () => {
-    const { tenantId } = useParams<{ tenantId: string }>();
+    const { tenantId } = ReactRouterDOM.useParams<{ tenantId: string }>();
     
     const tenant = useMemo(() => mockTenants.find(t => t.id === tenantId), [tenantId]);
     
@@ -45,9 +45,9 @@ const TenantActivityLogPage: React.FC = () => {
     return (
         <div className="space-y-6">
              <div className="flex items-center gap-4">
-                <Link to="/admin/tenants" className="p-2 rounded-md hover:bg-surface">
+                <ReactRouterDOM.Link to="/admin/tenants" className="p-2 rounded-md hover:bg-surface">
                     <ArrowLeft size={24} />
-                </Link>
+                </ReactRouterDOM.Link>
                 <div>
                     <h1 className="text-3xl font-bold text-text-primary">Activity Log</h1>
                     <p className="text-text-secondary">Viewing all activity for <span className="font-semibold text-primary">{tenant.companyName}</span></p>

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { 
     LayoutDashboard, 
     ShoppingCart, 
@@ -38,7 +38,7 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ icon, text, to, active, expanded }) => {
     return (
-        <Link to={to}>
+        <ReactRouterDOM.Link to={to}>
             <li className={`
                 relative flex items-center py-2 px-3 my-1
                 font-medium rounded-md cursor-pointer
@@ -61,7 +61,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, text, to, active, expanded }) =
                     </div>
                 )}
             </li>
-        </Link>
+        </ReactRouterDOM.Link>
     );
 };
 
@@ -73,7 +73,7 @@ interface SubNavItemProps {
 
 const SubNavItem: React.FC<SubNavItemProps> = ({ text, to, active }) => {
     return (
-        <Link to={to}>
+        <ReactRouterDOM.Link to={to}>
             <li className={`
                 relative flex items-center py-1.5 px-3 my-1
                 text-sm font-medium rounded-md cursor-pointer
@@ -89,7 +89,7 @@ const SubNavItem: React.FC<SubNavItemProps> = ({ text, to, active }) => {
                 `}></div>
                 <span>{text}</span>
             </li>
-        </Link>
+        </ReactRouterDOM.Link>
     );
 };
 
@@ -109,10 +109,10 @@ const moduleIdToPermissionMap: Partial<Record<ModuleId, TenantPermission>> = {
 const Sidebar: React.FC = () => {
     const [expanded, setExpanded] = useState(true);
     const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
-    const location = useLocation();
+    const location = ReactRouterDOM.useLocation();
     const { t } = useTranslation();
     const { logout, userSubscription, subscriptionPlans, settings, currentUserPermissions } = useAppContext();
-    const navigate = useNavigate();
+    const navigate = ReactRouterDOM.useNavigate();
 
     const allowedBySubscriptionAndFlags = useMemo(() => {
         if (!userSubscription || !subscriptionPlans || !settings?.featureFlags) return new Set<ModuleId>();

@@ -2,14 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { Package, PlusCircle, Search, MoreVertical, Edit, Trash2, SlidersHorizontal, Loader, Upload, Download, Bell, History, Filter, Store, ChevronDown, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
-import { Product, InventoryAdjustmentLog, InventoryAdjustmentLogType, ProductVariant } from '../types';
-import StockAdjustmentModal from '../components/inventory/StockAdjustmentModal';
-import BulkUpdateModal from '../components/inventory/BulkUpdateModal';
-import { useAppContext } from '../contexts/AppContext';
-import ProductForm from '../components/inventory/ProductForm';
-import { formatCurrency } from '../utils/formatting';
+import { Product, InventoryAdjustmentLog, InventoryAdjustmentLogType, ProductVariant } from '../../types';
+import StockAdjustmentModal from '../../components/inventory/StockAdjustmentModal';
+import BulkUpdateModal from '../../components/inventory/BulkUpdateModal';
+import { useAppContext } from '../../contexts/AppContext';
+import ProductForm from '../../components/inventory/ProductForm';
+import { formatCurrency } from '../../utils/formatting';
 
 interface BulkUpdateResults {
     successCount: number;
@@ -17,7 +17,7 @@ interface BulkUpdateResults {
 }
 
 const InventoryPage: React.FC = () => {
-    const { products, setProducts, loading, addNotification, branches, currency, currentBranchId, setInventoryAdjustmentLogs, session } = useAppContext();
+    const { products, setProducts, loading, addNotification, branches, currency, currentBranchId, setInventoryAdjustmentLogs, session, saveProduct } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'inStock' | 'lowStock' | 'outOfStock'>('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -151,25 +151,20 @@ const InventoryPage: React.FC = () => {
 
     const handleDelete = (id: string) => {
         if (window.confirm('Are you sure you want to delete this product and all its variants?')) {
+            // TODO: Convert to Supabase delete
             setProducts(products.filter(p => p.id !== id));
             addNotification({ message: 'Product deleted successfully.', type: 'success' });
         }
     };
 
-    const handleSave = (productData: Product) => {
-        if (editingProduct) {
-            setProducts(products.map(p => p.id === productData.id ? productData : p));
-            addNotification({ message: 'Product updated successfully.', type: 'success' });
-        } else {
-            setProducts([productData, ...products]);
-            addNotification({ message: 'New product added.', type: 'success' });
-        }
+    const handleSave = async (productData: Product) => {
+        await saveProduct(productData);
         setIsModalOpen(false);
     };
     
     const handleSaveStockAdjustment = ({ variantId, newStock, reason }: { variantId: string; newStock: number; reason: string }) => {
         if (!adjustingStockProduct || !adjustingStockVariant) return;
-
+        // TODO: Convert to Supabase update
         setProducts(currentProducts => currentProducts.map(p => {
             const variantIndex = p.variants.findIndex(v => v.id === variantId);
             if (variantIndex > -1) {
@@ -180,7 +175,8 @@ const InventoryPage: React.FC = () => {
                 const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.name || 'Admin User',
+                    // FIX: The user name is stored in the user_metadata object.
+                    user: session?.user?.user_metadata?.name || 'Admin User',
                     branchId: branchFilter,
                     type: 'Manual Adjustment',
                     referenceId: reason,
@@ -216,6 +212,7 @@ const InventoryPage: React.FC = () => {
             const notFoundSkus: string[] = [];
             const invalidStockValues: { sku: string, value: string }[] = [];
             
+            // TODO: Convert to Supabase bulk update
             setProducts(currentProducts => {
                 const updatedProducts = JSON.parse(JSON.stringify(currentProducts)); // Deep copy
                 rows.forEach(row => {
@@ -407,7 +404,8 @@ const InventoryPage: React.FC = () => {
                                                             <tbody>
                                                                 {product.variants.map(variant => {
                                                                     const vBranchStock = variant.stockByBranch[branchFilter] || 0;
-                                                                    const vTotalStock = Object.keys(variant.stockByBranch).reduce((s: number, key) => s + variant.stockByBranch[key], 0);
+                                                                    // FIX: Use Object.values for type-safe reduce operation
+                                                                    const vTotalStock = Object.values(variant.stockByBranch).reduce((s, stock) => s + stock, 0);
                                                                     return (
                                                                         <tr key={variant.id} className="border-b border-border/50 last:border-b-0">
                                                                             <td className="px-2 py-2 font-medium">{Object.values(variant.options).join(' / ')}</td>

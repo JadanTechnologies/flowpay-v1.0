@@ -6,9 +6,10 @@
 
 
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { Truck, PlusCircle, MoreVertical, Edit, Trash2, CheckCircle, ArrowLeft, Filter } from 'lucide-react';
 import { PurchaseOrder, InventoryAdjustmentLog, Product, ProductVariant } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
@@ -200,9 +201,9 @@ const PurchaseOrdersPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                     <Link to="/app/inventory" className="p-2 rounded-md hover:bg-surface">
+                     <ReactRouterDOM.Link to="/app/inventory" className="p-2 rounded-md hover:bg-surface">
                         <ArrowLeft size={24} />
-                    </Link>
+                    </ReactRouterDOM.Link>
                     <h1 className="text-3xl font-bold text-text-primary">Purchase Orders</h1>
                 </div>
                 <button onClick={openModalForNew} className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors">

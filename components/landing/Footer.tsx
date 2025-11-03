@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap, Facebook, Twitter, Linkedin } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 
 const Footer: React.FC = () => {
@@ -43,10 +43,10 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
-            <Link to="/" className="flex items-center gap-2">
+            <ReactRouterDOM.Link to="/" className="flex items-center gap-2">
               <Zap className="text-primary" size={28} />
               <span className="text-2xl font-bold">{platformName}</span>
-            </Link>
+            </ReactRouterDOM.Link>
             <p className="mt-4 text-gray-400">{branding?.footerDescription || 'The ultimate SaaS platform for POS, Inventory, and Logistics management.'}</p>
             <div className="mt-6 flex space-x-4">
                 <a href="#" className="text-gray-400 hover:text-white"><Facebook /></a>
@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
                 {section.links.map(link => (
                   <li key={link.name}>
                     {link.href.startsWith('/') ? (
-                        <Link to={link.href} className="text-gray-400 hover:text-white">{link.name}</Link>
+                        <ReactRouterDOM.Link to={link.href} className="text-gray-400 hover:text-white">{link.name}</ReactRouterDOM.Link>
                     ) : (
                         <a href={link.href} onClick={(e) => handleScroll(e, link.href)} className="text-gray-400 hover:text-white">{link.name}</a>
                     )}

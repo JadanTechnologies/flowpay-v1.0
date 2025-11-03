@@ -4,9 +4,10 @@
 
 
 
+
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link, useLocation } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { 
     LayoutDashboard, 
     Users, 
@@ -35,7 +36,7 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ icon, text, to, active, expanded }) => {
     return (
-        <Link to={to}>
+        <ReactRouterDOM.Link to={to}>
             <li className={`
                 relative flex items-center py-2 px-3 my-1
                 font-medium rounded-md cursor-pointer
@@ -58,14 +59,14 @@ const NavItem: React.FC<NavItemProps> = ({ icon, text, to, active, expanded }) =
                     </div>
                 )}
             </li>
-        </Link>
+        </ReactRouterDOM.Link>
     );
 };
 
 
 const SuperAdminSidebar: React.FC = () => {
     const [expanded, setExpanded] = useState(true);
-    const location = useLocation();
+    const location = ReactRouterDOM.useLocation();
     const { session } = useAppContext();
 
     const navSections = [

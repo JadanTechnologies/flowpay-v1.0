@@ -1,6 +1,6 @@
 import React from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { NavLink, Outlet } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { User, CreditCard, Bell, Shield, Puzzle, TabletSmartphone, FileText, ListChecks } from 'lucide-react';
 
 const settingsNav = [
@@ -26,7 +26,7 @@ const SettingsPage: React.FC = () => {
         <aside className="md:col-span-1">
           <nav className="space-y-1">
             {settingsNav.map(item => (
-              <NavLink
+              <ReactRouterDOM.NavLink
                 key={item.name}
                 to={item.to}
                 className={({ isActive }) => 
@@ -35,14 +35,14 @@ const SettingsPage: React.FC = () => {
               >
                 <item.icon size={18} />
                 <span>{item.name}</span>
-              </NavLink>
+              </ReactRouterDOM.NavLink>
             ))}
           </nav>
         </aside>
 
         <main className="md:col-span-3">
             <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
-                <Outlet />
+                <ReactRouterDOM.Outlet />
             </div>
         </main>
       </div>

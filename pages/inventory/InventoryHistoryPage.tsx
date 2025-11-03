@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { History, ArrowLeft, Store, Filter } from 'lucide-react';
 import { InventoryAdjustmentLog, InventoryAdjustmentLogType } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
@@ -79,9 +79,9 @@ const InventoryHistoryPage: React.FC = () => {
         <div className="space-y-6">
              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                     <Link to="/app/inventory" className="p-2 rounded-md hover:bg-surface">
+                     <ReactRouterDOM.Link to="/app/inventory" className="p-2 rounded-md hover:bg-surface">
                         <ArrowLeft size={24} />
-                    </Link>
+                    </ReactRouterDOM.Link>
                     <h1 className="text-3xl font-bold text-text-primary">Inventory History</h1>
                 </div>
             </div>

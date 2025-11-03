@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import useInactivityLogout from '../hooks/useInactivityLogout';
@@ -17,8 +17,8 @@ const TenantLayout: React.FC = () => {
   const inactivityTimeout = tenantSettings?.inactivityLogoutTimer ?? settings?.inactivityLogoutTimer ?? 15;
   useInactivityLogout(inactivityTimeout * 60 * 1000, !!session); 
 
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location = ReactRouterDOM.useLocation();
+  const navigate = ReactRouterDOM.useNavigate();
   
   const [showSubscriptionWarning, setShowSubscriptionWarning] = useState(true);
   const [warningNotifSent, setWarningNotifSent] = useState(false);
@@ -67,11 +67,11 @@ const TenantLayout: React.FC = () => {
   }
 
   if (!session) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <ReactRouterDOM.Navigate to="/login" state={{ from: location }} replace />;
   }
   
   if (session.user.app_metadata.role === 'super_admin') {
-    return <Navigate to="/admin/dashboard" replace />;
+    return <ReactRouterDOM.Navigate to="/admin/dashboard" replace />;
   }
   
   return (
@@ -88,7 +88,7 @@ const TenantLayout: React.FC = () => {
         <NotificationContainer />
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 md:p-8">
-          <Outlet />
+          <ReactRouterDOM.Outlet />
         </main>
       </div>
     </div>

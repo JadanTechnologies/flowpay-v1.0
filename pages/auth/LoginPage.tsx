@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { Zap, LogIn, Home } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 
 const LoginPage: React.FC = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+    const navigate = ReactRouterDOM.useNavigate();
+    const location = ReactRouterDOM.useLocation();
     const { login } = useAppContext();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -53,10 +53,10 @@ const LoginPage: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-background text-text-primary">
       <div className="w-full max-w-md p-8 space-y-8 bg-surface rounded-xl shadow-lg border border-border">
         <div className="text-center">
-            <Link to="/" className="flex justify-center items-center gap-2 mb-4">
+            <ReactRouterDOM.Link to="/" className="flex justify-center items-center gap-2 mb-4">
               <Zap className="text-primary" size={32} />
               <span className="text-3xl font-bold">FlowPay</span>
-            </Link>
+            </ReactRouterDOM.Link>
           <h2 className="text-2xl font-bold">Sign In</h2>
           <p className="text-text-secondary">Welcome back! Please sign in to your account.</p>
         </div>
@@ -98,9 +98,9 @@ const LoginPage: React.FC = () => {
               </label>
             </div>
             <div className="text-sm">
-              <Link to="/forgot-password" className="font-medium text-primary hover:underline">
+              <ReactRouterDOM.Link to="/forgot-password" className="font-medium text-primary hover:underline">
                 Forgot your password?
-              </Link>
+              </ReactRouterDOM.Link>
             </div>
           </div>
           <button
@@ -115,15 +115,15 @@ const LoginPage: React.FC = () => {
          <div className="text-center text-sm text-text-secondary space-y-4">
             <p>
                 Don't have an account?{' '}
-                <Link to="/signup" className="font-medium text-primary hover:underline">
+                <ReactRouterDOM.Link to="/signup" className="font-medium text-primary hover:underline">
                     Sign up
-                </Link>
+                </ReactRouterDOM.Link>
             </p>
             <div className="pt-4 border-t border-border">
-                <Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors">
+                <ReactRouterDOM.Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors">
                     <Home size={16} />
                     <span>Back to Home</span>
-                </Link>
+                </ReactRouterDOM.Link>
             </div>
         </div>
       </div>
