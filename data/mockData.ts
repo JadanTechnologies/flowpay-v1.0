@@ -424,7 +424,7 @@ export const staff: Staff[] = [
 ];
 
 export const tenantRoles: TenantRole[] = [
-    { id: 'role_admin', name: 'Admin', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'manage_branches', 'view_reports', 'access_settings', 'manage_logistics', 'manage_invoicing', 'manage_credit', 'view_activity_log', 'manage_automations'] },
+    { id: 'role_admin', name: 'Admin', permissions: ['manage_pos', 'manage_inventory', 'manage_staff', 'manage_branches', 'view_reports', 'access_settings', 'manage_logistics', 'manage_invoicing', 'manage_credit', 'view_activity_log', 'manage_automations', 'process_returns'] },
     { id: 'role_manager', name: 'Manager', permissions: ['manage_pos', 'manage_inventory', 'view_reports', 'process_returns'] },
     { id: 'role_accountant', name: 'Accountant', permissions: ['view_reports', 'manage_invoicing', 'manage_credit', 'view_activity_log'] },
     { id: 'role_cashier', name: 'Cashier', permissions: ['manage_pos', 'process_returns'] },
