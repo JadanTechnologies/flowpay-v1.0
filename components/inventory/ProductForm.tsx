@@ -3,6 +3,7 @@ import { Product, ProductVariant } from '../../types';
 import Modal from '../ui/Modal';
 import { useAppContext } from '../../contexts/AppContext';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 
 interface ProductFormProps {
     product: Product | null;
@@ -25,6 +26,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onClose }) =
     const [hasVariants, setHasVariants] = useState(product ? product.variantOptions.length > 0 : false);
     const [variantOptions, setVariantOptions] = useState(product?.variantOptions.map(opt => ({...opt, values: opt.values.join(', ')})) || [{ name: 'Size', values: 'S, M, L' }]);
     const [variants, setVariants] = useState<ProductVariant[]>(product?.variants || []);
+    const [isUploading, setIsUploading] = useState(false);
     
     // Auto-generate variants when options change
     useEffect(() => {
@@ -104,14 +106,30 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onClose }) =
         }));
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImageUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `product-images/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('product-images') // Assumes a public bucket named 'product-images'
+                .upload(filePath, file);
+            
+            setIsUploading(false);
+            if (uploadError) {
+                console.error('Error uploading image:', uploadError);
+                alert('Failed to upload image. Please check the console for details.');
+                return;
+            }
+
+            const { data } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            setImageUrl(data.publicUrl);
         }
     };
 
@@ -148,8 +166,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onClose }) =
                                 type="file" 
                                 accept="image/*" 
                                 onChange={handleFileChange} 
+                                disabled={isUploading}
                                 className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer"
                             />
+                             {isUploading && <span className="text-xs text-text-secondary">Uploading...</span>}
                         </div>
                     </div>
                     

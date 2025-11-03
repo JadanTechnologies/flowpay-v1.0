@@ -1,8 +1,3 @@
-
-
-
-
-
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -37,8 +32,10 @@ const LoginPage: React.FC = () => {
             const { data, error: authError } = await login(email, password);
             if (authError) throw authError;
 
-            // Redirect based on user role
-            if (data.session?.user.role === 'super_admin') {
+            // Redirect based on user role from app_metadata
+            const userRole = data.session?.user?.app_metadata?.role;
+
+            if (userRole === 'super_admin') {
                 navigate('/admin/dashboard', { replace: true });
             } else {
                  // Default redirect for any other tenant role

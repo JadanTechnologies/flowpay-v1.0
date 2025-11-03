@@ -1,13 +1,10 @@
-
-
-
 import React, { useState } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Zap, UserPlus } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 
 const TenantSignupPage: React.FC = () => {
-    const navigate = useNavigate();
     const [companyName, setCompanyName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -20,25 +17,24 @@ const TenantSignupPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, companyName }),
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Registration failed.');
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    company_name: companyName,
+                }
             }
-            setSuccess(true);
-             setTimeout(() => {
-                navigate('/login');
-            }, 3000);
+        });
 
-        } catch (err: any) {
-            setError(err.message);
-        }
         setLoading(false);
+
+        if (error) {
+            setError(error.message);
+        } else if (data.user) {
+             // Supabase sends a confirmation email by default
+            setSuccess(true);
+        }
     }
 
   return (
@@ -55,9 +51,9 @@ const TenantSignupPage: React.FC = () => {
         
         {success ? (
              <div className="p-4 bg-green-900/50 text-green-300 rounded-md text-center">
-                <h3 className="font-bold">Account Created!</h3>
+                <h3 className="font-bold">Check your email!</h3>
                 <p className="text-sm">
-                    You will be redirected to the login page shortly.
+                    We've sent a confirmation link to {email}. Please click it to activate your account.
                 </p>
             </div>
         ) : (

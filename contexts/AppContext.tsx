@@ -1,8 +1,8 @@
 import React, { createContext, useState, useMemo, useContext, useEffect, useCallback } from 'react';
-// FIX: Add Sale type to import
+import { User as AuthUser, Session as AuthSession } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabaseClient';
 import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest } from '../types';
-// FIX: Import recentSales mock data
-import { posProducts as mockProducts, suppliers as mockSuppliers, purchaseOrders as mockPurchaseOrders, stockCounts as mockStockCounts, branches as mockBranches, stockTransfers as mockStockTransfers, systemSettings as mockSettingsData, inventoryAdjustmentLogs as mockInventoryAdjustmentLogs, scheduledJobs as mockScheduledJobs, tenantSettings as mockTenantSettings, blockRules as mockBlockRules, tenantRoles as mockTenantRoles, approvedDevices as mockApprovedDevices, pendingDevices as mockPendingDevices, userSubscription as mockUserSubscription, customers as mockCustomers, trucks as mockTrucks, drivers as mockDrivers, consignments as mockConsignments, subscriptionPlans as mockPlans, staff as mockStaffData, recentSales as mockRecentSales } from '../data/mockData';
+import { systemSettings as mockSettingsData } from '../data/mockData';
 
 
 export type Language = 'en' | 'es' | 'fr';
@@ -21,10 +21,10 @@ export interface NotificationPrefs {
 
 // FIX: Added missing AppContextType interface definition
 interface AppContextType {
-  session: Session | null;
-  user: User | null;
+  session: AuthSession | null;
+  user: AuthUser | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<{ data: { session: Session | null }, error: Error | null }>;
+  login: (email: string, pass: string) => Promise<{ data: { session: AuthSession | null }, error: any | null }>;
   logout: () => Promise<void>;
   language: Language;
   setLanguage: React.Dispatch<React.SetStateAction<Language>>;
@@ -34,6 +34,7 @@ interface AppContextType {
   setNotificationPrefs: React.Dispatch<React.SetStateAction<NotificationPrefs>>;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  saveProduct: (productData: Product) => Promise<void>;
   suppliers: Supplier[];
   setSuppliers: React.Dispatch<React.SetStateAction<Supplier[]>>;
   purchaseOrders: PurchaseOrder[];
@@ -104,253 +105,194 @@ const defaultNotificationPrefs: NotificationPrefs = {
 
 export const AppContext = createContext<AppContextType>({} as AppContextType);
 
-function getInitialState<T>(key: string, defaultValue: T): T {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved !== null) {
-      return JSON.parse(saved);
-    }
-  } catch (error) {
-    console.error(`Error parsing localStorage key "${key}":`, error);
-  }
-  // If we reach here, there was no valid saved data. Use default and save it.
-  localStorage.setItem(key, JSON.stringify(defaultValue));
-  return defaultValue;
-}
-
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Use local storage for state persistence
-  const [products, setProducts] = useState<Product[]>(() => getInitialState('flowpay_products', mockProducts));
-  const [suppliers, setSuppliers] = useState<Supplier[]>(() => getInitialState('flowpay_suppliers', mockSuppliers));
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => getInitialState('flowpay_purchaseOrders', mockPurchaseOrders));
-  const [stockCounts, setStockCounts] = useState<StockCount[]>(() => getInitialState('flowpay_stockCounts', mockStockCounts));
-  const [branches, setBranches] = useState<Branch[]>(() => getInitialState('flowpay_branches', mockBranches));
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(() => getInitialState('flowpay_stockTransfers', mockStockTransfers));
-  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>(() => getInitialState('flowpay_inventoryAdjustmentLogs', mockInventoryAdjustmentLogs));
-  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>(() => getInitialState('flowpay_scheduledJobs', mockScheduledJobs));
-  const [settings, setSettings] = useState<SystemSettings | null>(() => getInitialState('flowpay_settings', mockSettingsData));
-  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(() => getInitialState('flowpay_tenantSettings', mockTenantSettings));
-  const [blockRules, setBlockRules] = useState<BlockRule[]>(() => getInitialState('flowpay_blockRules', mockBlockRules));
-  const [staff, setStaff] = useState<Staff[]>(() => getInitialState('flowpay_staff', mockStaffData));
-  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>(() => getInitialState('flowpay_tenantRoles', mockTenantRoles));
-  const [approvedDevices, setApprovedDevices] = useState<Device[]>(() => getInitialState('flowpay_approvedDevices', mockApprovedDevices));
-  const [pendingDevices, setPendingDevices] = useState<Device[]>(() => getInitialState('flowpay_pendingDevices', mockPendingDevices));
-  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(() => getInitialState('flowpay_userSubscription', mockUserSubscription));
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>(() => getInitialState('flowpay_subscriptionPlans', mockPlans));
-  const [customers, setCustomers] = useState<Customer[]>(() => getInitialState('flowpay_customers', mockCustomers));
-  const [trucks, setTrucks] = useState<Truck[]>(() => getInitialState('flowpay_trucks', mockTrucks));
-  const [drivers, setDrivers] = useState<Driver[]>(() => getInitialState('flowpay_drivers', mockDrivers));
-  const [consignments, setConsignments] = useState<Consignment[]>(() => getInitialState('flowpay_consignments', mockConsignments));
-
-  // FIX: Add recentSales state management
-  const [recentSales, setRecentSales] = useState<Sale[]>(() => getInitialState('flowpay_recentSales', mockRecentSales));
-  const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>(() => getInitialState('flowpay_pendingReturns', []));
-
-  const [language, setLanguage] = useState<Language>(() => getInitialState('flowpay_language', 'en'));
-  const [currency, setCurrency] = useState<Currency>(() => getInitialState('flowpay_currency', 'USD'));
-  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(() => getInitialState('flowpay_notificationPrefs', defaultNotificationPrefs));
-  const [currentBranchId, _setCurrentBranchId] = useState<string>(() => getInitialState('flowpay_currentBranchId', 'br_1'));
-
-  // Auto-save to localStorage on change
-  useEffect(() => { localStorage.setItem('flowpay_products', JSON.stringify(products)); }, [products]);
-  useEffect(() => { localStorage.setItem('flowpay_suppliers', JSON.stringify(suppliers)); }, [suppliers]);
-  useEffect(() => { localStorage.setItem('flowpay_purchaseOrders', JSON.stringify(purchaseOrders)); }, [purchaseOrders]);
-  useEffect(() => { localStorage.setItem('flowpay_stockCounts', JSON.stringify(stockCounts)); }, [stockCounts]);
-  useEffect(() => { localStorage.setItem('flowpay_branches', JSON.stringify(branches)); }, [branches]);
-  useEffect(() => { localStorage.setItem('flowpay_stockTransfers', JSON.stringify(stockTransfers)); }, [stockTransfers]);
-  useEffect(() => { localStorage.setItem('flowpay_inventoryAdjustmentLogs', JSON.stringify(inventoryAdjustmentLogs)); }, [inventoryAdjustmentLogs]);
-  useEffect(() => { localStorage.setItem('flowpay_scheduledJobs', JSON.stringify(scheduledJobs)); }, [scheduledJobs]);
-  useEffect(() => { localStorage.setItem('flowpay_settings', JSON.stringify(settings)); }, [settings]);
-  useEffect(() => { localStorage.setItem('flowpay_tenantSettings', JSON.stringify(tenantSettings)); }, [tenantSettings]);
-  useEffect(() => { localStorage.setItem('flowpay_blockRules', JSON.stringify(blockRules)); }, [blockRules]);
-  useEffect(() => { localStorage.setItem('flowpay_staff', JSON.stringify(staff)); }, [staff]);
-  useEffect(() => { localStorage.setItem('flowpay_tenantRoles', JSON.stringify(tenantRoles)); }, [tenantRoles]);
-  useEffect(() => { localStorage.setItem('flowpay_approvedDevices', JSON.stringify(approvedDevices)); }, [approvedDevices]);
-  useEffect(() => { localStorage.setItem('flowpay_pendingDevices', JSON.stringify(pendingDevices)); }, [pendingDevices]);
-  useEffect(() => { localStorage.setItem('flowpay_userSubscription', JSON.stringify(userSubscription)); }, [userSubscription]);
-  useEffect(() => { localStorage.setItem('flowpay_subscriptionPlans', JSON.stringify(subscriptionPlans)); }, [subscriptionPlans]);
-  useEffect(() => { localStorage.setItem('flowpay_customers', JSON.stringify(customers)); }, [customers]);
-  useEffect(() => { localStorage.setItem('flowpay_trucks', JSON.stringify(trucks)); }, [trucks]);
-  useEffect(() => { localStorage.setItem('flowpay_drivers', JSON.stringify(drivers)); }, [drivers]);
-  useEffect(() => { localStorage.setItem('flowpay_consignments', JSON.stringify(consignments)); }, [consignments]);
-  // FIX: Add useEffect for recentSales
-  useEffect(() => { localStorage.setItem('flowpay_recentSales', JSON.stringify(recentSales)); }, [recentSales]);
-  useEffect(() => { localStorage.setItem('flowpay_pendingReturns', JSON.stringify(pendingReturns)); }, [pendingReturns]);
-  useEffect(() => { localStorage.setItem('flowpay_language', JSON.stringify(language)); }, [language]);
-  useEffect(() => { localStorage.setItem('flowpay_currency', JSON.stringify(currency)); }, [currency]);
-  useEffect(() => { localStorage.setItem('flowpay_notificationPrefs', JSON.stringify(notificationPrefs)); }, [notificationPrefs]);
-  useEffect(() => { localStorage.setItem('flowpay_currentBranchId', JSON.stringify(currentBranchId)); }, [currentBranchId]);
-  
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  // Auth state from Supabase
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Notification State
+
+  // Data states, initialized as empty, to be filled from Supabase
+  const [products, setProducts] = useState<Product[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [stockCounts, setStockCounts] = useState<StockCount[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>([]);
+  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>([]);
+  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>([]);
+  const [settings, setSettings] = useState<SystemSettings | null>(mockSettingsData); // System settings can be mock for now
+  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(null);
+  const [blockRules, setBlockRules] = useState<BlockRule[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>([]);
+  const [approvedDevices, setApprovedDevices] = useState<Device[]>([]);
+  const [pendingDevices, setPendingDevices] = useState<Device[]>([]);
+  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [consignments, setConsignments] = useState<Consignment[]>([]);
+  const [recentSales, setRecentSales] = useState<Sale[]>([]);
+  const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>([]);
+
+  // Local preferences
+  const [language, setLanguage] = useState<Language>('en');
+  const [currency, setCurrency] = useState<Currency>('USD');
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs);
+  const [currentBranchId, _setCurrentBranchId] = useState<string>('br_1');
+
+  // Notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
+  // Supabase Auth listener
   useEffect(() => {
-    const initializeApp = async () => {
-        setLoading(true);
-        const token = localStorage.getItem('flowpay_token');
-        if (token) {
-            try {
-                const storedUser = localStorage.getItem('flowpay_user');
-                if(storedUser) {
-                    const parsedUser: User = JSON.parse(storedUser);
-                    const mockSession: Session = { access_token: token, token_type: 'bearer', user: parsedUser };
-                    setSession(mockSession);
-                    setUser(parsedUser);
-                } else {
-                    localStorage.removeItem('flowpay_token');
-                }
-            } catch (e) {
-                 console.error("Failed to parse user session from localStorage", e);
-                 localStorage.removeItem('flowpay_token');
-                 localStorage.removeItem('flowpay_user');
-            }
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+    });
+
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
         setLoading(false);
     };
+    checkSession();
 
-    initializeApp();
+    return () => subscription.unsubscribe();
+  }, []);
+  
+  // Data Fetching based on session
+  const fetchAllData = useCallback(async () => {
+    // In a real app, you might fetch these in parallel with Promise.all
+    console.log("Fetching all data from Supabase...");
+    
+    // NOTE: This assumes Row Level Security is set up in Supabase
+    // to only return data for the currently authenticated user's tenant.
+    // The table names are assumed to be snake_case.
+
+    const { data: productsData } = await supabase.from('products').select('*, variants:product_variants(*)');
+    setProducts((productsData as any) || []);
+    
+    // Fetch other data... (examples)
+    const { data: branchesData } = await supabase.from('branches').select('*');
+    setBranches((branchesData as any) || []);
+
+    const { data: staffData } = await supabase.from('staff').select('*');
+    setStaff((staffData as any) || []);
+
+    const { data: rolesData } = await supabase.from('tenant_roles').select('*');
+    setTenantRoles((rolesData as any) || []);
+
+    const { data: salesData } = await supabase.from('sales').select('*, items:sale_items(*)');
+    setRecentSales((salesData as any) || []);
+
+     // Add other fetch calls here for suppliers, customers, etc.
+     // For brevity in this example, only a few are shown.
   }, []);
 
-  // FIX: Derive permissions directly from session state to prevent race conditions on login.
-  const currentUserPermissions = useMemo(() => {
-    const permissions = new Set<TenantPermission>();
-    if (session?.user && staff.length > 0 && tenantRoles.length > 0) {
-        const userEmail = session.user.email;
-        const staffMember = staff.find(s => s.email === userEmail);
-        
-        if (staffMember) {
-            const role = tenantRoles.find(r => r.id === staffMember.roleId);
-            if (role) {
-                return new Set(role.permissions as TenantPermission[]);
-            }
-        }
-        
-        // Fallback for users not in staff list or if roleId is broken.
-        // It uses the role name stored in the session.
-        const roleByName = tenantRoles.find(r => r.name === session.user.role);
-        if (roleByName) {
-            return new Set(roleByName.permissions as TenantPermission[]);
-        }
-    }
-    return permissions;
-  }, [session, staff, tenantRoles]);
-
-  
-  const login = async (email: string, pass: string): Promise<{ data: { session: Session | null }, error: Error | null }> => {
-    // This is a mock login function.
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-
-    if (pass !== '12345') { // Mock password for all users
-        const error = new Error("Invalid credentials.");
-        return { data: { session: null }, error };
-    }
-
-    let loggedInUser: User | null = null;
-    if (email === 'superadmin@flowpay.com') {
-        loggedInUser = {
-            id: 'sa_1',
-            email: 'superadmin@flowpay.com',
-            name: 'Super Admin',
-            role: 'super_admin'
-        };
+  useEffect(() => {
+    if (session) {
+        fetchAllData();
     } else {
-        const staffMember = staff.find(s => s.email === email);
-        if (staffMember) {
-            const role = tenantRoles.find(r => r.id === staffMember.roleId);
-            loggedInUser = {
-                id: staffMember.id,
-                email: staffMember.email,
-                name: staffMember.name,
-                role: (role?.name as UserRole) || 'Cashier',
-                tenantId: 'tnt_2' // Mock tenant ID
-            };
-        }
+        // Clear data on logout
+        setProducts([]);
+        setBranches([]);
+        setStaff([]);
+        setTenantRoles([]);
+        setRecentSales([]);
+        // Clear other states...
     }
+  }, [session, fetchAllData]);
 
-    if (!loggedInUser) {
-        const error = new Error("User not found.");
-        return { data: { session: null }, error };
-    }
-
-    // Set branch for cashier
-    if (loggedInUser.role === 'Cashier') {
-        const staffMember = mockStaffData.find(s => s.id === loggedInUser!.id);
-        const branch = mockBranches.find(b => b.name === staffMember?.branch);
-        if (branch) {
-            _setCurrentBranchId(branch.id);
-        }
-    }
-    
-    const token = `mock_token_${Date.now()}`;
-    localStorage.setItem('flowpay_token', token);
-    localStorage.setItem('flowpay_user', JSON.stringify(loggedInUser));
-
-    const newSession: Session = {
-        access_token: token,
-        token_type: 'bearer',
-        user: loggedInUser,
-    };
-    
-    setSession(newSession);
-    setUser(loggedInUser);
-    
-    return { data: { session: newSession }, error: null };
+  const login = async (email: string, pass: string) => {
+    // FIX: The parameter is `pass`, but the property name expected by signInWithPassword is `password`.
+    return await supabase.auth.signInWithPassword({ email, password: pass });
   };
 
   const logout = async () => {
-    localStorage.removeItem('flowpay_token');
-    localStorage.removeItem('flowpay_user');
-    setSession(null);
-    setUser(null);
-  };
-  
-  const playSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.1);
-    } catch (e) {
-      console.error("Could not play notification sound.", e);
-    }
+    await supabase.auth.signOut();
   };
 
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  // Example of a mutation function that writes to Supabase
+  const saveProduct = async (productData: Product) => {
+    // This is a simplified example. A real implementation would handle errors,
+    // transactions, and relationships more robustly.
+    const { id, variants, isFavorite, variantOptions, ...productFields } = productData;
+    
+    // 1. Upsert the main product
+    const { data: savedProduct, error: productError } = await supabase
+        .from('products')
+        .upsert({ id, is_favorite: isFavorite, ...productFields })
+        .select()
+        .single();
+    
+    if (productError) {
+        addNotification({ message: `Error saving product: ${productError.message}`, type: 'error' });
+        return;
+    }
+
+    // 2. Upsert variants
+    const variantsToSave = variants.map(v => ({
+        id: v.id.startsWith('new_') ? undefined : v.id,
+        product_id: savedProduct.id,
+        sku: v.sku,
+        price: v.price,
+        cost_price: v.costPrice,
+        stock_by_branch: v.stockByBranch,
+        low_stock_threshold: v.lowStockThreshold,
+        options: v.options,
+    }));
+    
+    const { error: variantsError } = await supabase.from('product_variants').upsert(variantsToSave);
+
+    if (variantsError) {
+        addNotification({ message: `Error saving variants: ${variantsError.message}`, type: 'error' });
+        return;
+    }
+    
+    addNotification({ message: 'Product saved successfully!', type: 'success' });
+    // Refetch data to update UI
+    await fetchAllData();
   };
+  
+  // Keep other setters for now to avoid breaking the app, but add TODOs
+  // In a real app, each of these would become specific mutation functions like saveProduct.
+  // TODO: Convert all `set...` functions below to call Supabase instead of just updating local state.
+  
+  const currentUserPermissions = useMemo(() => {
+    const roleName = session?.user?.app_metadata?.role;
+    if (roleName && tenantRoles.length > 0) {
+        const role = tenantRoles.find(r => r.name === roleName);
+        if (role) {
+            return new Set(role.permissions as TenantPermission[]);
+        }
+    }
+    return new Set<TenantPermission>();
+  }, [session, tenantRoles]);
 
   const addNotification = (notification: Omit<Notification, 'id'>) => {
     const id = `notif_${Date.now()}`;
     const newNotification = { id, ...notification };
     setNotifications(prev => [...prev, newNotification]);
-    setNotificationHistory(prev => [newNotification, ...prev].slice(0, 20)); // Keep last 20
+    setNotificationHistory(prev => [newNotification, ...prev].slice(0, 20));
     setHasUnreadNotifications(true);
-    playSound();
     const duration = notification.duration || 5000;
-    setTimeout(() => {
-        removeNotification(id);
-    }, duration);
+    setTimeout(() => removeNotification(id), duration);
   };
 
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+  
   const setCurrentBranchId = (branchId: string) => {
-      if (session?.user?.role === 'Cashier') {
-          addNotification({ message: "Cashiers are locked to their assigned branch.", type: 'warning' });
-          return;
-      }
-      _setCurrentBranchId(branchId);
+    // TODO: Persist this preference in Supabase user_profile table.
+    _setCurrentBranchId(branchId);
   };
 
   const markNotificationsAsRead = () => {
@@ -358,85 +300,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const impersonateStaff = useCallback((staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => {
-    alert(`Now impersonating ${staff.name}. You have been logged in as this user. Redirecting to dashboard.`);
-    // In a real app, you might set a special token or update the session state.
-    // For this demo, we can just navigate.
+    // This functionality would require a secure backend implementation and is mocked here.
+    alert(`Impersonation is a backend feature. Simulating login for ${staff.name}.`);
     navigate('/app/dashboard', { replace: true });
   }, []);
 
-  const value = useMemo(
-    () => ({
-      session,
-      user,
-      loading,
-      login,
-      logout,
-      language,
-      setLanguage,
-      currency,
-      setCurrency,
-      notificationPrefs,
-      setNotificationPrefs,
-      products,
-      setProducts,
-      suppliers,
-      setSuppliers,
-      purchaseOrders,
-      setPurchaseOrders,
-      stockCounts,
-      setStockCounts,
-      branches,
-      setBranches,
-      currentBranchId,
-      setCurrentBranchId,
-      stockTransfers,
-      setStockTransfers,
-      inventoryAdjustmentLogs,
-      setInventoryAdjustmentLogs,
-      scheduledJobs,
-      setScheduledJobs,
-      settings,
-      setSettings,
-      tenantSettings,
-      setTenantSettings,
-      blockRules,
-      setBlockRules,
-      staff,
-      setStaff,
-      tenantRoles,
-      setTenantRoles,
-      currentUserPermissions,
-      approvedDevices,
-      setApprovedDevices,
-      pendingDevices,
-      setPendingDevices,
-      notifications,
-      addNotification,
-      removeNotification,
-      notificationHistory,
-      markNotificationsAsRead,
-      userSubscription,
-      setUserSubscription,
-      subscriptionPlans,
-      setSubscriptionPlans,
-      hasUnreadNotifications,
-      customers,
-      setCustomers,
-      trucks,
-      setTrucks,
-      drivers,
-      setDrivers,
-      consignments,
-      setConsignments,
-      impersonateStaff,
-      // FIX: Provide recentSales and its setter in the context
-      recentSales,
-      setRecentSales,
-      pendingReturns,
-      setPendingReturns,
-    }),
-    [session, user, loading, language, currency, notificationPrefs, products, suppliers, purchaseOrders, stockCounts, branches, currentBranchId, stockTransfers, settings, inventoryAdjustmentLogs, scheduledJobs, tenantSettings, blockRules, staff, tenantRoles, currentUserPermissions, approvedDevices, pendingDevices, notifications, notificationHistory, hasUnreadNotifications, userSubscription, subscriptionPlans, customers, trucks, drivers, consignments, impersonateStaff, recentSales, pendingReturns]
-  );
+  const value = {
+      session, user, loading, login, logout, language, setLanguage, currency, setCurrency,
+      notificationPrefs, setNotificationPrefs, products, setProducts, saveProduct, suppliers, setSuppliers,
+      purchaseOrders, setPurchaseOrders, stockCounts, setStockCounts, branches, setBranches,
+      currentBranchId, setCurrentBranchId, stockTransfers, setStockTransfers, inventoryAdjustmentLogs,
+      setInventoryAdjustmentLogs, scheduledJobs, setScheduledJobs, settings, setSettings,
+      tenantSettings, setTenantSettings, blockRules, setBlockRules, staff, setStaff, tenantRoles,
+      setTenantRoles, currentUserPermissions, approvedDevices, setApprovedDevices, pendingDevices,
+      setPendingDevices, notifications, addNotification, removeNotification, notificationHistory,
+      markNotificationsAsRead, userSubscription, setUserSubscription, subscriptionPlans, setSubscriptionPlans,
+      hasUnreadNotifications, customers, setCustomers, trucks, setTrucks, drivers, setDrivers,
+      consignments, setConsignments, impersonateStaff, recentSales, setRecentSales, pendingReturns, setPendingReturns,
+  };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
