@@ -172,6 +172,19 @@ const DashboardPage: React.FC = () => {
         sales: { name: 'Sales', component: DashboardCard, props: () => ({ title: "Sales", value: "+12,234", change: "+19% from last month", icon: <ShoppingCart className="text-green-500" /> }), layout: { colSpan: 1 } },
         newCustomers: { name: 'New Customers', component: DashboardCard, props: () => ({ title: "New Customers", value: "+2350", change: "+180.1% from last month", icon: <Users className="text-yellow-500" /> }), layout: { colSpan: 1 } },
         activeBranches: { name: 'Active Branches', component: DashboardCard, props: () => ({ title: "Active Branches", value: "4", change: "2 online", icon: <Activity className="text-red-500" /> }), layout: { colSpan: 1 } },
+        pendingReturns: {
+            name: 'Pending Returns',
+            component: DashboardCard,
+            props: data => ({
+                title: "Pending Returns",
+                value: `${data.returnsForApproval.length}`,
+                change: "requests for approval",
+                icon: <ShieldCheck className={`text-yellow-500 ${data.returnsForApproval.length > 0 ? 'animate-pulse' : ''}`} />,
+                onClick: () => setIsApprovalModalOpen(true)
+            }),
+            layout: { colSpan: 1 },
+            requiredRole: 'Manager',
+        },
         salesOverview: { name: 'Sales Overview', component: SalesChart, props: () => ({ data: salesData, currency }), layout: { colSpan: 3, minH: '450px' } },
         branchPerformance: { name: 'Branch Performance', component: BranchPerformanceChart, props: () => ({ data: branchPerformance }), layout: { colSpan: 2, minH: '450px' } },
         recentSales: { name: 'Recent Sales', component: RecentSalesTable, props: () => ({ sales: recentSales }), layout: { colSpan: 3, minH: '400px' } },

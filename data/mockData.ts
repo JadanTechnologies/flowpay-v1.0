@@ -383,6 +383,7 @@ export const tenantSettings: TenantSettings = {
         'totalRevenue', 
         'sales', 
         'newCustomers', 
+        'pendingReturns',
         'activeBranches', 
         'salesOverview', 
         'branchPerformance', 

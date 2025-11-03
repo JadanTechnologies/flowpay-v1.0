@@ -72,6 +72,7 @@ export interface ProductVariant {
   sku: string;
   price: number;
   costPrice: number;
+
   stockByBranch: Record<string, number>;
   lowStockThreshold: number;
   options: Record<string, string>;
@@ -145,7 +146,7 @@ export interface BranchPerformance {
   value: number;
 }
 
-export type WidgetId = 'totalRevenue' | 'sales' | 'newCustomers' | 'activeBranches' | 'salesOverview' | 'branchPerformance' | 'recentSales' | 'topProducts';
+export type WidgetId = 'totalRevenue' | 'sales' | 'newCustomers' | 'activeBranches' | 'salesOverview' | 'branchPerformance' | 'recentSales' | 'topProducts' | 'pendingReturns';
 
 // Subscriptions & Billing
 export interface SubscriptionPlan {
