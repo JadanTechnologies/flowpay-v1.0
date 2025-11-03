@@ -145,6 +145,8 @@ export interface BranchPerformance {
   value: number;
 }
 
+export type WidgetId = 'totalRevenue' | 'sales' | 'newCustomers' | 'activeBranches' | 'pendingReturns' | 'salesOverview' | 'branchPerformance' | 'recentSales' | 'topProducts';
+
 // Subscriptions & Billing
 export interface SubscriptionPlan {
   id: string;
@@ -590,6 +592,7 @@ export type TrackerProvider = 'teltonika' | 'ruptela' | 'queclink' | 'calamp' | 
 export interface TenantSettings {
     id: string;
     tenantId: string;
+    dashboardLayout: WidgetId[];
     // FIX: Added missing property to allow tenant-specific session timeout overrides.
     inactivityLogoutTimer: number;
     trackerIntegration: {

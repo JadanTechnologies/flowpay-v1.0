@@ -1,4 +1,5 @@
 
+
 import { Sale, Product as InventoryProduct, SalesDataPoint, BranchPerformance, Product, SubscriptionPlan, UserSubscription, PaymentHistory, SystemSettings, Tenant, Driver, Delivery, Branch, Staff, Invoice, Customer, CreditTransaction, TenantSettings, ActivityLog, Supplier, PurchaseOrder, StockCount, StockTransfer, PlatformPayment, Announcement, SuperAdminStaff, SuperAdminRole, EmailSmsTemplate, CronJob, ScheduledJob, InventoryAdjustmentLog, BlockRule, TenantRole, Device, ActiveSubscription, ProductVariant, CartItem, Truck, Consignment } from '../types';
 
 export const salesData: SalesDataPoint[] = [
@@ -378,6 +379,17 @@ contactUsContent: "This is the Contact Us page content. It can be edited from th
 export const tenantSettings: TenantSettings = {
     id: 'ts_1',
     tenantId: 'tnt_1',
+    dashboardLayout: [
+        'totalRevenue', 
+        'sales', 
+        'newCustomers', 
+        'activeBranches', 
+        'pendingReturns', 
+        'salesOverview', 
+        'branchPerformance', 
+        'recentSales', 
+        'topProducts'
+    ],
     // FIX: Added inactivityLogoutTimer to match the updated TenantSettings type.
     inactivityLogoutTimer: 10, // Tenant-specific override (system default is 15)
     trackerIntegration: {

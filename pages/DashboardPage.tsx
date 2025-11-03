@@ -3,44 +3,39 @@ import DashboardCard from '../components/dashboard/DashboardCard';
 import SalesChart from '../components/dashboard/SalesChart';
 import TopProductsChart from '../components/dashboard/TopProductsChart';
 import RecentSalesTable from '../components/dashboard/RecentSalesTable';
-import { DollarSign, ShoppingCart, Users, Activity, Handshake, CreditCard, RotateCcw, ShieldCheck } from 'lucide-react';
-// FIX: Remove `recentSales` from this import as it's now coming from AppContext
+import { DollarSign, ShoppingCart, Users, Activity, Handshake, CreditCard, ShieldCheck, X, PlusCircle, Settings, Save } from 'lucide-react';
 import { salesData, topProducts, branchPerformance } from '../data/mockData';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 import { useTranslation } from '../hooks/useTranslation';
 import Skeleton from '../components/ui/Skeleton';
-import { ProductVariant, Sale, InventoryAdjustmentLog } from '../types';
+import { Sale, InventoryAdjustmentLog, WidgetId } from '../types';
 import CashierSalesDetailModal from '../components/dashboard/CashierSalesDetailModal';
 import ReturnApprovalModal from '../components/dashboard/ReturnApprovalModal';
+import BranchPerformanceChart from '../components/dashboard/BranchPerformanceChart';
+import AddWidgetModal from '../components/dashboard/AddWidgetModal';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const DashboardCardSkeleton: React.FC = () => (
-    <div className="bg-surface border border-border rounded-xl p-6 flex flex-col justify-between">
-        <div className="flex justify-between items-center">
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-6 w-6 rounded-full" />
-        </div>
-        <div>
-            <Skeleton className="h-8 w-3/4 mt-2" />
-            <Skeleton className="h-3 w-2/3 mt-2" />
-        </div>
-    </div>
-);
-
+type WidgetConfig = {
+    name: string;
+    component: React.ComponentType<any>;
+    props: (data: any) => any;
+    layout: { colSpan: number, minH?: string };
+    requiredRole?: 'Admin' | 'Manager';
+}
 
 const DashboardPage: React.FC = () => {
     const { 
         session, currency, recentSales, setRecentSales, products, setProducts, 
         currentBranchId, pendingReturns, setPendingReturns, addNotification, 
-        setInventoryAdjustmentLogs
+        setInventoryAdjustmentLogs, tenantSettings, setTenantSettings
     } = useAppContext();
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [modalData, setModalData] = useState<{ title: string; sales: Sale[], type: 'general' | 'credit' | 'card_transfer' } | null>(null);
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [isAddWidgetModalOpen, setIsAddWidgetModalOpen] = useState(false);
 
     const returnsForApproval = useMemo(() => 
         pendingReturns.filter(req => req.branchId === currentBranchId && req.status === 'pending'),
@@ -137,47 +132,63 @@ const DashboardPage: React.FC = () => {
             date.getFullYear() === today.getFullYear();
     };
 
+    const handleRemoveWidget = (widgetId: WidgetId) => {
+        if (tenantSettings) {
+            const newLayout = tenantSettings.dashboardLayout.filter(id => id !== widgetId);
+            setTenantSettings({ ...tenantSettings, dashboardLayout: newLayout });
+        }
+    };
+
+    const handleAddWidget = (widgetId: WidgetId) => {
+        if (tenantSettings && !tenantSettings.dashboardLayout.includes(widgetId)) {
+            const newLayout = [...tenantSettings.dashboardLayout, widgetId];
+            setTenantSettings({ ...tenantSettings, dashboardLayout: newLayout });
+        }
+        setIsAddWidgetModalOpen(false);
+    };
+
+    const calculatedData = useMemo(() => {
+        const totalRevenue = recentSales.reduce((acc, sale) => acc + sale.amount, 0);
+        return { totalRevenue, currency, returnsForApproval };
+    }, [recentSales, currency, returnsForApproval]);
+
+    const widgetLibrary: Record<WidgetId, WidgetConfig> = {
+        totalRevenue: { name: 'Total Revenue', component: DashboardCard, props: data => ({ title: "Total Revenue", value: formatCurrency(data.totalRevenue, data.currency), change: "+20.1% from last month", icon: <DollarSign className="text-primary" /> }), layout: { colSpan: 1 } },
+        sales: { name: 'Sales', component: DashboardCard, props: () => ({ title: "Sales", value: "+12,234", change: "+19% from last month", icon: <ShoppingCart className="text-green-500" /> }), layout: { colSpan: 1 } },
+        newCustomers: { name: 'New Customers', component: DashboardCard, props: () => ({ title: "New Customers", value: "+2350", change: "+180.1% from last month", icon: <Users className="text-yellow-500" /> }), layout: { colSpan: 1 } },
+        activeBranches: { name: 'Active Branches', component: DashboardCard, props: () => ({ title: "Active Branches", value: "4", change: "2 online", icon: <Activity className="text-red-500" /> }), layout: { colSpan: 1 } },
+        pendingReturns: { name: 'Pending Returns', component: DashboardCard, props: data => ({ title: "Pending Returns", value: data.returnsForApproval.length.toString(), change: data.returnsForApproval.length > 0 ? "requires approval" : "No pending requests", icon: <ShieldCheck className={data.returnsForApproval.length > 0 ? "text-orange-500 animate-pulse" : "text-orange-500/50"} />, onClick: () => data.returnsForApproval.length > 0 && setIsApprovalModalOpen(true) }), layout: { colSpan: 1 }, requiredRole: 'Manager' },
+        salesOverview: { name: 'Sales Overview', component: SalesChart, props: () => ({ data: salesData, currency }), layout: { colSpan: 3, minH: '450px' } },
+        branchPerformance: { name: 'Branch Performance', component: BranchPerformanceChart, props: () => ({ data: branchPerformance }), layout: { colSpan: 2, minH: '450px' } },
+        recentSales: { name: 'Recent Sales', component: RecentSalesTable, props: () => ({ sales: recentSales }), layout: { colSpan: 3, minH: '400px' } },
+        topProducts: { name: 'Top Selling Products', component: TopProductsChart, props: () => ({ data: topProducts }), layout: { colSpan: 2, minH: '400px' } },
+    };
+
+    const allAvailableWidgets = Object.keys(widgetLibrary).map(key => ({ id: key as WidgetId, name: widgetLibrary[key as WidgetId].name }));
 
     if (loading) {
         return (
             <div className="space-y-8">
-                {/* Stat Cards Skeleton */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <DashboardCardSkeleton />
-                    <DashboardCardSkeleton />
-                    <DashboardCardSkeleton />
-                    <DashboardCardSkeleton />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-32" />)}
                 </div>
-                
-                {/* Main content grid Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg">
-                        <Skeleton className="h-6 w-1/3 mb-4" />
-                        <Skeleton className="h-[350px] w-full" />
-                    </div>
-                    <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
-                        <Skeleton className="h-6 w-1/2 mb-4" />
-                        <Skeleton className="h-[300px] w-full" />
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <Skeleton className="lg:col-span-3 h-96" />
+                    <Skeleton className="lg:col-span-2 h-96" />
                 </div>
             </div>
         );
     }
-
+    
+    // CASHIER DASHBOARD
     if (session?.user?.role === 'Cashier') {
         const cashierName = session.user.name;
         const salesToday = recentSales.filter(s => s.cashierName === cashierName && isToday(s.date) && s.status !== 'Refunded');
-
         const totalSales = salesToday.reduce((sum, s) => sum + s.amount, 0);
-
         const creditSalesList = salesToday.filter(s => s.status === 'Credit');
         const creditSales = creditSalesList.reduce((sum, s) => sum + s.amount, 0);
-        
         const cardTransferSalesList = salesToday.filter(s => s.payments.some(p => p.method === 'Card' || p.method === 'Transfer'));
-        const cardTransferSales = cardTransferSalesList.flatMap(s => s.payments)
-            .filter(p => p.method === 'Card' || p.method === 'Transfer')
-            .reduce((sum, p) => sum + p.amount, 0);
-        
+        const cardTransferSales = cardTransferSalesList.flatMap(s => s.payments).filter(p => p.method === 'Card' || p.method === 'Transfer').reduce((sum, p) => sum + p.amount, 0);
         const keyStockProducts = products.filter(p => p.isFavorite).slice(0, 8);
 
         return (
@@ -185,162 +196,95 @@ const DashboardPage: React.FC = () => {
                 <div className="space-y-8">
                     <h1 className="text-3xl font-bold text-text-primary">Daily Summary</h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <DashboardCard 
-                            title="Your Total Sales Today" 
-                            value={formatCurrency(totalSales, currency)} 
-                            change={`${salesToday.length} transactions`} 
-                            icon={<DollarSign className="text-green-500"/>}
-                            onClick={() => setModalData({ title: 'Total Sales Today', sales: salesToday, type: 'general' })}
-                        />
-                        <DashboardCard 
-                            title="Credit Sales" 
-                            value={formatCurrency(creditSales, currency)} 
-                            change={`${creditSalesList.length} transactions`} 
-                            icon={<Handshake className="text-blue-500"/>}
-                            onClick={() => setModalData({ title: 'Credit Sales Today', sales: creditSalesList, type: 'credit' })}
-                        />
-                        <DashboardCard 
-                            title="Card/Transfer Sales" 
-                            value={formatCurrency(cardTransferSales, currency)} 
-                            change={`${cardTransferSalesList.length} transactions`} 
-                            icon={<CreditCard className="text-yellow-500"/>}
-                            onClick={() => setModalData({ title: 'Card/Transfer Sales Today', sales: cardTransferSalesList, type: 'card_transfer' })}
-                        />
+                        <DashboardCard title="Your Total Sales Today" value={formatCurrency(totalSales, currency)} change={`${salesToday.length} transactions`} icon={<DollarSign className="text-green-500"/>} onClick={() => setModalData({ title: 'Total Sales Today', sales: salesToday, type: 'general' })} />
+                        <DashboardCard title="Credit Sales" value={formatCurrency(creditSales, currency)} change={`${creditSalesList.length} transactions`} icon={<Handshake className="text-blue-500"/>} onClick={() => setModalData({ title: 'Credit Sales Today', sales: creditSalesList, type: 'credit' })} />
+                        <DashboardCard title="Card/Transfer Sales" value={formatCurrency(cardTransferSales, currency)} change={`${cardTransferSalesList.length} transactions`} icon={<CreditCard className="text-yellow-500"/>} onClick={() => setModalData({ title: 'Card/Transfer Sales Today', sales: cardTransferSalesList, type: 'card_transfer' })} />
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg">
-                            <h2 className="text-xl font-semibold text-text-primary mb-4">Your Transactions Today</h2>
-                            {salesToday.length > 0 ? (
-                                <RecentSalesTable sales={salesToday.slice(0, 5)} />
-                            ) : (
-                                <p className="text-text-secondary text-center py-12">You haven't made any sales today.</p>
-                            )}
-                        </div>
-                        <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
-                            <h2 className="text-xl font-semibold text-text-primary mb-4">Key Stock Levels</h2>
-                            <ul className="space-y-3 max-h-96 overflow-y-auto">
-                                {keyStockProducts.map(p => {
-                                    const stock = p.variants.reduce((sum, v) => sum + (v.stockByBranch[currentBranchId] || 0), 0);
-                                    const lowStockThreshold = p.variants[0]?.lowStockThreshold || 5;
-                                    const isLow = stock > 0 && stock <= lowStockThreshold;
-                                    const isOut = stock <= 0;
-                                    return (
-                                        <li key={p.id} className="flex justify-between items-center bg-background p-3 rounded-md">
-                                            <span className="font-medium text-sm">{p.name}</span>
-                                            <span className={`font-bold text-lg ${isOut ? 'text-red-500' : isLow ? 'text-yellow-400' : 'text-text-primary'}`}>{stock}</span>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </div>
+                        <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg"><h2 className="text-xl font-semibold text-text-primary mb-4">Your Transactions Today</h2>{salesToday.length > 0 ? <RecentSalesTable sales={salesToday.slice(0, 5)} /> : <p className="text-text-secondary text-center py-12">You haven't made any sales today.</p>}</div>
+                        <div className="bg-surface border border-border rounded-xl p-6 shadow-lg"><h2 className="text-xl font-semibold text-text-primary mb-4">Key Stock Levels</h2><ul className="space-y-3 max-h-96 overflow-y-auto">{keyStockProducts.map(p => {const stock = p.variants.reduce((sum, v) => sum + (v.stockByBranch[currentBranchId] || 0), 0); const lowStockThreshold = p.variants[0]?.lowStockThreshold || 5; const isLow = stock > 0 && stock <= lowStockThreshold; const isOut = stock <= 0; return (<li key={p.id} className="flex justify-between items-center bg-background p-3 rounded-md"><span className="font-medium text-sm">{p.name}</span><span className={`font-bold text-lg ${isOut ? 'text-red-500' : isLow ? 'text-yellow-400' : 'text-text-primary'}`}>{stock}</span></li>);})}</ul></div>
                     </div>
                 </div>
-
-                {modalData && (
-                    <CashierSalesDetailModal 
-                        title={modalData.title}
-                        sales={modalData.sales}
-                        type={modalData.type}
-                        onClose={() => setModalData(null)}
-                    />
-                )}
+                {modalData && <CashierSalesDetailModal title={modalData.title} sales={modalData.sales} type={modalData.type} onClose={() => setModalData(null)} />}
             </>
         );
     }
 
-    const totalRevenue = recentSales.reduce((acc, sale) => acc + sale.amount, 0);
+    // ADMIN/MANAGER DASHBOARD
     const isManagerOrAdmin = session?.user?.role === 'Manager' || session?.user?.role === 'Admin';
-
+    const layout = tenantSettings?.dashboardLayout || [];
 
     return (
         <div className="space-y-8">
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                <DashboardCard 
-                    title="Total Revenue" 
-                    value={formatCurrency(totalRevenue, currency)} 
-                    change="+20.1% from last month" 
-                    icon={<DollarSign className="text-primary" />} 
-                />
-                <DashboardCard 
-                    title="Sales" 
-                    value="+12,234" 
-                    change="+19% from last month" 
-                    icon={<ShoppingCart className="text-green-500" />} 
-                />
-                <DashboardCard 
-                    title="New Customers" 
-                    value="+2350" 
-                    change="+180.1% from last month" 
-                    icon={<Users className="text-yellow-500" />} 
-                />
-                <DashboardCard 
-                    title="Active Branches" 
-                    value="4" 
-                    change="2 online" 
-                    icon={<Activity className="text-red-500" />} 
-                />
-                 {isManagerOrAdmin && (
-                    <DashboardCard
-                        title="Pending Returns"
-                        value={returnsForApproval.length.toString()}
-                        change={returnsForApproval.length > 0 ? "requires approval" : "No pending requests"}
-                        icon={<ShieldCheck className={returnsForApproval.length > 0 ? "text-orange-500 animate-pulse" : "text-orange-500/50"} />}
-                        onClick={() => returnsForApproval.length > 0 && setIsApprovalModalOpen(true)}
-                    />
+             <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
+                <div className="flex items-center gap-2">
+                    {isEditMode && (
+                        <>
+                         <button onClick={() => setIsAddWidgetModalOpen(true)} className="flex items-center gap-2 bg-primary/20 text-primary font-semibold py-2 px-4 rounded-lg transition-colors hover:bg-primary/30">
+                            <PlusCircle size={16} /> Add Widget
+                         </button>
+                         <button onClick={() => setIsEditMode(false)} className="flex items-center gap-2 bg-green-600/20 text-green-400 font-semibold py-2 px-4 rounded-lg transition-colors hover:bg-green-600/30">
+                            <Save size={16} /> Save Layout
+                        </button>
+                        </>
+                    )}
+                    {!isEditMode && (
+                        <button onClick={() => setIsEditMode(true)} className="flex items-center gap-2 bg-surface hover:bg-border text-text-secondary font-semibold py-2 px-4 rounded-lg transition-colors border border-border">
+                            <Settings size={16} /> Customize
+                        </button>
+                    )}
+                </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                {layout.map(widgetId => {
+                    const config = widgetLibrary[widgetId];
+                    if (!config) return null;
+
+                    if (config.requiredRole && !isManagerOrAdmin) return null;
+
+                    const Component = config.component;
+                    // Pass all calculated data to props function
+                    const componentProps = config.props(calculatedData); 
+
+                    return (
+                        <div key={widgetId} style={{ gridColumn: `span ${config.layout.colSpan}`, minHeight: config.layout.minH }} className={`relative group transition-all duration-300 ${isEditMode ? 'p-4 border-2 border-dashed border-border rounded-xl' : ''}`}>
+                             {isEditMode && (
+                                <>
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-surface px-2 text-xs text-text-secondary rounded-full border border-border">{config.name}</div>
+                                    <button
+                                        onClick={() => handleRemoveWidget(widgetId)}
+                                        className="absolute -top-2 -right-2 z-10 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title={`Remove ${config.name}`}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </>
+                            )}
+                            <div className={`h-full ${isEditMode ? 'opacity-70 grayscale' : ''}`}>
+                                <Component {...componentProps} />
+                            </div>
+                        </div>
+                    );
+                })}
+                 {layout.length === 0 && !isEditMode && (
+                    <div className="lg:col-span-5 text-center py-20 bg-surface rounded-xl border border-border">
+                        <h2 className="text-xl font-semibold">Your dashboard is empty!</h2>
+                        <p className="text-text-secondary mt-2">Click 'Customize' to add some widgets.</p>
+                    </div>
                 )}
             </div>
             
-            {/* Main content grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg">
-                    <h2 className="text-xl font-semibold text-text-primary mb-4">{t('salesOverview')}</h2>
-                    <SalesChart data={salesData} currency={currency} />
-                </div>
-                <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
-                    <h2 className="text-xl font-semibold text-text-primary mb-4">{t('branchPerformance')}</h2>
-                     <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={branchPerformance}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={100}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            >
-                                {branchPerformance.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div className="lg:col-span-3 bg-surface border border-border rounded-xl p-6 shadow-lg">
-                    <h2 className="text-xl font-semibold text-text-primary mb-4">{t('recentSales')}</h2>
-                    <p className="text-sm text-text-secondary mb-4">You made 265 sales this month.</p>
-                    <RecentSalesTable sales={recentSales} />
-                </div>
-                <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg">
-                    <h2 className="text-xl font-semibold text-text-primary mb-4">{t('topSellingProducts')}</h2>
-                    <TopProductsChart data={topProducts} />
-                </div>
-             </div>
-
              {isApprovalModalOpen && (
-                <ReturnApprovalModal
-                    requests={returnsForApproval}
-                    onClose={() => setIsApprovalModalOpen(false)}
-                    onApprove={handleApproveReturn}
-                    onReject={handleRejectReturn}
+                <ReturnApprovalModal requests={returnsForApproval} onClose={() => setIsApprovalModalOpen(false)} onApprove={handleApproveReturn} onReject={handleRejectReturn} />
+             )}
+             {isAddWidgetModalOpen && (
+                <AddWidgetModal
+                    availableWidgets={allAvailableWidgets}
+                    currentWidgetIds={layout}
+                    onAdd={handleAddWidget}
+                    onClose={() => setIsAddWidgetModalOpen(false)}
                 />
              )}
         </div>
