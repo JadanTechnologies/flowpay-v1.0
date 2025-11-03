@@ -177,21 +177,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Supabase Auth listener
   useEffect(() => {
+    // onAuthStateChange is the recommended way to handle auth state.
+    // It's called on initial load with the current session, and on any auth event (login, logout).
+    // This avoids race conditions with manual getSession() calls.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
     });
 
-    const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    return () => {
+      subscription.unsubscribe();
     };
-    checkSession();
-
-    return () => subscription.unsubscribe();
   }, []);
   
   // Data Fetching based on session (Currently disabled to use mock data)
