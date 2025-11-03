@@ -1,4 +1,5 @@
 
+
 import React, { useState, useReducer, useMemo, useEffect, useCallback } from 'react';
 import { Search, Loader, UserPlus, Barcode, Star, Layers } from 'lucide-react';
 import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant, InventoryAdjustmentLog, PendingReturnRequest } from '../types';
@@ -203,6 +204,27 @@ const PosPage: React.FC = () => {
         amountAddedToCredit = total - totalPaidByTender;
         if (amountAddedToCredit > 0) {
             finalPayments.push({ method: 'Credit', amount: amountAddedToCredit });
+        }
+    }
+
+    if (finalStatus === 'Credit' && amountAddedToCredit > 0) {
+        if (customer.creditLimit !== undefined && (customer.creditBalance + amountAddedToCredit > customer.creditLimit)) {
+            const newBalance = customer.creditBalance + amountAddedToCredit;
+            const limit = customer.creditLimit;
+            const confirmation = window.confirm(
+                `Warning: This sale will exceed the customer's credit limit.\n\n` +
+                `Current Balance: ${formatCurrency(customer.creditBalance, currency)}\n` +
+                `This Sale: ${formatCurrency(amountAddedToCredit, currency)}\n` +
+                `New Balance: ${formatCurrency(newBalance, currency)}\n` +
+                `Credit Limit: ${formatCurrency(limit, currency)}\n\n` +
+                `Do you want to proceed with the sale?`
+            );
+            if (!confirmation) {
+                addNotification({ message: 'Sale cancelled due to credit limit.', type: 'warning' });
+                setPaymentModalOpen(false);
+                setIsChargeModalOpen(false);
+                return;
+            }
         }
     }
 

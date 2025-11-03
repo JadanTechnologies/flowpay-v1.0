@@ -222,6 +222,7 @@ export interface Customer {
     email?: string;
     phone?: string;
     creditBalance: number;
+    creditLimit?: number;
 }
 
 export interface Invoice {

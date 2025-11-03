@@ -437,9 +437,9 @@ export const invoices: Invoice[] = [
 ];
 
 export const customers: Customer[] = [
-    { id: 'cust_1', name: 'Innovate Inc.', email: 'accounts@innovate.com', phone: '555-1111', creditBalance: 0 },
-    { id: 'cust_2', name: 'Local Blooms', email: 'flowers@localblooms.com', phone: '555-2222', creditBalance: 0 },
-    { id: 'cust_3', name: 'Gadget Galaxy', email: 'support@gadgetgalaxy.com', phone: '555-3333', creditBalance: 8.50 },
+    { id: 'cust_1', name: 'Innovate Inc.', email: 'accounts@innovate.com', phone: '555-1111', creditBalance: 0, creditLimit: 5000 },
+    { id: 'cust_2', name: 'Local Blooms', email: 'flowers@localblooms.com', phone: '555-2222', creditBalance: 0, creditLimit: 1000 },
+    { id: 'cust_3', name: 'Gadget Galaxy', email: 'support@gadgetgalaxy.com', phone: '555-3333', creditBalance: 8.50, creditLimit: 200 },
     { id: 'cust_4', name: 'Walk-in Customer', creditBalance: 0 },
 ];
 
