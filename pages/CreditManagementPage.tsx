@@ -9,7 +9,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 
 const CreditManagementPage: React.FC = () => {
-    const { customers: allCustomers, setCustomers, currency, addNotification } = useAppContext();
+    const { customers: allCustomers, setCustomers, currency, addNotification, notificationPrefs } = useAppContext();
     const [transactions, setTransactions] = useState<CreditTransaction[]>(mockTransactions);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -59,11 +59,15 @@ const CreditManagementPage: React.FC = () => {
 
     const handleSendReminder = (customer: Customer) => {
         if (!customer.email) {
-            alert("This customer does not have an email address on file.");
+            addNotification({ message: "This customer does not have an email address on file.", type: 'error'});
             return;
         }
-        alert(`Payment reminder sent to ${customer.name} at ${customer.email}.`);
+
         console.log(`Simulating sending reminder to ${customer.email} for an outstanding balance of ${formatCurrency(customer.creditBalance, currency)}.`);
+
+        if (notificationPrefs.creditReminderEmail) {
+            addNotification({ message: `Payment reminder email sent to ${customer.name}.`, type: 'success' });
+        }
     };
 
     const columns: Column<Customer>[] = [

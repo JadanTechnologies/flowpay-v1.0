@@ -41,13 +41,6 @@ const NotificationsPage: React.FC = () => {
                         </div>
                         <ToggleSwitch checked={notificationPrefs.salesPush} onChange={() => handleToggle('salesPush')} />
                     </div>
-                     <div className="flex justify-between items-center bg-background p-4 rounded-lg border border-border">
-                        <div>
-                            <p className="font-medium text-text-primary">Email on refunds</p>
-                            <p className="text-sm text-text-secondary">Get notified when a refund is processed.</p>
-                        </div>
-                        <ToggleSwitch checked={notificationPrefs.refundsEmail} onChange={() => handleToggle('refundsEmail')} />
-                    </div>
                 </div>
             </div>
 
@@ -68,6 +61,27 @@ const NotificationsPage: React.FC = () => {
                             <p className="text-sm text-text-secondary">Urgent alert when an item sells out completely.</p>
                         </div>
                         <ToggleSwitch checked={notificationPrefs.lowStockSms} onChange={() => handleToggle('lowStockSms')} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Financial Alerts */}
+            <div className="pt-6">
+                <h3 className="text-lg font-semibold text-text-primary">Financial Alerts</h3>
+                <div className="mt-4 space-y-4">
+                    <div className="flex justify-between items-center bg-background p-4 rounded-lg border border-border">
+                        <div>
+                            <p className="font-medium text-text-primary">Email on refunds</p>
+                            <p className="text-sm text-text-secondary">Get notified when a refund is processed.</p>
+                        </div>
+                        <ToggleSwitch checked={notificationPrefs.refundsEmail} onChange={() => handleToggle('refundsEmail')} />
+                    </div>
+                    <div className="flex justify-between items-center bg-background p-4 rounded-lg border border-border">
+                        <div>
+                            <p className="font-medium text-text-primary">Email for payment reminders</p>
+                            <p className="text-sm text-text-secondary">Confirm when manual payment reminders are sent.</p>
+                        </div>
+                        <ToggleSwitch checked={notificationPrefs.creditReminderEmail} onChange={() => handleToggle('creditReminderEmail')} />
                     </div>
                 </div>
             </div>

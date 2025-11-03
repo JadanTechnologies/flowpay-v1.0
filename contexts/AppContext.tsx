@@ -16,6 +16,7 @@ export interface NotificationPrefs {
     lowStockEmail: boolean;
     lowStockSms: boolean;
     outOfStockEmail: boolean;
+    creditReminderEmail: boolean;
 }
 
 // FIX: Added missing AppContextType interface definition
@@ -98,6 +99,7 @@ const defaultNotificationPrefs: NotificationPrefs = {
     lowStockEmail: true,
     lowStockSms: false,
     outOfStockEmail: true,
+    creditReminderEmail: true,
 };
 
 export const AppContext = createContext<AppContextType>({} as AppContextType);

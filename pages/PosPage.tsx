@@ -1,5 +1,3 @@
-
-
 import React, { useState, useReducer, useMemo, useEffect, useCallback } from 'react';
 import { Search, Loader, UserPlus, Barcode, Star, Layers } from 'lucide-react';
 import { Product, CartItem, HeldSale, Customer, Payment, Sale, ProductVariant, InventoryAdjustmentLog, PendingReturnRequest } from '../types';
@@ -97,6 +95,7 @@ const PosPage: React.FC = () => {
     recentSales,
     setRecentSales,
     setPendingReturns,
+    notificationPrefs,
   } = useAppContext();
   
   const [cart, dispatch] = useReducer(cartReducer, []);
@@ -241,6 +240,13 @@ const PosPage: React.FC = () => {
         payments: finalPayments,
     };
     
+    if (notificationPrefs.salesEmail) {
+        addNotification({
+            type: 'info',
+            message: `[Email Sent] New sale recorded: ${newSale.id} for ${formatCurrency(newSale.amount, currency)}.`
+        });
+    }
+    
     setRecentSales(prev => [newSale, ...prev]);
 
     if (finalStatus === 'Credit' && customer.id !== 'cust_4' && amountAddedToCredit > 0) {
@@ -258,8 +264,21 @@ const PosPage: React.FC = () => {
             const newVariants = p.variants.map(v => {
                 const cartItem = cart.find(item => item.id === v.id);
                 if (cartItem) {
+                    const stockBefore = v.stockByBranch[currentBranchId] || 0;
+                    const newStock = stockBefore - cartItem.quantity;
+                    
+                    if (notificationPrefs.lowStockEmail) {
+                        const threshold = v.lowStockThreshold;
+                        if (stockBefore > threshold && newStock <= threshold) {
+                            addNotification({
+                                type: 'warning',
+                                message: `[Email Alert] Low stock for ${cartItem.name}. Current stock: ${newStock}.`
+                            });
+                        }
+                    }
+
                     const newStockByBranch = { ...v.stockByBranch };
-                    newStockByBranch[currentBranchId] = (newStockByBranch[currentBranchId] || 0) - cartItem.quantity;
+                    newStockByBranch[currentBranchId] = newStock;
                     return { ...v, stockByBranch: newStockByBranch };
                 }
                 return v;
