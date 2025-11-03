@@ -36,6 +36,7 @@ const DashboardPage: React.FC = () => {
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [isAddWidgetModalOpen, setIsAddWidgetModalOpen] = useState(false);
+    const [returnNotifSent, setReturnNotifSent] = useState(false);
 
     const returnsForApproval = useMemo(() => 
         pendingReturns.filter(req => req.branchId === currentBranchId && req.status === 'pending'),
@@ -124,6 +125,20 @@ const DashboardPage: React.FC = () => {
         return () => clearTimeout(timer);
     }, []);
 
+    // Notify manager/admin of pending returns on load
+    useEffect(() => {
+        if (!loading && !returnNotifSent && (session?.user?.role === 'Manager' || session?.user?.role === 'Admin')) {
+            if (returnsForApproval.length > 0) {
+                addNotification({
+                    message: `You have ${returnsForApproval.length} return request(s) waiting for approval. Click the 'Pending Returns' widget to review.`,
+                    type: 'warning',
+                    duration: 10000,
+                });
+                setReturnNotifSent(true);
+            }
+        }
+    }, [returnsForApproval.length, session?.user?.role, addNotification, loading, returnNotifSent]);
+
     const isToday = (someDate: string) => {
         const today = new Date();
         const date = new Date(someDate);
@@ -157,7 +172,6 @@ const DashboardPage: React.FC = () => {
         sales: { name: 'Sales', component: DashboardCard, props: () => ({ title: "Sales", value: "+12,234", change: "+19% from last month", icon: <ShoppingCart className="text-green-500" /> }), layout: { colSpan: 1 } },
         newCustomers: { name: 'New Customers', component: DashboardCard, props: () => ({ title: "New Customers", value: "+2350", change: "+180.1% from last month", icon: <Users className="text-yellow-500" /> }), layout: { colSpan: 1 } },
         activeBranches: { name: 'Active Branches', component: DashboardCard, props: () => ({ title: "Active Branches", value: "4", change: "2 online", icon: <Activity className="text-red-500" /> }), layout: { colSpan: 1 } },
-        pendingReturns: { name: 'Pending Returns', component: DashboardCard, props: data => ({ title: "Pending Returns", value: data.returnsForApproval.length.toString(), change: data.returnsForApproval.length > 0 ? "requires approval" : "No pending requests", icon: <ShieldCheck className={data.returnsForApproval.length > 0 ? "text-orange-500 animate-pulse" : "text-orange-500/50"} />, onClick: () => data.returnsForApproval.length > 0 && setIsApprovalModalOpen(true) }), layout: { colSpan: 1 }, requiredRole: 'Manager' },
         salesOverview: { name: 'Sales Overview', component: SalesChart, props: () => ({ data: salesData, currency }), layout: { colSpan: 3, minH: '450px' } },
         branchPerformance: { name: 'Branch Performance', component: BranchPerformanceChart, props: () => ({ data: branchPerformance }), layout: { colSpan: 2, minH: '450px' } },
         recentSales: { name: 'Recent Sales', component: RecentSalesTable, props: () => ({ sales: recentSales }), layout: { colSpan: 3, minH: '400px' } },
@@ -187,8 +201,8 @@ const DashboardPage: React.FC = () => {
         const totalSales = salesToday.reduce((sum, s) => sum + s.amount, 0);
         const creditSalesList = salesToday.filter(s => s.status === 'Credit');
         const creditSales = creditSalesList.reduce((sum, s) => sum + s.amount, 0);
-        const cardTransferSalesList = salesToday.filter(s => s.payments.some(p => p.method === 'Card' || p.method === 'Transfer'));
-        const cardTransferSales = cardTransferSalesList.flatMap(s => s.payments).filter(p => p.method === 'Card' || p.method === 'Transfer').reduce((sum, p) => sum + p.amount, 0);
+        const cardTransferSalesList = salesToday.filter(s => s.payments.some(p => p.method === 'Card' || p.method === 'Bank Transfer'));
+        const cardTransferSales = cardTransferSalesList.flatMap(s => s.payments).filter(p => p.method === 'Card' || p.method === 'Bank Transfer').reduce((sum, p) => sum + p.amount, 0);
         const keyStockProducts = products.filter(p => p.isFavorite).slice(0, 8);
 
         return (
@@ -198,7 +212,7 @@ const DashboardPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <DashboardCard title="Your Total Sales Today" value={formatCurrency(totalSales, currency)} change={`${salesToday.length} transactions`} icon={<DollarSign className="text-green-500"/>} onClick={() => setModalData({ title: 'Total Sales Today', sales: salesToday, type: 'general' })} />
                         <DashboardCard title="Credit Sales" value={formatCurrency(creditSales, currency)} change={`${creditSalesList.length} transactions`} icon={<Handshake className="text-blue-500"/>} onClick={() => setModalData({ title: 'Credit Sales Today', sales: creditSalesList, type: 'credit' })} />
-                        <DashboardCard title="Card/Transfer Sales" value={formatCurrency(cardTransferSales, currency)} change={`${cardTransferSalesList.length} transactions`} icon={<CreditCard className="text-yellow-500"/>} onClick={() => setModalData({ title: 'Card/Transfer Sales Today', sales: cardTransferSalesList, type: 'card_transfer' })} />
+                        <DashboardCard title="Card/Bank Transfer Sales" value={formatCurrency(cardTransferSales, currency)} change={`${cardTransferSalesList.length} transactions`} icon={<CreditCard className="text-yellow-500"/>} onClick={() => setModalData({ title: 'Card/Bank Transfer Sales Today', sales: cardTransferSalesList, type: 'card_transfer' })} />
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg"><h2 className="text-xl font-semibold text-text-primary mb-4">Your Transactions Today</h2>{salesToday.length > 0 ? <RecentSalesTable sales={salesToday.slice(0, 5)} /> : <p className="text-text-secondary text-center py-12">You haven't made any sales today.</p>}</div>

@@ -83,7 +83,7 @@ export const recentSales: Sale[] = [
     payments: [{ method: 'Cash', amount: 22.50 }] 
   },
   { id: 'sale_3', customerName: 'Noah Williams', cashierName: 'Diana Prince', date: '2023-10-25T09:15:00Z', amount: 3.50, status: 'Pending', branch: 'Westside Mall', items: [ createCartItem(posProducts.find(p => p.id === 'pos-3')!, 0, 'br_3', { quantity: 1 })], payments: [] },
-  { id: 'sale_4', customerName: 'Emma Brown', cashierName: 'Bob Williams', date: '2023-10-25T14:00:00Z', amount: 4.50, status: 'Paid', branch: 'Downtown Central', items: [ createCartItem(posProducts.find(p => p.id === 'pos-5')!, 0, 'br_1', { quantity: 2 })], payments: [{ method: 'Transfer', amount: 4.50 }] },
+  { id: 'sale_4', customerName: 'Emma Brown', cashierName: 'Bob Williams', date: '2023-10-25T14:00:00Z', amount: 4.50, status: 'Paid', branch: 'Downtown Central', items: [ createCartItem(posProducts.find(p => p.id === 'pos-5')!, 0, 'br_1', { quantity: 2 })], payments: [{ method: 'Bank Transfer', amount: 4.50 }] },
   { id: 'sale_5', customerName: 'Ava Jones', cashierName: 'Charlie Brown', date: '2023-10-24T16:20:00Z', amount: -2.75, status: 'Refunded', branch: 'Uptown Square', items: [createCartItem(posProducts.find(p => p.id === 'pos-4')!, 0, 'br_2', { quantity: 1, price: -2.75 })], payments: [{ method: 'Cash', amount: -2.75 }] },
   { id: 'sale_6', customerId: 'cust_3', cashierName: 'Alice Johnson', customerName: 'Gadget Galaxy', date: '2023-10-25T18:05:00Z', amount: 8.50, status: 'Credit', branch: 'Downtown Central', items: [ createCartItem(posProducts.find(p => p.id === 'pos-7')!, 0, 'br_1'), createCartItem(posProducts.find(p => p.id === 'pos-9')!, 0, 'br_1')], payments: [{ method: 'Credit', amount: 8.50 }] },
 ];
@@ -384,7 +384,6 @@ export const tenantSettings: TenantSettings = {
         'sales', 
         'newCustomers', 
         'activeBranches', 
-        'pendingReturns', 
         'salesOverview', 
         'branchPerformance', 
         'recentSales', 

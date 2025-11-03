@@ -103,7 +103,7 @@ export interface CartItem {
 }
 
 export interface Payment {
-    method: 'Card' | 'Cash' | 'Transfer' | 'Credit';
+    method: 'Card' | 'Cash' | 'Bank Transfer' | 'Mobile Money' | 'Custom' | 'Credit';
     amount: number;
 }
 
@@ -145,7 +145,7 @@ export interface BranchPerformance {
   value: number;
 }
 
-export type WidgetId = 'totalRevenue' | 'sales' | 'newCustomers' | 'activeBranches' | 'pendingReturns' | 'salesOverview' | 'branchPerformance' | 'recentSales' | 'topProducts';
+export type WidgetId = 'totalRevenue' | 'sales' | 'newCustomers' | 'activeBranches' | 'salesOverview' | 'branchPerformance' | 'recentSales' | 'topProducts';
 
 // Subscriptions & Billing
 export interface SubscriptionPlan {

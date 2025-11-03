@@ -1,5 +1,5 @@
 import React, { useState, useMemo, FC, ChangeEvent } from 'react';
-import { X, CreditCard, Banknote, Smartphone, Handshake, Loader, AlertTriangle } from 'lucide-react';
+import { X, CreditCard, Banknote, Smartphone, Handshake, Loader, AlertTriangle, Landmark, HelpCircle } from 'lucide-react';
 import { Payment, Customer, Sale } from '../../types';
 import { useAppContext } from '../../contexts/AppContext';
 import { formatCurrency } from '../../utils/formatting';
@@ -12,11 +12,11 @@ interface PaymentModalProps {
   onConfirm: (payments: Payment[], finalStatus: Sale['status'], customer: Customer) => void;
 }
 
-type PaymentMethod = 'Cash' | 'Card' | 'Transfer';
+type PaymentMethod = 'Cash' | 'Card' | 'Bank Transfer' | 'Mobile Money' | 'Custom';
 type PaymentAmounts = Record<PaymentMethod, string>;
 
 const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, onConfirm }) => {
-  const [amounts, setAmounts] = useState<PaymentAmounts>({ Cash: '', Card: '', Transfer: '' });
+  const [amounts, setAmounts] = useState<PaymentAmounts>({ Cash: '', Card: '', 'Bank Transfer': '', 'Mobile Money': '', Custom: '' });
   const { currency, addNotification } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,13 +34,15 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
     return Object.values(amounts).reduce((sum: number, val) => sum + (parseFloat(val as string) || 0), 0);
   }, [amounts]);
 
-  const totalPaidByCardAndTransfer = useMemo(() => {
-    return (parseFloat(amounts.Card) || 0) + (parseFloat(amounts.Transfer) || 0);
+  const nonCashPaymentsTotal = useMemo(() => {
+    return Object.entries(amounts)
+        .filter(([method]) => method !== 'Cash')
+        .reduce((sum, [, amount]) => sum + (parseFloat(amount as string) || 0), 0);
   }, [amounts]);
   
   const remainingBalance = totalAmount - totalPaid;
 
-  const isOverpayingNonCash = totalPaidByCardAndTransfer > totalAmount;
+  const isOverpayingNonCash = nonCashPaymentsTotal > totalAmount;
   
   const handleFinalize = async () => {
     if (!customer) {
@@ -87,7 +89,9 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
   const paymentMethods: { name: PaymentMethod; icon: React.ReactNode; }[] = [
       { name: 'Cash', icon: <Banknote /> },
       { name: 'Card', icon: <CreditCard /> },
-      { name: 'Transfer', icon: <Smartphone /> },
+      { name: 'Bank Transfer', icon: <Landmark /> },
+      { name: 'Mobile Money', icon: <Smartphone /> },
+      { name: 'Custom', icon: <HelpCircle /> },
   ];
 
   return (
@@ -124,7 +128,7 @@ const PaymentModal: FC<PaymentModalProps> = ({ totalAmount, customer, onClose, o
                 ))}
                  {isOverpayingNonCash && (
                     <div className="!mt-2 text-xs text-red-400 bg-red-900/50 p-2 rounded-lg">
-                        Amount paid by Card and/or Transfer cannot exceed the total bill.
+                        Amount paid by non-cash methods cannot exceed the total bill.
                     </div>
                 )}
                  {errorMessage && (
