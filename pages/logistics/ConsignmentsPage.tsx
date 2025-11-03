@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { Truck, PlusCircle, MoreVertical, Edit, CheckCircle, DollarSign, FileText, Send } from 'lucide-react';
 import { Consignment, Customer, Sale, Invoice, Product, ProductVariant } from '../../types';
@@ -63,7 +64,8 @@ const ConsignmentsPage: React.FC = () => {
                 return [{
                     id: `adj_con_out_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.name || 'Admin',
+                    // FIX: Access user's name from `user_metadata`
+                    user: session?.user?.user_metadata?.name || 'Admin',
                     branchId: consignment.originBranchId,
                     type: 'Stock Transfer Out',
                     referenceId: consignment.id,

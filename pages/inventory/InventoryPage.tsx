@@ -173,7 +173,8 @@ const InventoryPage: React.FC = () => {
                 const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.name || 'Admin User',
+                    // FIX: Access user's name from `user_metadata`
+                    user: session?.user?.user_metadata?.name || 'Admin User',
                     branchId: branchFilter,
                     type: 'Manual Adjustment',
                     referenceId: reason,
@@ -401,7 +402,8 @@ const InventoryPage: React.FC = () => {
                                                             <tbody>
                                                                 {product.variants.map(variant => {
                                                                     const vBranchStock = variant.stockByBranch[branchFilter] || 0;
-                                                                    const vTotalStock = Object.keys(variant.stockByBranch).reduce((s: number, key) => s + variant.stockByBranch[key], 0);
+                                                                    // FIX: Use Object.values for type-safe reduce operation
+                                                                    const vTotalStock = Object.values(variant.stockByBranch).reduce((s, stock) => s + stock, 0);
                                                                     return (
                                                                         <tr key={variant.id} className="border-b border-border/50 last:border-b-0">
                                                                             <td className="px-2 py-2 font-medium">{Object.values(variant.options).join(' / ')}</td>

@@ -66,7 +66,8 @@ const StockTransfersPage: React.FC = () => {
                 const newLog: InventoryAdjustmentLog = {
                     id: `adj_con_out_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.name || 'Admin User',
+                    // FIX: Access user's name from `user_metadata`
+                    user: session?.user?.user_metadata?.name || 'Admin User',
                     branchId: transfer.fromBranchId,
                     type: 'Stock Transfer Out',
                     referenceId: transfer.id,
@@ -121,7 +122,8 @@ const StockTransfersPage: React.FC = () => {
                 const newLog: InventoryAdjustmentLog = {
                     id: `adj_${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    user: session?.user?.name || 'Admin User',
+                    // FIX: Access user's name from `user_metadata`
+                    user: session?.user?.user_metadata?.name || 'Admin User',
                     branchId: transfer.toBranchId,
                     type: 'Stock Transfer In',
                     referenceId: transfer.id,

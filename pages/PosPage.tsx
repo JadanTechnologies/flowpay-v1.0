@@ -193,7 +193,8 @@ const PosPage: React.FC = () => {
   };
   
   const handleSuccessfulPayment = (payments: Payment[], finalStatus: Sale['status'], customer: Customer) => {
-    const cashierName = session?.user?.name || session?.user?.email || 'System';
+    // FIX: Access user's name from `user_metadata`
+    const cashierName = session?.user?.user_metadata?.name || session?.user?.email || 'System';
     
     let finalPayments = [...payments];
     let amountAddedToCredit = 0;
@@ -294,7 +295,8 @@ const PosPage: React.FC = () => {
   }
   
   const handleRequestReturn = (returnedItems: CartItem[], originalSale: Sale) => {
-    const cashierName = session?.user?.name || 'Unknown';
+    // FIX: Access user's name from `user_metadata`
+    const cashierName = session?.user?.user_metadata?.name || 'Unknown';
     const cashierId = session?.user?.id || 'unknown';
 
     const totalRefundAmount = returnedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);

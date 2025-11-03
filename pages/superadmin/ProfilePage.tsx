@@ -4,7 +4,8 @@ import { useAppContext } from '../../contexts/AppContext';
 const ProfilePage: React.FC = () => {
     const { session, addNotification } = useAppContext();
     const [profile, setProfile] = useState({
-        fullName: session?.user?.name || '',
+        // FIX: Access user's name from `user_metadata`
+        fullName: session?.user?.user_metadata?.name || '',
         email: session?.user?.email || '',
         avatar: 'https://picsum.photos/seed/superadmin/100/100',
     });

@@ -3,6 +3,7 @@
 
 
 
+
 import React, { useMemo } from 'react';
 import { Search, Bell, ChevronDown, LogOut, Settings, Power, User } from 'lucide-react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
@@ -35,7 +36,8 @@ const SuperAdminHeader: React.FC = () => {
     navigate('/admin/login');
   };
 
-  const userName = useMemo(() => session?.user?.name || 'Super Admin', [session]);
+  // FIX: Access user's name from `user_metadata`
+  const userName = useMemo(() => session?.user?.user_metadata?.name || 'Super Admin', [session]);
   const userRole = useMemo(() => "Platform Owner", []);
 
 

@@ -102,7 +102,8 @@ const SuperAdminSidebar: React.FC = () => {
         }
     ];
 
-    const userName = useMemo(() => session?.user?.name || 'Super Admin', [session]);
+    // FIX: Access user's name from `user_metadata`
+    const userName = useMemo(() => session?.user?.user_metadata?.name || 'Super Admin', [session]);
     const userEmail = useMemo(() => session?.user?.email || 'owner@flowpay.com', [session]);
 
     return (
