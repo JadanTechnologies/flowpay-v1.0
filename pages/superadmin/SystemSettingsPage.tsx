@@ -57,6 +57,18 @@ const SystemSettingsPage: React.FC = () => {
             return { ...prev!, [section as keyof SystemSettings]: value };
         });
     };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, section: 'branding', field: string) => {
+        if (!localSettings) return;
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                handleInputChange(section, field, reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     
     const handleBrandingFeatureChange = (index: number, field: keyof BrandingSettings['features'][0], value: string) => {
         if (!localSettings) return;
@@ -154,14 +166,20 @@ const SystemSettingsPage: React.FC = () => {
                                 <input type="text" value={localSettings.branding.platformName} onChange={e => handleInputChange('branding', 'platformName', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm text-text-secondary block mb-1">Logo URL</label>
-                                <input type="text" value={localSettings.branding.logoUrl} onChange={e => handleInputChange('branding', 'logoUrl', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex items-end gap-4">
+                                {localSettings.branding.logoUrl && <img src={localSettings.branding.logoUrl} alt="Logo Preview" className="h-10 w-auto bg-white p-1 rounded-md" />}
+                                <div>
+                                    <label className="text-sm text-text-secondary block mb-1">Platform Logo</label>
+                                    <input type="file" accept="image/*" onChange={e => handleFileUpload(e, 'branding', 'logoUrl')} className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer"/>
+                                </div>
                             </div>
-                             <div>
-                                <label className="text-sm text-text-secondary block mb-1">Favicon URL</label>
-                                <input type="text" value={localSettings.branding.faviconUrl} onChange={e => handleInputChange('branding', 'faviconUrl', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                            <div className="flex items-end gap-4">
+                                {localSettings.branding.faviconUrl && <img src={localSettings.branding.faviconUrl} alt="Favicon Preview" className="h-10 w-10" />}
+                                <div>
+                                    <label className="text-sm text-text-secondary block mb-1">Favicon</label>
+                                    <input type="file" accept="image/x-icon,image/png,image/svg+xml" onChange={e => handleFileUpload(e, 'branding', 'faviconUrl')} className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer"/>
+                                </div>
                             </div>
                         </div>
                         <h3 className="font-bold text-text-primary pt-4 border-t border-border">Landing Page: Hero Section</h3>

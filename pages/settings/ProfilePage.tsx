@@ -25,6 +25,17 @@ const ProfilePage: React.FC = () => {
     const handleBusinessProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setBusinessProfile({ ...businessProfile, [e.target.name]: e.target.value });
     };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<any>>, field: string) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setter(prev => ({ ...prev, [field]: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,7 +55,7 @@ const ProfilePage: React.FC = () => {
             <img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" />
             <div className="relative">
                 <button type="button" className="bg-background border border-border rounded-md px-4 py-2 text-sm font-semibold hover:bg-border">Change</button>
-                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, setProfile, 'avatar')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -85,8 +96,16 @@ const ProfilePage: React.FC = () => {
                 <input type="text" name="address" id="address" value={businessProfile.address} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
             </div>
              <div className="md:col-span-2">
-                <label htmlFor="logoUrl" className="block text-sm font-medium text-text-secondary mb-1">Logo URL</label>
-                <input type="text" name="logoUrl" id="logoUrl" value={businessProfile.logoUrl} onChange={handleBusinessProfileChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                <label className="block text-sm font-medium text-text-secondary mb-1">Company Logo</label>
+                <div className="flex items-center gap-4 mt-2">
+                    {businessProfile.logoUrl && <img src={businessProfile.logoUrl} alt="Logo Preview" className="h-12 w-auto bg-gray-200 p-1 rounded-md" />}
+                    <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleFileChange(e, setBusinessProfile, 'logoUrl')} 
+                        className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer"
+                    />
+                </div>
             </div>
         </div>
       </div>

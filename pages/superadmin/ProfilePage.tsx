@@ -14,6 +14,17 @@ const ProfilePage: React.FC = () => {
         setProfile({ ...profile, [e.target.name]: e.target.value });
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfile(prev => ({ ...prev, avatar: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
     };
@@ -53,7 +64,7 @@ const ProfilePage: React.FC = () => {
                             <img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full" />
                             <div className="relative">
                                 <button type="button" className="bg-background border border-border rounded-md px-4 py-2 text-sm font-semibold hover:bg-border">Change Avatar</button>
-                                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">

@@ -102,7 +102,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onClose }) =
             }
             return v;
         }));
-    }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -128,7 +139,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onClose }) =
                             <option value="">Select Supplier</option>
                             {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
-                        <input type="text" placeholder="Image URL" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"/>
+                    </div>
+                     <div className="md:col-span-2">
+                        <label className="text-sm text-text-secondary block mb-1">Product Image</label>
+                        <div className="flex items-center gap-4 mt-2">
+                            {imageUrl && <img src={imageUrl} alt="Product Preview" className="h-16 w-16 object-cover rounded-md" />}
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={handleFileChange} 
+                                className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30 cursor-pointer"
+                            />
+                        </div>
                     </div>
                     
                     {/* Variants Toggle */}
