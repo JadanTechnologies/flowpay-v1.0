@@ -44,7 +44,7 @@ const ConsignmentsPage: React.FC = () => {
                     for (const product of productsMap.values()) {
                         const variantToUpdate = product.variants.find((v: ProductVariant) => v.id === item.variantId);
                         if (variantToUpdate) {
-                            variantToUpdate.stockByBranch[consignment.originBranchId] -= item.quantity;
+                            variantToUpdate.stockByBranch[consignment.originBranchId] = (variantToUpdate.stockByBranch[consignment.originBranchId] || 0) - item.quantity;
                             break;
                         }
                     }

@@ -161,9 +161,7 @@ const AutomationsPage: React.FC = () => {
                     dueDate: dueDate.toISOString().split('T')[0],
                     amount: sourceInvoice.amount,
                     status: 'Due',
-                    isRecurring: sourceInvoice.isRecurring,
-                    recurringFrequency: sourceInvoice.recurringFrequency,
-                    recurringEndDate: sourceInvoice.recurringEndDate,
+                    isRecurring: false, // Generated invoices are not themselves recurring templates
                 };
                 
                 setInvoices(prev => [newInvoice, ...prev]);

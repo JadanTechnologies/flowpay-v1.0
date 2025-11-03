@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import React, { useEffect, useMemo } from 'react';
 // FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -28,8 +22,8 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 // Tenant Pages
 import DashboardPage from './pages/DashboardPage';
 import PosPage from './pages/PosPage';
-import InventoryPage from './pages/InventoryPage';
-import AccountingPage from './pages/AccountingPage';
+import InventoryPage from './pages/inventory/InventoryPage';
+import AccountingPage from './pages/accounting/AccountingPage';
 import LogisticsPage from './pages/LogisticsPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/settings/ProfilePage';
@@ -52,6 +46,7 @@ import ManageBillingPage from './pages/settings/ManageBillingPage';
 import PaymentHistoryPage from './pages/settings/PaymentHistoryPage';
 import FleetPage from './pages/logistics/FleetPage';
 import ConsignmentsPage from './pages/logistics/ConsignmentsPage';
+import AccessControlPage from './pages/settings/AccessControlPage';
 
 
 // Super Admin Pages
@@ -65,7 +60,7 @@ import AnnouncementsPage from './pages/superadmin/AnnouncementsPage';
 import TemplatesPage from './pages/superadmin/TemplatesPage';
 import CronJobsPage from './pages/superadmin/CronJobsPage';
 import TenantActivityLogPage from './pages/superadmin/TenantActivityLogPage';
-import AccessControlPage from './pages/superadmin/AccessControlPage';
+import SuperAdminAccessControlPage from './pages/superadmin/AccessControlPage';
 import FeatureControlPage from './pages/superadmin/FeatureControlPage';
 import SuperAdminProfilePage from './pages/superadmin/ProfilePage';
 
@@ -207,6 +202,7 @@ const AppRoutes: React.FC = () => {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="security" element={<SecurityPage />} />
           <Route path="integrations" element={<IntegrationsPage />} />
+          <Route path="access-control" element={<AccessControlPage />} />
         </Route>
       </Route>
 
@@ -222,7 +218,7 @@ const AppRoutes: React.FC = () => {
           <Route path="templates" element={<TemplatesPage />} />
           <Route path="team" element={<TeamManagementPage />} />
           <Route path="cron-jobs" element={<CronJobsPage />} />
-          <Route path="access-control" element={<AccessControlPage />} />
+          <Route path="access-control" element={<SuperAdminAccessControlPage />} />
           <Route path="feature-control" element={<FeatureControlPage />} />
           <Route path="system-settings" element={<SystemSettingsPage />} />
           <Route path="profile" element={<SuperAdminProfilePage />} />
