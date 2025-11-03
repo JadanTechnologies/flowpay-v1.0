@@ -1,8 +1,7 @@
 // supabase/functions/create-tenant/index.ts
 
-// FIX: Corrected the Deno types reference to use a pinned esm.sh version, which can be more stable for resolving type definitions in some environments and should fix the "Cannot find type definition file" error.
-// FIX: Corrected the path to the Supabase Edge Function type definitions. The `v135/` path segment was incorrect, which prevented types from loading and caused errors on `Deno.env`.
-/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+// FIX: Corrected the Deno types reference to a more stable, unversioned URL as recommended by Supabase docs. This should prevent type loading issues that cause Deno.env to be undefined, leading to function failure and incomplete user setup.
+/// <reference types="https://cdn.jsdelivr.net/npm/@supabase/functions-js/src/edge-runtime.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'

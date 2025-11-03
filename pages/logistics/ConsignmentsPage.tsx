@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState } from 'react';
 import { Truck, PlusCircle, MoreVertical, Edit, CheckCircle, DollarSign, FileText, Send } from 'lucide-react';
 import { Consignment, Customer, Sale, Invoice, Product, ProductVariant } from '../../types';
@@ -113,7 +114,7 @@ const ConsignmentsPage: React.FC = () => {
                             <Send size={14} /> Dispatch
                         </button>
                     )}
-                    {session?.user?.role === 'Admin' && row.status === 'In Transit' && (
+                    {session?.user?.app_metadata?.role === 'Admin' && row.status === 'In Transit' && (
                         <button onClick={() => handleSellConsignment(row)} className="flex items-center gap-1 text-xs bg-green-600/20 text-green-400 font-semibold py-1 px-2 rounded-lg">
                             <DollarSign size={14} /> Sell
                         </button>
