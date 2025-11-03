@@ -6,7 +6,26 @@ import {
     systemSettings as mockSettingsData, 
     invoices as mockInvoices,
     userSubscription as mockUserSubscription,
-    subscriptionPlans as mockSubscriptionPlans 
+    subscriptionPlans as mockSubscriptionPlans,
+    posProducts as mockProducts,
+    suppliers as mockSuppliers,
+    purchaseOrders as mockPurchaseOrders,
+    stockCounts as mockStockCounts,
+    branches as mockBranches,
+    stockTransfers as mockStockTransfers,
+    inventoryAdjustmentLogs as mockInventoryAdjustmentLogs,
+    scheduledJobs as mockScheduledJobs,
+    tenantSettings as mockTenantSettings,
+    blockRules as mockBlockRules,
+    staff as mockStaff,
+    tenantRoles as mockTenantRoles,
+    approvedDevices as mockApprovedDevices,
+    pendingDevices as mockPendingDevices,
+    customers as mockCustomers,
+    trucks as mockTrucks,
+    drivers as mockDrivers,
+    consignments as mockConsignments,
+    recentSales as mockRecentSales,
 } from '../data/mockData';
 
 
@@ -119,31 +138,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Data states, initialized as empty, to be filled from Supabase
-  const [products, setProducts] = useState<Product[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [stockCounts, setStockCounts] = useState<StockCount[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>([]);
-  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>([]);
-  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>([]);
-  const [settings, setSettings] = useState<SystemSettings | null>(mockSettingsData); // System settings can be mock for now
-  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(null);
-  const [blockRules, setBlockRules] = useState<BlockRule[]>([]);
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>([]);
-  const [approvedDevices, setApprovedDevices] = useState<Device[]>([]);
-  const [pendingDevices, setPendingDevices] = useState<Device[]>([]);
+  // Data states, initialized with mock data to ensure app stability
+  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockPurchaseOrders);
+  const [stockCounts, setStockCounts] = useState<StockCount[]>(mockStockCounts);
+  const [branches, setBranches] = useState<Branch[]>(mockBranches);
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
+  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>(mockInventoryAdjustmentLogs);
+  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>(mockScheduledJobs);
+  const [settings, setSettings] = useState<SystemSettings | null>(mockSettingsData);
+  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(mockTenantSettings);
+  const [blockRules, setBlockRules] = useState<BlockRule[]>(mockBlockRules);
+  const [staff, setStaff] = useState<Staff[]>(mockStaff);
+  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>(mockTenantRoles);
+  const [approvedDevices, setApprovedDevices] = useState<Device[]>(mockApprovedDevices);
+  const [pendingDevices, setPendingDevices] = useState<Device[]>(mockPendingDevices);
   const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(mockUserSubscription);
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>(mockSubscriptionPlans);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [trucks, setTrucks] = useState<Truck[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [consignments, setConsignments] = useState<Consignment[]>([]);
-  const [recentSales, setRecentSales] = useState<Sale[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [trucks, setTrucks] = useState<Truck[]>(mockTrucks);
+  const [drivers, setDrivers] = useState<Driver[]>(mockDrivers);
+  const [consignments, setConsignments] = useState<Consignment[]>(mockConsignments);
+  const [recentSales, setRecentSales] = useState<Sale[]>(mockRecentSales);
   const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>([]);
-  // FIX: Add invoices to context
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
 
   // Local preferences
@@ -176,7 +194,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => subscription.unsubscribe();
   }, []);
   
-  // Data Fetching based on session
+  // Data Fetching based on session (Currently disabled to use mock data)
   const fetchAllData = useCallback(async () => {
     // In a real app, you might fetch these in parallel with Promise.all
     console.log("Fetching all data from Supabase...");
@@ -207,17 +225,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     if (session) {
-        fetchAllData();
+        // fetchAllData(); // NOTE: Disabled to rely on complete mock data for stability.
     } else {
-        // Clear data on logout
-        setProducts([]);
-        setBranches([]);
-        setStaff([]);
-        setTenantRoles([]);
-        setRecentSales([]);
-        setUserSubscription(null);
-        setSubscriptionPlans([]);
-        // Clear other states...
+        // Clear data on logout if needed, but mock data will repopulate for now.
     }
   }, [session, fetchAllData]);
 
@@ -269,12 +279,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     addNotification({ message: 'Product saved successfully!', type: 'success' });
     // Refetch data to update UI
-    await fetchAllData();
+    // await fetchAllData(); // Disabled for mock data stability
   };
-  
-  // Keep other setters for now to avoid breaking the app, but add TODOs
-  // In a real app, each of these would become specific mutation functions like saveProduct.
-  // TODO: Convert all `set...` functions below to call Supabase instead of just updating local state.
   
   const currentUserPermissions = useMemo(() => {
     const roleName = session?.user?.app_metadata?.role;
