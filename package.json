@@ -15,7 +15,8 @@
     "lucide-react": "^0.552.0",
     "react-router-dom": "^6.25.1",
     "react-dom": "^19.2.0",
-    "@supabase/supabase-js": "^2.45.0"
+    "@supabase/supabase-js": "^2.45.0",
+    "deno.ns": "^0.8.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

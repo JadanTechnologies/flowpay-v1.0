@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
 import { Sale, Payment } from '../../types';
-import Table, { Column } from '../../components/ui/Table';
-import DashboardCard from '../../components/dashboard/DashboardCard';
-import { useAppContext } from '../../contexts/AppContext';
-import { formatCurrency } from '../../utils/formatting';
-import DetailedSalesReport from '../../components/accounting/DetailedSalesReport';
+import Table, { Column } from '../components/ui/Table';
+import DashboardCard from '../components/dashboard/DashboardCard';
+import { useAppContext } from '../contexts/AppContext';
+import { formatCurrency } from '../utils/formatting';
+import DetailedSalesReport from '../components/accounting/DetailedSalesReport';
 
 const getStatusBadge = (status: Sale['status']) => {
   switch (status) {
@@ -22,7 +22,7 @@ const getStatusBadge = (status: Sale['status']) => {
   }
 };
 
-// FIX: Define missing report components to resolve compilation errors.
+// Moved component definitions outside of the main component to prevent re-creation on every render.
 const CreditSalesReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
     return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">Credit Sales Report coming soon.</div>;
 };
