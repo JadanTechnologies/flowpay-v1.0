@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Zap, UserPlus } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -41,10 +40,10 @@ const TenantSignupPage: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-background text-text-primary">
       <div className="w-full max-w-md p-8 space-y-8 bg-surface rounded-xl shadow-lg border border-border">
         <div className="text-center">
-            <ReactRouterDOM.Link to="/" className="flex justify-center items-center gap-2 mb-4">
+            <Link to="/" className="flex justify-center items-center gap-2 mb-4">
               <Zap className="text-primary" size={32} />
               <span className="text-3xl font-bold">FlowPay</span>
-            </ReactRouterDOM.Link>
+            </Link>
           <h2 className="text-2xl font-bold">Create Your Account</h2>
           <p className="text-text-secondary">Start your 30-day free trial.</p>
         </div>
@@ -81,9 +80,9 @@ const TenantSignupPage: React.FC = () => {
         
         <p className="text-center text-sm text-text-secondary">
             Already have an account?{' '}
-            <ReactRouterDOM.Link to="/login" className="font-medium text-primary hover:underline">
+            <Link to="/login" className="font-medium text-primary hover:underline">
                 Sign In
-            </ReactRouterDOM.Link>
+            </Link>
         </p>
       </div>
     </div>

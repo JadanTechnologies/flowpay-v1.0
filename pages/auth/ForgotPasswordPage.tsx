@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Zap, Mail } from 'lucide-react';
 
 const ForgotPasswordPage: React.FC = () => {
-    const navigate = ReactRouterDOM.useNavigate();
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -24,10 +23,10 @@ const ForgotPasswordPage: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-background text-text-primary">
       <div className="w-full max-w-md p-8 space-y-8 bg-surface rounded-xl shadow-lg border border-border">
         <div className="text-center">
-            <ReactRouterDOM.Link to="/" className="flex justify-center items-center gap-2 mb-4">
+            <Link to="/" className="flex justify-center items-center gap-2 mb-4">
               <Zap className="text-primary" size={32} />
               <span className="text-3xl font-bold">FlowPay</span>
-            </ReactRouterDOM.Link>
+            </Link>
           <h2 className="text-2xl font-bold">Forgot Your Password?</h2>
           <p className="text-text-secondary">Enter your email to receive a reset link.</p>
         </div>
@@ -52,9 +51,9 @@ const ForgotPasswordPage: React.FC = () => {
         
         <p className="text-center text-sm text-text-secondary">
             Remembered your password?{' '}
-            <ReactRouterDOM.Link to="/login" className="font-medium text-primary hover:underline">
+            <Link to="/login" className="font-medium text-primary hover:underline">
                 Sign In
-            </ReactRouterDOM.Link>
+            </Link>
         </p>
       </div>
     </div>

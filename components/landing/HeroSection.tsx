@@ -1,6 +1,5 @@
 import React from 'react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 
 const HeroSection: React.FC = () => {
@@ -30,9 +29,9 @@ const HeroSection: React.FC = () => {
           {branding?.heroSubtitle || 'FlowPay combines Point of Sale, Inventory, Accounting, and GPS Tracking into one seamless, powerful SaaS solution designed for B2B success.'}
         </p>
         <div className="mt-8 flex justify-center gap-4">
-          <ReactRouterDOM.Link to="/login" className="px-8 py-3 bg-primary text-white rounded-lg font-semibold text-lg hover:bg-primary-dark transition-transform hover:scale-105">
+          <Link to="/login" className="px-8 py-3 bg-primary text-white rounded-lg font-semibold text-lg hover:bg-primary-dark transition-transform hover:scale-105">
             {branding?.heroMainCtaText || 'Start Your 30-Day Free Trial'}
-          </ReactRouterDOM.Link>
+          </Link>
           <a href="#features" onClick={(e) => handleScroll(e, '#features')} className="px-8 py-3 bg-white text-primary border-2 border-primary rounded-lg font-semibold text-lg hover:bg-primary/5 transition-transform hover:scale-105">
             {branding?.heroSecondaryCtaText || 'Explore Features'}
           </a>

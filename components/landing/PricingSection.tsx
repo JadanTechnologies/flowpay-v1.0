@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 
 // Note: The plans themselves are managed in the Super Admin Subscriptions page, not here.
@@ -92,9 +91,9 @@ const PricingSection: React.FC = () => {
                     ))}
                 </ul>
                 <div className="mt-8">
-                    <ReactRouterDOM.Link to="/login" className={`block w-full text-center px-6 py-3 rounded-lg font-semibold transition-colors ${plan.isPopular ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
+                    <Link to="/login" className={`block w-full text-center px-6 py-3 rounded-lg font-semibold transition-colors ${plan.isPopular ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
                     {isContactUs ? (branding?.contactSalesButtonText || 'Contact Sales') : (branding?.mainCtaText || 'Start Free Trial')}
-                    </ReactRouterDOM.Link>
+                    </Link>
                 </div>
                 </div>
             )

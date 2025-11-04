@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, Menu, X, Search, Loader } from 'lucide-react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { GoogleGenAI } from '@google/genai';
 
@@ -133,10 +132,10 @@ const LandingNavbar: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex-shrink-0">
-              <ReactRouterDOM.Link to="/" className="flex items-center gap-2">
+              <Link to="/" className="flex items-center gap-2">
                 {logoUrl ? <img src={logoUrl} alt={platformName} className="h-8 w-auto" /> : <Zap className="text-primary" size={28} />}
                 <span className="text-2xl font-bold text-gray-900">{platformName}</span>
-              </ReactRouterDOM.Link>
+              </Link>
             </div>
             <nav className="hidden md:flex md:items-center md:space-x-8">
               {navLinks.map((link) => (
@@ -158,12 +157,12 @@ const LandingNavbar: React.FC = () => {
                 </form>
             </div>
             <div className="hidden md:flex items-center space-x-4">
-              <ReactRouterDOM.Link to="/login" className="font-medium text-gray-600 hover:text-primary transition-colors">
+              <Link to="/login" className="font-medium text-gray-600 hover:text-primary transition-colors">
                 {branding?.signInButtonText || 'Sign In'}
-              </ReactRouterDOM.Link>
-              <ReactRouterDOM.Link to="/login" className="px-4 py-2 bg-primary text-white rounded-md font-semibold hover:bg-primary-dark transition-colors">
+              </Link>
+              <Link to="/login" className="px-4 py-2 bg-primary text-white rounded-md font-semibold hover:bg-primary-dark transition-colors">
                 {branding?.mainCtaText || 'Start Free Trial'}
-              </ReactRouterDOM.Link>
+              </Link>
             </div>
             <div className="md:hidden">
               <button onClick={() => setIsOpen(!isOpen)} className="text-gray-600 hover:text-primary">
@@ -193,12 +192,12 @@ const LandingNavbar: React.FC = () => {
             </div>
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="px-5">
-                 <ReactRouterDOM.Link to="/login" className="block w-full text-center px-4 py-2 bg-primary text-white rounded-md font-semibold hover:bg-primary-dark transition-colors">
+                 <Link to="/login" className="block w-full text-center px-4 py-2 bg-primary text-white rounded-md font-semibold hover:bg-primary-dark transition-colors">
                   {branding?.mobileMenuCtaText || 'Start Free Trial'}
-                </ReactRouterDOM.Link>
+                </Link>
                 <p className="mt-3 text-center text-base font-medium text-gray-500">
                   {branding?.mobileMenuExistingCustomerText || 'Existing customer?'}{' '}
-                  <ReactRouterDOM.Link to="/login" className="text-primary hover:underline">{branding?.signInButtonText || 'Sign In'}</ReactRouterDOM.Link>
+                  <Link to="/login" className="text-primary hover:underline">{branding?.signInButtonText || 'Sign In'}</Link>
                 </p>
               </div>
             </div>

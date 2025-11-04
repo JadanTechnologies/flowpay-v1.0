@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, MoreVertical, Edit, Trash2, Eye, EyeOff, UserCheck, Shield, PlusCircle } from 'lucide-react';
-import { Staff, TenantPermission, TenantRole } from '../types';
-import Table, { Column } from '../components/ui/Table';
-import Modal from '../components/ui/Modal';
-import { staff as mockStaff, branches as mockBranches } from '../data/mockData';
-import { useAppContext } from '../contexts/AppContext';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
-import Tabs from '../components/ui/Tabs';
-import TenantRoleModal from '../components/tenant/TenantRoleModal';
+import { Staff, TenantPermission, TenantRole } from '../../types';
+import Table, { Column } from '../../components/ui/Table';
+import Modal from '../../components/ui/Modal';
+import { staff as mockStaff, branches as mockBranches } from '../../data/mockData';
+import { useAppContext } from '../../contexts/AppContext';
+import { useNavigate } from 'react-router-dom';
+import Tabs from '../../components/ui/Tabs';
+import TenantRoleModal from '../../components/tenant/TenantRoleModal';
 
 const StaffManagementPage: React.FC = () => {
     const { session, impersonateStaff, tenantRoles, setTenantRoles } = useAppContext();
-    const navigate = ReactRouterDOM.useNavigate();
+    const navigate = useNavigate();
     const [staff, setStaff] = useState<Staff[]>(mockStaff);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);

@@ -3,8 +3,7 @@
 
 
 import React, { useState, useMemo, useEffect } from 'react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, Search, MoreVertical, Edit, Trash2, ShieldOff, Shield, Loader, History } from 'lucide-react';
 import { Tenant } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
@@ -12,7 +11,7 @@ import Modal from '../../components/ui/Modal';
 import { tenants as mockTenants } from '../../data/mockData';
 
 const TenantsPage: React.FC = () => {
-    const navigate = ReactRouterDOM.useNavigate();
+    const navigate = useNavigate();
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
