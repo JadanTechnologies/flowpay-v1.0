@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download, Repeat } from 'lucide-react';
-import { Invoice } from '../../types';
+import { Invoice, InvoiceItem } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import DashboardCard from '../../components/dashboard/DashboardCard';
 import Modal from '../../components/ui/Modal';
@@ -205,12 +205,15 @@ const InvoicingPage: React.FC = () => {
 
 
 const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: Invoice) => void; onClose: () => void; }> = ({ invoice, onSave, onClose }) => {
+    // FIX: The Invoice type requires an 'items' array. It was missing from the initial state.
     const [formData, setFormData] = useState<Omit<Invoice, 'id'>>({
         customerName: invoice?.customerName || '',
         issueDate: invoice?.issueDate || new Date().toISOString().split('T')[0],
         dueDate: invoice?.dueDate || '',
         amount: invoice?.amount || 0,
         status: invoice?.status || 'Due',
+        items: invoice?.items || [],
+        notes: invoice?.notes || '',
         isRecurring: invoice?.isRecurring || false,
         recurringFrequency: invoice?.recurringFrequency || 'monthly',
         recurringEndDate: invoice?.recurringEndDate || '',

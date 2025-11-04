@@ -1,6 +1,6 @@
 
 
-import { Sale, Product as InventoryProduct, SalesDataPoint, BranchPerformance, Product, SubscriptionPlan, UserSubscription, PaymentHistory, SystemSettings, Tenant, Driver, Delivery, Branch, Staff, Invoice, Customer, CreditTransaction, TenantSettings, ActivityLog, Supplier, PurchaseOrder, StockCount, StockTransfer, PlatformPayment, Announcement, SuperAdminStaff, SuperAdminRole, EmailSmsTemplate, CronJob, ScheduledJob, InventoryAdjustmentLog, BlockRule, TenantRole, Device, ActiveSubscription, ProductVariant, CartItem, Truck, Consignment } from '../types';
+import { Sale, Product as InventoryProduct, SalesDataPoint, BranchPerformance, Product, SubscriptionPlan, UserSubscription, PaymentHistory, SystemSettings, Tenant, Driver, Delivery, Branch, Staff, Invoice, Customer, CreditTransaction, TenantSettings, ActivityLog, Supplier, PurchaseOrder, StockCount, StockTransfer, PlatformPayment, Announcement, SuperAdminStaff, SuperAdminRole, EmailSmsTemplate, CronJob, ScheduledJob, InventoryAdjustmentLog, BlockRule, TenantRole, Device, ActiveSubscription, ProductVariant, CartItem, Truck, Consignment, InvoiceTemplate } from '../types';
 
 export const salesData: SalesDataPoint[] = [
   { name: 'Jan', sales: 4000 },
@@ -431,9 +431,9 @@ export const tenantRoles: TenantRole[] = [
 ];
 
 export const invoices: Invoice[] = [
-    { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid', isRecurring: true, recurringFrequency: 'monthly', recurringEndDate: '2024-10-01' },
-    { id: 'inv_1002', customerName: 'Local Blooms', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 750.50, status: 'Due' },
-    { id: 'inv_1003', customerName: 'Gadget Galaxy', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450.00, status: 'Overdue' },
+    { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid', isRecurring: true, recurringFrequency: 'monthly', recurringEndDate: '2024-10-01', items: [{ description: 'Monthly Retainer', quantity: 1, unitPrice: 1200 }], notes: 'Thank you for your continued partnership.' },
+    { id: 'inv_1002', customerName: 'Local Blooms', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 750.50, status: 'Due', items: [{ description: 'Website Development', quantity: 1, unitPrice: 750.50 }], notes: '' },
+    { id: 'inv_1003', customerName: 'Gadget Galaxy', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450.00, status: 'Overdue', items: [{ description: 'Hardware Repair', quantity: 3, unitPrice: 150 }], notes: 'Payment is overdue.' },
 ];
 
 export const customers: Customer[] = [
@@ -512,6 +512,26 @@ export const emailSmsTemplates: EmailSmsTemplate[] = [
     { id: 'tmpl_1', name: 'Welcome Email', subject: 'Welcome to FlowPay, {{tenant_name}}!', body: 'Hello {{user_name}},\n\nWelcome aboard! Your account is ready.', type: 'email' },
     { id: 'tmpl_2', name: 'Password Reset', subject: 'Reset Your FlowPay Password', body: 'Click here to reset: {{reset_link}}', type: 'email' },
     { id: 'tmpl_3', name: '2FA Code', body: 'Your FlowPay verification code is: {{2fa_code}}', type: 'sms' },
+];
+
+export const invoiceTemplates: InvoiceTemplate[] = [
+    {
+        id: 'inv_tmpl_1',
+        name: 'Standard Service Invoice',
+        defaultItems: [
+            { description: 'Consulting Services', quantity: 10, unitPrice: 100 },
+        ],
+        notes: 'Thank you for your business. Please make payment within 30 days.'
+    },
+    {
+        id: 'inv_tmpl_2',
+        name: 'Product Sale Invoice',
+        defaultItems: [
+            { description: 'Product A', quantity: 2, unitPrice: 50 },
+            { description: 'Product B', quantity: 5, unitPrice: 20 },
+        ],
+        notes: 'All sales are final. Please contact us with any questions.'
+    }
 ];
 
 export const cronJobs: CronJob[] = [

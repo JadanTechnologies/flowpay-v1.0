@@ -155,6 +155,7 @@ const AutomationsPage: React.FC = () => {
                 const dueDate = new Date();
                 dueDate.setDate(issueDate.getDate() + Math.round(dueDays));
 
+                // FIX: Add missing 'items' property when creating the new invoice.
                 const newInvoice: Invoice = {
                     id: `inv_${Date.now()}`,
                     customerName: sourceInvoice.customerName,
@@ -162,6 +163,8 @@ const AutomationsPage: React.FC = () => {
                     dueDate: dueDate.toISOString().split('T')[0],
                     amount: sourceInvoice.amount,
                     status: 'Due',
+                    items: sourceInvoice.items,
+                    notes: sourceInvoice.notes,
                     isRecurring: false, // Generated invoices are not themselves recurring templates
                 };
                 

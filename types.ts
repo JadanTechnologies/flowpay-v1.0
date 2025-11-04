@@ -226,6 +226,12 @@ export interface Customer {
     creditLimit?: number;
 }
 
+export interface InvoiceItem {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+}
+
 export interface Invoice {
     id: string;
     customerName: string;
@@ -233,6 +239,8 @@ export interface Invoice {
     dueDate: string;
     amount: number;
     status: 'Paid' | 'Due' | 'Overdue';
+    items: InvoiceItem[];
+    notes?: string;
     isRecurring?: boolean;
     recurringFrequency?: 'weekly' | 'monthly' | 'yearly';
     recurringEndDate?: string;
@@ -537,6 +545,13 @@ export interface EmailSmsTemplate {
     subject?: string;
     body: string;
     type: 'email' | 'sms';
+}
+
+export interface InvoiceTemplate {
+    id: string;
+    name: string;
+    defaultItems: InvoiceItem[];
+    notes: string;
 }
 
 export interface CronJob {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Invoice, BusinessProfile } from '../../types';
+import { Invoice, BusinessProfile, InvoiceItem } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
 
 interface InvoiceTemplateProps {
@@ -10,17 +10,8 @@ interface InvoiceTemplateProps {
 
 const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, businessProfile, currency }) => {
     
-    // Simplified line items for demo purposes
-    const lineItems = [
-        { description: 'Product/Service A', quantity: 2, unitPrice: 500 },
-        { description: 'Product/Service B', quantity: 1, unitPrice: 200 },
-    ];
-    if (invoice.id === 'inv_1003') {
-        lineItems.splice(0, 2, { description: 'Bookkeeping Services', quantity: 1, unitPrice: 450 });
-    }
-
-    const subtotal = lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-    const tax = subtotal * 0.08; // 8% tax
+    const subtotal = invoice.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    const tax = invoice.amount - subtotal;
     const total = invoice.amount;
 
     const getStatusStyles = () => {
@@ -84,7 +75,7 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, businessProf
                     </tr>
                 </thead>
                 <tbody>
-                    {lineItems.map((item, index) => (
+                    {invoice.items.map((item, index) => (
                         <tr key={index} className="border-b">
                             <td className="p-3">{item.description}</td>
                             <td className="p-3 text-center">{item.quantity}</td>
@@ -103,7 +94,7 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, businessProf
                         <span>{formatCurrency(subtotal, currency)}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Tax (8%):</span>
+                        <span className="text-gray-600">Tax:</span>
                         <span>{formatCurrency(tax, currency)}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
@@ -113,8 +104,15 @@ const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, businessProf
                 </div>
             </div>
 
+            {invoice.notes && (
+                <div className="mt-10">
+                    <h3 className="text-sm font-bold text-gray-500 uppercase mb-2">Notes</h3>
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{invoice.notes}</p>
+                </div>
+            )}
+
             {/* Footer */}
-            <footer className="text-center text-xs text-gray-500 border-t pt-4">
+            <footer className="text-center text-xs text-gray-500 border-t pt-4 mt-10">
                 <p>Thank you for your business!</p>
                 <p>Please make payments to Bank: FlowPay Bank, Account: 1234567890. Use invoice number as reference.</p>
             </footer>
