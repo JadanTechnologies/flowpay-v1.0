@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import LandingNavbar from '../components/landing/LandingNavbar';
 import HeroSection from '../components/landing/HeroSection';
@@ -9,6 +10,7 @@ import FaqSection from '../components/landing/FaqSection';
 import Footer from '../components/landing/Footer';
 import { useAppContext } from '../contexts/AppContext';
 import { Loader } from 'lucide-react';
+import MobileAppSection from '../components/landing/MobileAppSection';
 
 
 const LandingPage: React.FC = () => {
@@ -31,6 +33,7 @@ const LandingPage: React.FC = () => {
             <PricingSection />
             <TestimonialsSection />
             <FaqSection />
+            <MobileAppSection />
         </main>
         <Footer />
     </div>

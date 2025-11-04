@@ -69,6 +69,7 @@ const STATIC_ASSETS = [
   '/components/landing/LandingNavbar.tsx',
   '/components/landing/PricingSection.tsx',
   '/components/landing/TestimonialsSection.tsx',
+  '/components/landing/MobileAppSection.tsx',
   '/pages/LogisticsPage.tsx',
   '/pages/logistics/ConsignmentsPage.tsx',
   '/components/logistics/ConsignmentFormModal.tsx',

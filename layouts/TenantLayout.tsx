@@ -11,7 +11,7 @@ import NotificationContainer from '../components/ui/NotificationContainer';
 import SubscriptionWarningBanner from '../components/ui/SubscriptionWarningBanner';
 
 const TenantLayout: React.FC = () => {
-  const { session, loading, settings, tenantSettings, userSubscription, addNotification } = useAppContext();
+  const { session, loading, settings, tenantSettings, userSubscription, addNotification, isImpersonating, stopImpersonating } = useAppContext();
   
   const inactivityTimeout = tenantSettings?.inactivityLogoutTimer ?? settings?.inactivityLogoutTimer ?? 15;
   useInactivityLogout(inactivityTimeout * 60 * 1000, !!session); 
@@ -77,6 +77,15 @@ const TenantLayout: React.FC = () => {
     <div className="flex h-screen bg-background text-text-primary font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
+        {isImpersonating && (
+            <div className="bg-secondary text-background font-bold p-3 flex items-center justify-center gap-4 text-sm z-50 no-print">
+                <ShieldAlert size={20} />
+                <span>You are currently impersonating a user.</span>
+                <button onClick={stopImpersonating} className="underline hover:opacity-80 flex items-center gap-1">
+                    <LogOut size={16}/> Stop Impersonating
+                </button>
+            </div>
+        )}
         {subscriptionWarning && showSubscriptionWarning && (
             <SubscriptionWarningBanner 
                 daysLeft={subscriptionWarning.daysLeft}

@@ -122,6 +122,8 @@ interface AppContextType {
   setInvoiceTemplates: React.Dispatch<React.SetStateAction<InvoiceTemplate[]>>;
   emailSmsTemplates: EmailSmsTemplate[];
   setEmailSmsTemplates: React.Dispatch<React.SetStateAction<EmailSmsTemplate[]>>;
+  isImpersonating: boolean;
+  stopImpersonating: () => void;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -138,6 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [session, setSession] = useState<AuthSession | null>(null);
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isImpersonating, setIsImpersonating] = useState(false);
 
     const [language, setLanguage] = useState<Language>('en');
     const [currency, setCurrency] = useState<Currency>('USD');
@@ -193,18 +196,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Supabase Auth
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session)
-            setUser(session?.user ?? null)
-            setLoading(false)
-        })
-
-        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        // This effect runs once on mount to check auth and impersonation status
+        const impersonationJson = localStorage.getItem('impersonation_data');
+        const hasImpersonation = !!impersonationJson;
+        setIsImpersonating(hasImpersonation);
+    
+        supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+            if (hasImpersonation && currentSession) {
+                const parsedData = JSON.parse(impersonationJson!);
+                // Construct a fake session object for the impersonated user
+                const impersonatedSession: AuthSession = {
+                    ...currentSession,
+                    user: {
+                        ...currentSession.user,
+                        id: parsedData.impersonated_user.id,
+                        email: parsedData.impersonated_user.email,
+                        app_metadata: {
+                            ...currentSession.user.app_metadata,
+                            ...parsedData.impersonated_user.app_metadata,
+                        },
+                        user_metadata: {
+                            ...currentSession.user.user_metadata,
+                            name: parsedData.impersonated_user.name,
+                        }
+                    } as AuthUser,
+                };
+                setSession(impersonatedSession);
+                setUser(impersonatedSession.user);
+            } else {
+                setSession(currentSession);
+                setUser(currentSession?.user ?? null);
+            }
             setLoading(false);
         });
-
+    
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            // If auth state changes (e.g. real logout), drop impersonation
+            if (localStorage.getItem('impersonation_data')) {
+                localStorage.removeItem('impersonation_data');
+                setIsImpersonating(false);
+                // Force a reload to clear all state and start fresh
+                window.location.reload();
+            } else {
+                setSession(session);
+                setUser(session?.user ?? null);
+                setLoading(false);
+            }
+        });
+    
         return () => {
             authListener.subscription.unsubscribe();
         };
@@ -218,8 +257,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const logout = async () => {
         // FIX: Use signOut which is the correct v2 method
         await supabase.auth.signOut();
-        // Clear impersonation on logout
-        localStorage.removeItem('impersonation_data');
+        // onAuthStateChange will handle clearing impersonation and session state
     };
 
      const impersonateStaff = (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => {
@@ -233,8 +271,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             impersonated_user: {
                 id: staff.id,
                 email: staff.email,
+                name: staff.name,
                 app_metadata: {
-                    ...session.user.app_metadata, // Keep tenant_id
                     role: tenantRoles.find(r => r.id === staff.roleId)?.name || 'Cashier'
                 }
             }
@@ -242,6 +280,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         localStorage.setItem('impersonation_data', JSON.stringify(impersonationData));
         window.location.reload();
     };
+
+    const stopImpersonating = () => {
+        localStorage.removeItem('impersonation_data');
+        window.location.reload();
+    };
+
 
     // Product save logic
     const saveProduct = async (productData: Product) => {
@@ -329,6 +373,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         invoices, setInvoices,
         invoiceTemplates, setInvoiceTemplates,
         emailSmsTemplates, setEmailSmsTemplates,
+        isImpersonating,
+        stopImpersonating,
     };
 
     return (

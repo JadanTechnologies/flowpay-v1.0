@@ -1,14 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { ActivityLog, Staff } from '../types';
-import { activityLogs as mockLogs, staff as mockStaff } from '../data/mockData';
-import Table, { Column } from '../components/ui/Table';
+import { ActivityLog, Staff } from '../../types';
+import { activityLogs as mockLogs, staff as mockStaff } from '../../data/mockData';
+import Table, { Column } from '../../components/ui/Table';
 
 const ActivityLogPage: React.FC = () => {
     const [logs, setLogs] = useState<ActivityLog[]>(mockLogs);
     const [roleFilter, setRoleFilter] = useState<string>('all');
     const [branchFilter, setBranchFilter] = useState<string>('all');
     
-    // FIX: Use the `logs` state variable instead of the initial `mockLogs` and add it to the dependency array.
     const branches = useMemo(() => [...new Set(logs.map(l => l.branch))], [logs]);
 
     const filteredLogs = useMemo(() => {
