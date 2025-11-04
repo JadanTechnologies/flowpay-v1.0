@@ -288,7 +288,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setHasUnreadNotifications(false);
     };
 
-    const value = {
+    const value: AppContextType = {
         session,
         user,
         loading,
