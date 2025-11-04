@@ -16,19 +16,16 @@ const TenantSignupPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // FIX: The error `signUp does not exist` suggests an older API version is being used.
-        // This changes the call signature from the modern v2 style to a v1-compatible one.
-        const { data, error } = await supabase.auth.signUp(
-            {
-                email: email,
-                password: password,
-            },
-            {
+        // FIX: Corrected the signUp call to use the Supabase v2 signature, which takes a single object.
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
                 data: {
                     company_name: companyName,
                 }
             }
-        );
+        });
 
         setLoading(false);
 

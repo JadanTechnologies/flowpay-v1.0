@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download, Repeat } from 'lucide-react';
-import { Invoice, InvoiceItem } from '../../types';
+import { Invoice, InvoiceItem, InvoiceTemplate } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import DashboardCard from '../../components/dashboard/DashboardCard';
 import Modal from '../../components/ui/Modal';
@@ -18,7 +18,7 @@ const getStatusBadge = (status: Invoice['status']) => {
 };
 
 const InvoicingPage: React.FC = () => {
-    const { currency, scheduledJobs, setScheduledJobs, session, invoices, setInvoices } = useAppContext();
+    const { currency, scheduledJobs, setScheduledJobs, session, invoices, setInvoices, invoiceTemplates } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
     const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
@@ -33,11 +33,22 @@ const InvoicingPage: React.FC = () => {
 
     const handleSaveInvoice = (invoice: Invoice) => {
         let finalInvoice: Invoice;
+        const invoiceData = { ...invoice };
+
+        // If items are empty but an amount is provided, create a default line item for data consistency.
+        if (invoiceData.items.length === 0 && invoiceData.amount > 0) {
+            invoiceData.items = [{
+                description: 'General Services / Products',
+                quantity: 1,
+                unitPrice: invoiceData.amount,
+            }];
+        }
+        
         if (editingInvoice) {
-            finalInvoice = { ...invoice };
-            setInvoices(invoices.map(i => i.id === invoice.id ? invoice : i));
+            finalInvoice = { ...invoiceData };
+            setInvoices(invoices.map(i => i.id === invoiceData.id ? invoiceData : i));
         } else {
-            const newInvoice = { ...invoice, id: `inv_${new Date().getTime()}`};
+            const newInvoice = { ...invoiceData, id: `inv_${new Date().getTime()}`};
             finalInvoice = newInvoice;
             setInvoices([newInvoice, ...invoices]);
         }
@@ -191,7 +202,7 @@ const InvoicingPage: React.FC = () => {
                 <Table columns={columns} data={invoices} />
             </div>
 
-            {isModalOpen && <InvoiceFormModal invoice={editingInvoice} onSave={handleSaveInvoice} onClose={() => setIsModalOpen(false)} />}
+            {isModalOpen && <InvoiceFormModal invoice={editingInvoice} onSave={handleSaveInvoice} onClose={() => setIsModalOpen(false)} invoiceTemplates={invoiceTemplates} />}
             
             {viewingInvoice && (
                 <InvoiceViewModal 
@@ -204,8 +215,7 @@ const InvoicingPage: React.FC = () => {
 };
 
 
-const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: Invoice) => void; onClose: () => void; }> = ({ invoice, onSave, onClose }) => {
-    // FIX: The Invoice type requires an 'items' array. It was missing from the initial state.
+const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: Invoice) => void; onClose: () => void; invoiceTemplates: InvoiceTemplate[] }> = ({ invoice, onSave, onClose, invoiceTemplates }) => {
     const [formData, setFormData] = useState<Omit<Invoice, 'id'>>({
         customerName: invoice?.customerName || '',
         issueDate: invoice?.issueDate || new Date().toISOString().split('T')[0],

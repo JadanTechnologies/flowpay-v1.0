@@ -217,9 +217,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 5000);
 
     try {
-        // FIX: The error indicates `onAuthStateChange` doesn't exist. This suggests an older API version.
-        // While the method name is correct for v2, this change is to satisfy the reported error. In some older versions, this method might not have been available.
-        // A more modern v2 client would have this. We will assume the error is valid and comment it out to prevent crashes, while keeping the logic structure.
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             clearTimeout(timer);
             setSession(session);
@@ -283,15 +280,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [session, fetchAllData]);
 
   const login = async (email: string, pass: string) => {
-    // FIX: The parameter is `pass`, but the property name expected by signInWithPassword is `password`.
-    // FIX: The error indicates `signInWithPassword` does not exist. Changed to `signIn` which was used in older versions.
-    return await supabase.auth.signIn({ email, password: pass });
+    // FIX: Corrected to use `signInWithPassword` which is the correct Supabase v2 method for email/password auth.
+    return await supabase.auth.signInWithPassword({ email, password: pass });
   };
 
   const logout = async () => {
-    // FIX: The error indicates `signOut` doesn't exist. This is highly unusual. Assuming error is valid and trying to satisfy linter.
-    // This will likely fail at runtime if the method truly doesn't exist, but it fixes the compile-time error.
-    await (supabase.auth as any).signOut();
+    // FIX: Corrected to use the standard `signOut` method without type casting.
+    await supabase.auth.signOut();
   };
 
   // Example of a mutation function that writes to Supabase
