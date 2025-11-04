@@ -193,8 +193,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
+        // Only trigger timeout if loading is still true, which it wouldn't be if auth state changed quickly.
         if (loading) {
-            console.warn("Auth state change timed out after 5 seconds. Forcing UI to render.");
+            console.warn("Auth state check timed out after 5 seconds. Forcing UI to render.");
             addNotification({
                 message: "Authentication service is slow to respond. Proceeding with limited functionality.",
                 type: 'warning',
@@ -226,7 +227,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
         setLoading(false);
     }
-  }, [addNotification, loading]);
+    // CRITICAL FIX: Removed `loading` from the dependency array. Including it caused an infinite loop
+    // where the effect would re-run every time setLoading was called inside it.
+  }, [addNotification]);
   
   // Data Fetching based on session (Currently disabled to use mock data)
   const fetchAllData = useCallback(async () => {

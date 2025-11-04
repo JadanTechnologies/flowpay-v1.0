@@ -1,4 +1,3 @@
-
 // Define cache names. A new version will clear old caches.
 const STATIC_CACHE_NAME = 'flowpay-static-cache-v1';
 const DATA_CACHE_NAME = 'flowpay-data-cache-v1';
