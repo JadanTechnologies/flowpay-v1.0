@@ -2,7 +2,7 @@ import React, { createContext, useState, useMemo, useContext, useEffect, useCall
 // FIX: Changed to a type import, which can help with module resolution issues. The error indicates User and Session are not found.
 import type { User as AuthUser, Session as AuthSession } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import { User, Session, Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest, Invoice, InvoiceTemplate, EmailSmsTemplate } from '../types';
+import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest, Invoice, InvoiceTemplate, EmailSmsTemplate } from '../types';
 import { 
     systemSettings as mockSettingsData, 
     invoices as mockInvoices,
@@ -112,7 +112,6 @@ interface AppContextType {
   consignments: Consignment[];
   setConsignments: React.Dispatch<React.SetStateAction<Consignment[]>>;
   impersonateStaff: (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => void;
-  // FIX: Add recentSales to context to make it available to DashboardPage and other components
   recentSales: Sale[];
   setRecentSales: React.Dispatch<React.SetStateAction<Sale[]>>;
   pendingReturns: PendingReturnRequest[];
