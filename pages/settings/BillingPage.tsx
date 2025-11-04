@@ -1,3 +1,8 @@
-// This file is not used in the application and can be safely deleted.
+// This file is unused and has been cleared to prevent build issues.
 // Its functionality has been split into more specific components: 
-// ViewSubscriptionDetailsPage, ManageBillingPage, and PaymentHistoryPage.
+// - ViewSubscriptionDetailsPage.tsx
+// - ManageBillingPage.tsx
+// - PaymentHistoryPage.tsx
+
+const UnusedComponent = () => null;
+export default UnusedComponent;

@@ -1,2 +1,5 @@
-// This file is a duplicate of components/accounting/DetailedSalesReport.tsx and is not used.
-// It can be safely deleted.
+// This file is a duplicate and has been cleared to prevent build issues.
+// The correct, functioning component is at: /components/accounting/DetailedSalesReport.tsx
+
+const DuplicateComponent = () => null;
+export default DuplicateComponent;
