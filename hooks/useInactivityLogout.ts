@@ -4,13 +4,13 @@ import { useAppContext } from '../contexts/AppContext';
 
 const useInactivityLogout = (timeout: number, enabled: boolean = true) => {
   const timeoutId = useRef<number | null>(null);
-  const { logout: appLogout } = useAppContext();
+  const { logout: appLogout, addNotification } = useAppContext();
 
   const logout = useCallback(() => {
-    alert("You have been logged out due to inactivity.");
+    addNotification({ message: "You have been logged out due to inactivity.", type: 'warning' });
     appLogout();
     // The onAuthStateChange listener in AppContext or state update will handle the redirect.
-  }, [appLogout]);
+  }, [appLogout, addNotification]);
 
   const resetTimer = useCallback(() => {
     if (timeoutId.current) {

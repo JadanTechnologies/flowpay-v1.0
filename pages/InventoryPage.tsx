@@ -403,7 +403,7 @@ const InventoryPage: React.FC = () => {
                                                                 {product.variants.map(variant => {
                                                                     const vBranchStock = variant.stockByBranch[branchFilter] || 0;
                                                                     // FIX: Use Object.values for type-safe reduce operation
-                                                                    const vTotalStock = Object.values(variant.stockByBranch).reduce((s, stock) => s + stock, 0);
+                                                                    const vTotalStock = Object.values(variant.stockByBranch).reduce((s: number, stock: number) => s + stock, 0);
                                                                     return (
                                                                         <tr key={variant.id} className="border-b border-border/50 last:border-b-0">
                                                                             <td className="px-2 py-2 font-medium">{Object.values(variant.options).join(' / ')}</td>

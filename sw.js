@@ -1,3 +1,4 @@
+
 // Define cache names. A new version will clear old caches.
 const STATIC_CACHE_NAME = 'flowpay-static-cache-v1';
 const DATA_CACHE_NAME = 'flowpay-data-cache-v1';
@@ -7,7 +8,6 @@ const API_URL_PART = '/api/'; // A string to identify API calls
 const STATIC_ASSETS = [
   // Core files
   '/',
-  '/index.html',
   '/manifest.json',
   '/vite.svg',
   '/index.tsx',
@@ -55,15 +55,11 @@ const STATIC_ASSETS = [
   '/components/dashboard/BranchPerformanceChart.tsx',
   '/components/dashboard/CashierSalesDetailModal.tsx',
   '/components/dashboard/DashboardCard.tsx',
-  '/components/dashboard/DetailedCardSalesTable.tsx',
-  '/components/dashboard/DetailedCashierCreditSalesTable.tsx',
-  '/components/dashboard/DetailedCashierSalesTable.tsx',
   '/components/dashboard/RecentSalesTable.tsx',
   '/components/dashboard/ReturnApprovalModal.tsx',
   '/components/dashboard/SalesChart.tsx',
   '/components/dashboard/TopProductsChart.tsx',
   '/pages/InvoicingPage.tsx',
-  '/components/invoicing/InvoiceTemplate.tsx',
   '/components/invoicing/InvoiceViewModal.tsx',
   '/pages/LandingPage.tsx',
   '/components/landing/FaqSection.tsx',
@@ -71,7 +67,6 @@ const STATIC_ASSETS = [
   '/components/landing/Footer.tsx',
   '/components/landing/HeroSection.tsx',
   '/components/landing/LandingNavbar.tsx',
-  '/components/landing/MobileAppSection.tsx',
   '/components/landing/PricingSection.tsx',
   '/components/landing/TestimonialsSection.tsx',
   '/pages/LogisticsPage.tsx',
@@ -95,7 +90,6 @@ const STATIC_ASSETS = [
   '/components/pos/SaleSuccessModal.tsx',
   '/pages/SettingsPage.tsx',
   '/pages/settings/AccessControlPage.tsx',
-  '/pages/settings/BillingPage.tsx',
   '/components/settings/CurrentPlanCard.tsx',
   '/components/settings/PaymentHistoryTable.tsx',
   '/components/settings/PaymentMethodCard.tsx',
@@ -135,8 +129,6 @@ const STATIC_ASSETS = [
   // Auth Pages
   '/pages/auth/ForgotPasswordPage.tsx',
   '/pages/auth/LoginPage.tsx',
-  '/pages/auth/SuperAdminLoginPage.tsx',
-  '/pages/auth/TenantLoginPage.tsx',
   '/pages/auth/TenantSignupPage.tsx',
 
   // Super Admin Pages & Components

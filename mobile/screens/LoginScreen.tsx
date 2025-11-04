@@ -1,7 +1,9 @@
 import React from 'react';
 
-const View = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-const Text = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
+// FIX: Make children optional to satisfy linter for placeholder components.
+const View = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
+// FIX: Make children optional to satisfy linter for placeholder components.
+const Text = ({ children }: { children?: React.ReactNode }) => <p>{children}</p>;
 
 const LoginScreen: React.FC = () => {
     return (
