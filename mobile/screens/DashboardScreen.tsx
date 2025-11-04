@@ -1,7 +1,7 @@
 import React from 'react';
 
-const View = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
-const Text = ({ children }: { children?: React.ReactNode }) => <p>{children}</p>;
+const View: React.FC<{ children?: React.ReactNode }> = ({ children }) => <div>{children}</div>;
+const Text: React.FC<{ children?: React.ReactNode }> = ({ children }) => <p>{children}</p>;
 
 const DashboardScreen: React.FC = () => {
     return (

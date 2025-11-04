@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, MoreVertical, Edit, Trash2, Eye, EyeOff, UserCheck, Shield, PlusCircle } from 'lucide-react';
 import { Staff, TenantPermission, TenantRole } from '../../types';
-import Table, { Column } from '../../components/ui/Table';
-import Modal from '../../components/ui/Modal';
-import { staff as mockStaff, branches as mockBranches } from '../../data/mockData';
-import { useAppContext } from '../../contexts/AppContext';
+import Table, { Column } from '../components/ui/Table';
+import Modal from '../components/ui/Modal';
+import { staff as mockStaff, branches as mockBranches } from '../data/mockData';
+import { useAppContext } from '../contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
-import Tabs from '../../components/ui/Tabs';
-import TenantRoleModal from '../../components/tenant/TenantRoleModal';
+import Tabs from '../components/ui/Tabs';
+import TenantRoleModal from '../components/tenant/TenantRoleModal';
 
 const StaffFormModal: React.FC<{ staff: Staff | null; onSave: (staff: Staff) => void; onClose: () => void; }> = ({ staff, onSave, onClose }) => {
     const { tenantRoles } = useAppContext();

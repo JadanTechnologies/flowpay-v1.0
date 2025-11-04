@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download, Repeat } from 'lucide-react';
 import { Invoice, InvoiceItem, InvoiceTemplate } from '../../types';
-import Table, { Column } from '../../components/ui/Table';
-import DashboardCard from '../../components/dashboard/DashboardCard';
-import Modal from '../../components/ui/Modal';
-import { useAppContext } from '../../contexts/AppContext';
-import { formatCurrency } from '../../utils/formatting';
-import InvoiceViewModal from '../../components/invoicing/InvoiceViewModal';
+import Table, { Column } from '../components/ui/Table';
+import DashboardCard from '../components/dashboard/DashboardCard';
+import Modal from '../components/ui/Modal';
+import { useAppContext } from '../contexts/AppContext';
+import { formatCurrency } from '../utils/formatting';
+import InvoiceViewModal from '../components/invoicing/InvoiceViewModal';
 
 
 const getStatusBadge = (status: Invoice['status']) => {

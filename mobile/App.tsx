@@ -1,8 +1,8 @@
 import React from 'react';
 
 // Mock components for web environment
-const View = ({ children }: { children?: React.ReactNode }) => <div style={{ padding: 10, border: '1px solid #ccc' }}>{children}</div>;
-const Text = ({ children }: { children?: React.ReactNode }) => <p>{children}</p>;
+const View: React.FC<{ children?: React.ReactNode }> = ({ children }) => <div style={{ padding: 10, border: '1px solid #ccc' }}>{children}</div>;
+const Text: React.FC<{ children?: React.ReactNode }> = ({ children }) => <p>{children}</p>;
 
 const App: React.FC = () => {
   return (
