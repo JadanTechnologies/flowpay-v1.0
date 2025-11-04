@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   'https://aistudiocdn.com/react@^19.2.0',
   'https://aistudiocdn.com/react-dom@^19.2.0',
   'https://aistudiocdn.com/lucide-react@^0.552.0',
-  'https://aistudiocdn.com/react-router-dom@^7.9.5',
+  'https://aistudiocdn.com/react-router-dom@^6.25.1',
 ];
 
 // Install event: Cache static assets.

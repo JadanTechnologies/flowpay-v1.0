@@ -1,15 +1,13 @@
 
 
 import React, { useState, useMemo } from 'react';
-// FIX: The `react-router-dom` module seems to have CJS/ESM interop issues in this environment. Using a namespace import as a workaround.
-import * as ReactRouterDOM from 'react-router-dom';
 import { Package, PlusCircle, Search, MoreVertical, Edit, Trash2, SlidersHorizontal, Loader, Upload, Download, Bell, History, Filter, Store, ChevronDown, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
-import { Product, InventoryAdjustmentLog, InventoryAdjustmentLogType, ProductVariant } from '../types';
-import StockAdjustmentModal from '../components/inventory/StockAdjustmentModal';
-import BulkUpdateModal from '../components/inventory/BulkUpdateModal';
-import { useAppContext } from '../contexts/AppContext';
-import ProductForm from '../components/inventory/ProductForm';
-import { formatCurrency } from '../utils/formatting';
+import { Product, InventoryAdjustmentLog, InventoryAdjustmentLogType, ProductVariant } from '../../types';
+import StockAdjustmentModal from '../../components/inventory/StockAdjustmentModal';
+import BulkUpdateModal from '../../components/inventory/BulkUpdateModal';
+import { useAppContext } from '../../contexts/AppContext';
+import ProductForm from '../../components/inventory/ProductForm';
+import { formatCurrency } from '../../utils/formatting';
 
 interface BulkUpdateResults {
     successCount: number;
