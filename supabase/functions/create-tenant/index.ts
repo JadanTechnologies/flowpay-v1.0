@@ -1,7 +1,7 @@
 // supabase/functions/create-tenant/index.ts
 
-// FIX: Use a versioned esm.sh URL for the Supabase Edge Runtime types to ensure stable type resolution for the Deno runtime environment.
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+// FIX: Corrected the Supabase Edge Runtime type reference to use a direct versioned URL. This resolves the type definition file not being found and subsequently fixes errors related to the missing Deno namespace (e.g., Deno.env).
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
