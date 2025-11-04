@@ -31,6 +31,46 @@ const EndOfDayReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, cu
     return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">End of Day Report coming soon.</div>;
 };
 
+const SalesSummaryReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
+    const summary = useMemo(() => {
+        const paidSales = sales.filter(s => s.status === 'Paid');
+        const totalRevenue = paidSales.reduce((acc, s) => acc + s.amount, 0);
+        return { totalRevenue, paidSalesCount: paidSales.length, totalSales: sales.length, grandTotalAmount: sales.reduce((acc, s) => acc + s.amount, 0), refundedSales: sales.filter(s => s.status === 'Refunded').length, creditSales: sales.filter(s => s.status === 'Credit').length };
+    }, [sales]);
+    
+    const paymentMethodBreakdown = useMemo(() => {
+        const breakdown: Record<string, number> = {};
+        sales.flatMap(s => s.payments).forEach(p => {
+            breakdown[p.method] = (breakdown[p.method] || 0) + p.amount;
+        });
+        return breakdown;
+    }, [sales]);
+
+    const columns: Column<Sale>[] = [
+        { header: 'Sale ID', accessor: 'id', sortable: true },
+        { header: 'Date', accessor: 'date', sortable: true, render: (row) => new Date(row.date).toLocaleString() },
+        { header: 'Customer', accessor: 'customerName', sortable: true },
+        { header: 'Branch', accessor: 'branch', sortable: true },
+        { header: 'Status', accessor: 'status', render: (row) => getStatusBadge(row.status) },
+        { header: 'Amount', accessor: 'amount', sortable: true, render: (row) => <div className="text-right font-medium">{formatCurrency(row.amount, currency)}</div> },
+    ];
+
+    return (
+        <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <DashboardCard title="Total Revenue (Paid)" value={formatCurrency(summary.totalRevenue, currency)} change={`${summary.paidSalesCount} paid sales`} icon={<DollarSign className="text-green-500" />} />
+                <DashboardCard title="Total Sales" value={`${summary.totalSales}`} change={`incl. ${summary.creditSales} on credit`} icon={<ShoppingCart className="text-blue-500" />} />
+                <DashboardCard title="Payment Methods" value={formatCurrency(paymentMethodBreakdown['Card'] || 0, currency)} change="Card transactions" icon={<BarChart2 className="text-yellow-500" />} />
+                <DashboardCard title="Refunds" value={`${summary.refundedSales}`} change="processed" icon={<ListChecks className="text-red-500" />} />
+            </div>
+             <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
+                <h2 className="text-xl font-semibold text-text-primary mb-4">Sales Log</h2>
+                <Table columns={columns} data={sales} />
+            </div>
+        </div>
+    );
+};
+
 const AccountingPage: React.FC = () => {
   const { currency, products, branches: allBranches, recentSales } = useAppContext();
   const [loading, setLoading] = useState(false);
@@ -116,46 +156,6 @@ const AccountingPage: React.FC = () => {
       {renderContent()}
     </div>
   );
-};
-
-const SalesSummaryReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
-    const summary = useMemo(() => {
-        const paidSales = sales.filter(s => s.status === 'Paid');
-        const totalRevenue = paidSales.reduce((acc, s) => acc + s.amount, 0);
-        return { totalRevenue, paidSalesCount: paidSales.length, totalSales: sales.length, grandTotalAmount: sales.reduce((acc, s) => acc + s.amount, 0), refundedSales: sales.filter(s => s.status === 'Refunded').length, creditSales: sales.filter(s => s.status === 'Credit').length };
-    }, [sales]);
-    
-    const paymentMethodBreakdown = useMemo(() => {
-        const breakdown: Record<string, number> = {};
-        sales.flatMap(s => s.payments).forEach(p => {
-            breakdown[p.method] = (breakdown[p.method] || 0) + p.amount;
-        });
-        return breakdown;
-    }, [sales]);
-
-    const columns: Column<Sale>[] = [
-        { header: 'Sale ID', accessor: 'id', sortable: true },
-        { header: 'Date', accessor: 'date', sortable: true, render: (row) => new Date(row.date).toLocaleString() },
-        { header: 'Customer', accessor: 'customerName', sortable: true },
-        { header: 'Branch', accessor: 'branch', sortable: true },
-        { header: 'Status', accessor: 'status', render: (row) => getStatusBadge(row.status) },
-        { header: 'Amount', accessor: 'amount', sortable: true, render: (row) => <div className="text-right font-medium">{formatCurrency(row.amount, currency)}</div> },
-    ];
-
-    return (
-        <div className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <DashboardCard title="Total Revenue (Paid)" value={formatCurrency(summary.totalRevenue, currency)} change={`${summary.paidSalesCount} paid sales`} icon={<DollarSign className="text-green-500" />} />
-                <DashboardCard title="Total Sales" value={`${summary.totalSales}`} change={`incl. ${summary.creditSales} on credit`} icon={<ShoppingCart className="text-blue-500" />} />
-                <DashboardCard title="Payment Methods" value={formatCurrency(paymentMethodBreakdown['Card'] || 0, currency)} change="Card transactions" icon={<BarChart2 className="text-yellow-500" />} />
-                <DashboardCard title="Refunds" value={`${summary.refundedSales}`} change="processed" icon={<ListChecks className="text-red-500" />} />
-            </div>
-             <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-semibold text-text-primary mb-4">Sales Log</h2>
-                <Table columns={columns} data={sales} />
-            </div>
-        </div>
-    );
 };
 
 export default AccountingPage;
