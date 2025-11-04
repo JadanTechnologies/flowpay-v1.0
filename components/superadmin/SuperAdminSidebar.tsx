@@ -6,6 +6,8 @@
 
 
 
+
+
 import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -22,7 +24,8 @@ import {
     Clock,
     DollarSign,
     Ban,
-    ToggleRight
+    ToggleRight,
+    Package
 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 
@@ -99,6 +102,7 @@ const SuperAdminSidebar: React.FC = () => {
                  { icon: <Clock size={20} />, text: 'Cron Jobs', to: '/admin/cron-jobs' },
                  { icon: <Ban size={20} />, text: 'Access Control', to: '/admin/access-control' },
                  { icon: <Settings size={20} />, text: 'System Settings', to: '/admin/system-settings' },
+                 { icon: <Package size={20} />, text: 'App Management', to: '/admin/app-management' },
             ]
         }
     ];

@@ -1,5 +1,6 @@
 
 
+
 import React, { useEffect, useMemo } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider, useAppContext } from './contexts/AppContext';
@@ -64,6 +65,7 @@ import TenantActivityLogPage from './pages/superadmin/TenantActivityLogPage';
 import SuperAdminAccessControlPage from './pages/superadmin/AccessControlPage';
 import FeatureControlPage from './pages/superadmin/FeatureControlPage';
 import SuperAdminProfilePage from './pages/superadmin/ProfilePage';
+import AppManagementPage from './pages/superadmin/AppManagementPage';
 
 const DynamicHead: React.FC = () => {
     const { settings } = useAppContext();
@@ -223,6 +225,7 @@ const AppRoutes: React.FC = () => {
           <Route path="feature-control" element={<FeatureControlPage />} />
           <Route path="system-settings" element={<SystemSettingsPage />} />
           <Route path="profile" element={<SuperAdminProfilePage />} />
+          <Route path="app-management" element={<AppManagementPage />} />
       </Route>
     </Routes>
   );
