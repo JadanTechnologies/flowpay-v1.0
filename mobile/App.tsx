@@ -1,9 +1,7 @@
 import React from 'react';
 
 // Mock components for web environment
-// FIX: Make children optional to satisfy linter for placeholder components.
 const View = ({ children }: { children?: React.ReactNode }) => <div style={{ padding: 10, border: '1px solid #ccc' }}>{children}</div>;
-// FIX: Make children optional to satisfy linter for placeholder components.
 const Text = ({ children }: { children?: React.ReactNode }) => <p>{children}</p>;
 
 const App: React.FC = () => {

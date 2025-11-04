@@ -187,7 +187,6 @@ const StaffManagementPage: React.FC = () => {
         }
     ];
 
-// FIX: The 'view_accounting' permission is invalid. It has been corrected to 'view_reports'. The list of permissions has also been completed to match the TenantPermission type definition.
      const permissionLabels: Record<TenantPermission, string> = {
         manage_pos: 'Manage POS',
         manage_inventory: 'Manage Inventory',

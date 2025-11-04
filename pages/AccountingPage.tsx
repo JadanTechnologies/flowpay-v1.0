@@ -22,7 +22,6 @@ const getStatusBadge = (status: Sale['status']) => {
   }
 };
 
-// Moved component definitions outside of the main component to prevent re-creation on every render.
 const CreditSalesReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
     return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">Credit Sales Report coming soon.</div>;
 };

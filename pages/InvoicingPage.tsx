@@ -162,7 +162,6 @@ const InvoicingPage: React.FC = () => {
                 schedule: cronSchedule,
                 config: { sourceInvoiceId: finalInvoice.id },
                 status: 'active' as const,
-                // FIX: Access tenant_id from user's app_metadata
                 tenantId: session?.user?.app_metadata?.tenant_id || '',
                 lastRun: null,
                 nextRun: 'Pending calculation',
