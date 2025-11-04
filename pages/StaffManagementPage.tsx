@@ -9,6 +9,75 @@ import { useNavigate } from 'react-router-dom';
 import Tabs from '../../components/ui/Tabs';
 import TenantRoleModal from '../../components/tenant/TenantRoleModal';
 
+const StaffFormModal: React.FC<{ staff: Staff | null; onSave: (staff: Staff) => void; onClose: () => void; }> = ({ staff, onSave, onClose }) => {
+    const { tenantRoles } = useAppContext();
+    const [formData, setFormData] = useState<Omit<Staff, 'id'>>({ 
+        name: staff?.name || '', 
+        email: staff?.email || '', 
+        username: staff?.username || '',
+        password: '',
+        roleId: staff?.roleId || (tenantRoles.length > 0 ? tenantRoles[0].id : ''), 
+        branch: staff?.branch || mockBranches[0]?.name || '', 
+        status: staff?.status || 'active' 
+    });
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!staff && (!formData.password || formData.password.length < 6)) {
+            alert('Password must be at least 6 characters long for new staff.');
+            return;
+        }
+        onSave({ ...formData, id: staff?.id || '' });
+    };
+
+    return (
+        <Modal title={staff ? 'Edit Staff Member' : 'Add New Staff'} onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                    </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                name="password"
+                                placeholder={staff ? "New Password (optional)" : "Password"}
+                                value={formData.password || ''}
+                                onChange={handleChange}
+                                required={!staff} // Only required for new staff
+                                className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                            />
+                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary">
+                                {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+                            </button>
+                        </div>
+                    </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select name="roleId" value={formData.roleId} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
+                            {tenantRoles.map(role => <option key={role.id} value={role.id}>{role.name}</option>)}
+                        </select>
+                        <select name="branch" value={formData.branch} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
+                            {mockBranches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                        </select>
+                    </div>
+                </div>
+                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Save Staff</button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 const StaffManagementPage: React.FC = () => {
     const { session, impersonateStaff, tenantRoles, setTenantRoles } = useAppContext();
     const navigate = useNavigate();
@@ -205,75 +274,6 @@ const StaffManagementPage: React.FC = () => {
                 />
             )}
         </div>
-    );
-};
-
-const StaffFormModal: React.FC<{ staff: Staff | null; onSave: (staff: Staff) => void; onClose: () => void; }> = ({ staff, onSave, onClose }) => {
-    const { tenantRoles } = useAppContext();
-    const [formData, setFormData] = useState<Omit<Staff, 'id'>>({ 
-        name: staff?.name || '', 
-        email: staff?.email || '', 
-        username: staff?.username || '',
-        password: '',
-        roleId: staff?.roleId || (tenantRoles.length > 0 ? tenantRoles[0].id : ''), 
-        branch: staff?.branch || mockBranches[0]?.name || '', 
-        status: staff?.status || 'active' 
-    });
-    const [showPassword, setShowPassword] = useState(false);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!staff && (!formData.password || formData.password.length < 6)) {
-            alert('Password must be at least 6 characters long for new staff.');
-            return;
-        }
-        onSave({ ...formData, id: staff?.id || '' });
-    };
-
-    return (
-        <Modal title={staff ? 'Edit Staff Member' : 'Add New Staff'} onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                        <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                        <div className="relative">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                name="password"
-                                placeholder={staff ? "New Password (optional)" : "Password"}
-                                value={formData.password || ''}
-                                onChange={handleChange}
-                                required={!staff} // Only required for new staff
-                                className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                            />
-                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary">
-                                {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
-                            </button>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select name="roleId" value={formData.roleId} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
-                            {tenantRoles.map(role => <option key={role.id} value={role.id}>{role.name}</option>)}
-                        </select>
-                        <select name="branch" value={formData.branch} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
-                            {mockBranches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                        </select>
-                    </div>
-                </div>
-                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
-                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Save Staff</button>
-                </div>
-            </form>
-        </Modal>
     );
 };
 

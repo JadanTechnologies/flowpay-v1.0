@@ -17,6 +17,87 @@ const getStatusBadge = (status: Invoice['status']) => {
     }
 };
 
+const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: Invoice) => void; onClose: () => void; invoiceTemplates: InvoiceTemplate[] }> = ({ invoice, onSave, onClose, invoiceTemplates }) => {
+    const [formData, setFormData] = useState<Omit<Invoice, 'id'>>({
+        customerName: invoice?.customerName || '',
+        issueDate: invoice?.issueDate || new Date().toISOString().split('T')[0],
+        dueDate: invoice?.dueDate || '',
+        amount: invoice?.amount || 0,
+        status: invoice?.status || 'Due',
+        items: invoice?.items || [],
+        notes: invoice?.notes || '',
+        isRecurring: invoice?.isRecurring || false,
+        recurringFrequency: invoice?.recurringFrequency || 'monthly',
+        recurringEndDate: invoice?.recurringEndDate || '',
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+        
+        if (type === 'checkbox') {
+            const { checked } = e.target as HTMLInputElement;
+            setFormData(prev => ({...prev, [name]: checked }));
+            return;
+        }
+
+        setFormData(prev => ({...prev, [name]: type === 'number' ? parseFloat(value) : value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave({ ...formData, id: invoice?.id || '' });
+    };
+
+    return (
+        <Modal title={invoice ? 'Edit Invoice' : 'Create New Invoice'} onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div className="p-6 space-y-4">
+                     <input type="text" name="customerName" placeholder="Customer Name" value={formData.customerName} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                             <label className="text-xs text-text-secondary block mb-1">Issue Date</label>
+                            <input type="date" name="issueDate" value={formData.issueDate} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                        </div>
+                        <div>
+                             <label className="text-xs text-text-secondary block mb-1">Due Date</label>
+                            <input type="date" name="dueDate" value={formData.dueDate} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                        </div>
+                    </div>
+                     <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required step="0.01" className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
+                    
+                    <div className="pt-4 border-t border-border">
+                        <div className="flex items-center gap-2">
+                            <input type="checkbox" id="isRecurring" name="isRecurring" checked={formData.isRecurring} onChange={handleChange} className="h-4 w-4 rounded border-gray-600 text-primary focus:ring-primary bg-surface"/>
+                            <label htmlFor="isRecurring" className="text-sm font-medium">Set as Recurring Invoice</label>
+                        </div>
+
+                        {formData.isRecurring && (
+                            <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-background rounded-lg border border-border">
+                                <div>
+                                    <label className="text-xs text-text-secondary block mb-1">Frequency</label>
+                                    <select name="recurringFrequency" value={formData.recurringFrequency} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary block mb-1">End Date (Optional)</label>
+                                    <input type="date" name="recurringEndDate" value={formData.recurringEndDate || ''} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"/>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Save Invoice</button>
+                </div>
+            </form>
+        </Modal>
+    )
+}
+
 const InvoicingPage: React.FC = () => {
     const { currency, scheduledJobs, setScheduledJobs, session, invoices, setInvoices, invoiceTemplates } = useAppContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -213,87 +294,5 @@ const InvoicingPage: React.FC = () => {
         </div>
     );
 };
-
-
-const InvoiceFormModal: React.FC<{ invoice: Invoice | null; onSave: (invoice: Invoice) => void; onClose: () => void; invoiceTemplates: InvoiceTemplate[] }> = ({ invoice, onSave, onClose, invoiceTemplates }) => {
-    const [formData, setFormData] = useState<Omit<Invoice, 'id'>>({
-        customerName: invoice?.customerName || '',
-        issueDate: invoice?.issueDate || new Date().toISOString().split('T')[0],
-        dueDate: invoice?.dueDate || '',
-        amount: invoice?.amount || 0,
-        status: invoice?.status || 'Due',
-        items: invoice?.items || [],
-        notes: invoice?.notes || '',
-        isRecurring: invoice?.isRecurring || false,
-        recurringFrequency: invoice?.recurringFrequency || 'monthly',
-        recurringEndDate: invoice?.recurringEndDate || '',
-    });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        
-        if (type === 'checkbox') {
-            const { checked } = e.target as HTMLInputElement;
-            setFormData(prev => ({...prev, [name]: checked }));
-            return;
-        }
-
-        setFormData(prev => ({...prev, [name]: type === 'number' ? parseFloat(value) : value }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave({ ...formData, id: invoice?.id || '' });
-    };
-
-    return (
-        <Modal title={invoice ? 'Edit Invoice' : 'Create New Invoice'} onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div className="p-6 space-y-4">
-                     <input type="text" name="customerName" placeholder="Customer Name" value={formData.customerName} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                             <label className="text-xs text-text-secondary block mb-1">Issue Date</label>
-                            <input type="date" name="issueDate" value={formData.issueDate} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                        </div>
-                        <div>
-                             <label className="text-xs text-text-secondary block mb-1">Due Date</label>
-                            <input type="date" name="dueDate" value={formData.dueDate} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                        </div>
-                    </div>
-                     <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} required step="0.01" className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm" />
-                    
-                    <div className="pt-4 border-t border-border">
-                        <div className="flex items-center gap-2">
-                            <input type="checkbox" id="isRecurring" name="isRecurring" checked={formData.isRecurring} onChange={handleChange} className="h-4 w-4 rounded border-gray-600 text-primary focus:ring-primary bg-surface"/>
-                            <label htmlFor="isRecurring" className="text-sm font-medium">Set as Recurring Invoice</label>
-                        </div>
-
-                        {formData.isRecurring && (
-                            <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-background rounded-lg border border-border">
-                                <div>
-                                    <label className="text-xs text-text-secondary block mb-1">Frequency</label>
-                                    <select name="recurringFrequency" value={formData.recurringFrequency} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm">
-                                        <option value="weekly">Weekly</option>
-                                        <option value="monthly">Monthly</option>
-                                        <option value="yearly">Yearly</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-text-secondary block mb-1">End Date (Optional)</label>
-                                    <input type="date" name="recurringEndDate" value={formData.recurringEndDate || ''} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"/>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
-                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Save Invoice</button>
-                </div>
-            </form>
-        </Modal>
-    )
-}
 
 export default InvoicingPage;

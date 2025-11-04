@@ -8,6 +8,108 @@ import { creditTransactions as mockTransactions } from '../data/mockData';
 import { useAppContext } from '../contexts/AppContext';
 import { formatCurrency } from '../utils/formatting';
 
+interface PaymentModalProps {
+    customer: Customer;
+    onClose: () => void;
+    onRecordPayment: (customerId: string, amount: number) => void;
+    currency: string;
+}
+
+const PaymentModal: React.FC<PaymentModalProps> = ({ customer, onClose, onRecordPayment, currency }) => {
+    const [amount, setAmount] = useState<string>('');
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const paymentAmount = parseFloat(amount);
+        if (isNaN(paymentAmount) || paymentAmount <= 0) {
+            alert("Please enter a valid payment amount.");
+            return;
+        }
+        if (paymentAmount > customer.creditBalance) {
+            if (!window.confirm("Payment amount is greater than the outstanding balance. Record payment anyway?")) {
+                return;
+            }
+        }
+        onRecordPayment(customer.id, paymentAmount);
+    };
+
+    return (
+        <Modal title={`Record Payment for ${customer.name}`} onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div className="p-6 space-y-4">
+                    <p className="text-text-secondary">Outstanding Balance: <span className="font-bold text-text-primary">{formatCurrency(customer.creditBalance, currency)}</span></p>
+                    <div>
+                        <label className="text-sm text-text-secondary block mb-1">Payment Amount</label>
+                        <input
+                            type="number"
+                            name="amount"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            step="0.01"
+                            min="0.01"
+                            required
+                            className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Record Payment</button>
+                </div>
+            </form>
+        </Modal>
+    )
+}
+
+interface CreditLimitModalProps {
+    customer: Customer;
+    onClose: () => void;
+    onSetLimit: (customerId: string, limit: number | null) => void;
+    currency: string;
+}
+
+const CreditLimitModal: React.FC<CreditLimitModalProps> = ({ customer, onClose, onSetLimit, currency }) => {
+    const [limit, setLimit] = useState<string>(customer.creditLimit?.toString() || '');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const limitAmount = limit === '' ? null : parseFloat(limit);
+        if (limit !== '' && (isNaN(limitAmount!) || limitAmount! < 0)) {
+            alert("Please enter a valid, non-negative limit, or leave it blank for no limit.");
+            return;
+        }
+        onSetLimit(customer.id, limitAmount);
+    };
+
+    return (
+        <Modal title={`Set Credit Limit for ${customer.name}`} onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div className="p-6 space-y-4">
+                    <p className="text-text-secondary">Current Outstanding Balance: <span className="font-bold text-text-primary">{formatCurrency(customer.creditBalance, currency)}</span></p>
+                    <div>
+                        <label className="text-sm text-text-secondary block mb-1">Credit Limit</label>
+                        <input
+                            type="number"
+                            name="limit"
+                            value={limit}
+                            onChange={(e) => setLimit(e.target.value)}
+                            step="0.01"
+                            min="0"
+                            className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                            placeholder="Leave blank for no limit"
+                        />
+                    </div>
+                </div>
+                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Set Limit</button>
+                </div>
+            </form>
+        </Modal>
+    )
+}
+
 const CreditManagementPage: React.FC = () => {
     const { customers: allCustomers, setCustomers, currency, addNotification, notificationPrefs } = useAppContext();
     const [transactions, setTransactions] = useState<CreditTransaction[]>(mockTransactions);
@@ -136,108 +238,5 @@ const CreditManagementPage: React.FC = () => {
         </div>
     );
 };
-
-interface PaymentModalProps {
-    customer: Customer;
-    onClose: () => void;
-    onRecordPayment: (customerId: string, amount: number) => void;
-    currency: string;
-}
-
-const PaymentModal: React.FC<PaymentModalProps> = ({ customer, onClose, onRecordPayment, currency }) => {
-    const [amount, setAmount] = useState<string>('');
-    
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const paymentAmount = parseFloat(amount);
-        if (isNaN(paymentAmount) || paymentAmount <= 0) {
-            alert("Please enter a valid payment amount.");
-            return;
-        }
-        if (paymentAmount > customer.creditBalance) {
-            if (!window.confirm("Payment amount is greater than the outstanding balance. Record payment anyway?")) {
-                return;
-            }
-        }
-        onRecordPayment(customer.id, paymentAmount);
-    };
-
-    return (
-        <Modal title={`Record Payment for ${customer.name}`} onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div className="p-6 space-y-4">
-                    <p className="text-text-secondary">Outstanding Balance: <span className="font-bold text-text-primary">{formatCurrency(customer.creditBalance, currency)}</span></p>
-                    <div>
-                        <label className="text-sm text-text-secondary block mb-1">Payment Amount</label>
-                        <input
-                            type="number"
-                            name="amount"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            step="0.01"
-                            min="0.01"
-                            required
-                            className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                            placeholder="0.00"
-                        />
-                    </div>
-                </div>
-                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
-                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Record Payment</button>
-                </div>
-            </form>
-        </Modal>
-    )
-}
-
-interface CreditLimitModalProps {
-    customer: Customer;
-    onClose: () => void;
-    onSetLimit: (customerId: string, limit: number | null) => void;
-    currency: string;
-}
-
-const CreditLimitModal: React.FC<CreditLimitModalProps> = ({ customer, onClose, onSetLimit, currency }) => {
-    const [limit, setLimit] = useState<string>(customer.creditLimit?.toString() || '');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const limitAmount = limit === '' ? null : parseFloat(limit);
-        if (limit !== '' && (isNaN(limitAmount!) || limitAmount! < 0)) {
-            alert("Please enter a valid, non-negative limit, or leave it blank for no limit.");
-            return;
-        }
-        onSetLimit(customer.id, limitAmount);
-    };
-
-    return (
-        <Modal title={`Set Credit Limit for ${customer.name}`} onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div className="p-6 space-y-4">
-                    <p className="text-text-secondary">Current Outstanding Balance: <span className="font-bold text-text-primary">{formatCurrency(customer.creditBalance, currency)}</span></p>
-                    <div>
-                        <label className="text-sm text-text-secondary block mb-1">Credit Limit</label>
-                        <input
-                            type="number"
-                            name="limit"
-                            value={limit}
-                            onChange={(e) => setLimit(e.target.value)}
-                            step="0.01"
-                            min="0"
-                            className="w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                            placeholder="Leave blank for no limit"
-                        />
-                    </div>
-                </div>
-                <div className="p-4 bg-background rounded-b-xl flex justify-end gap-2">
-                    <button type="button" onClick={onClose} className="bg-border hover:bg-border/70 text-text-primary font-semibold py-2 px-4 rounded-lg text-sm">Cancel</button>
-                    <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg text-sm">Set Limit</button>
-                </div>
-            </form>
-        </Modal>
-    )
-}
-
 
 export default CreditManagementPage;

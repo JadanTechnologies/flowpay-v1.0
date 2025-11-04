@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Truck, User, PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
@@ -6,6 +5,77 @@ import { Truck as TruckType, Driver as DriverType } from '../../types';
 import Table, { Column } from '../../components/ui/Table';
 import Tabs from '../../components/ui/Tabs';
 import Modal from '../../components/ui/Modal';
+
+// Truck Form Modal
+const TruckFormModal: React.FC<{ truck: TruckType | null; onSave: (truck: TruckType) => void; onClose: () => void; }> = ({ truck, onSave, onClose }) => {
+    const [formData, setFormData] = useState<Omit<TruckType, 'id'>>(truck || { licensePlate: '', model: '', capacity: 1000, status: 'Idle' });
+    
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData(prev => ({...prev, [e.target.name]: e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value}));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave({ ...formData, id: truck?.id || '' });
+    };
+
+    return (
+        <Modal title={truck ? 'Edit Truck' : 'Add New Truck'} onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div className="p-6 space-y-4">
+                    <input type="text" name="licensePlate" placeholder="License Plate" value={formData.licensePlate} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+                    <input type="text" name="model" placeholder="Model (e.g., Ford Transit)" value={formData.model} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+                    <input type="number" name="capacity" placeholder="Capacity (kg)" value={formData.capacity} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+                    <select name="status" value={formData.status} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm">
+                        <option value="Idle">Idle</option>
+                        <option value="Loading">Loading</option>
+                        <option value="On Route">On Route</option>
+                        <option value="Maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div className="p-4 bg-background flex justify-end gap-2"><button type="button" onClick={onClose}>Cancel</button><button type="submit">Save</button></div>
+            </form>
+        </Modal>
+    );
+}
+
+// Driver Form Modal
+const DriverFormModal: React.FC<{ driver: DriverType | null; onSave: (driver: DriverType) => void; onClose: () => void; }> = ({ driver, onSave, onClose }) => {
+    const { trucks } = useAppContext();
+    const [formData, setFormData] = useState<Omit<DriverType, 'id'>>(driver || { name: '', licenseNumber: '', phone: '', status: 'Idle' });
+    
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData(prev => ({...prev, [e.target.name]: e.target.value}));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave({ ...formData, id: driver?.id || '' });
+    };
+
+    return (
+        <Modal title={driver ? 'Edit Driver' : 'Add New Driver'} onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div className="p-6 space-y-4">
+                    <input type="text" name="name" placeholder="Driver's Full Name" value={formData.name} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+                    <input type="text" name="licenseNumber" placeholder="Driver's License Number" value={formData.licenseNumber} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+                    <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+                    <select name="assignedTruckId" value={formData.assignedTruckId || ''} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm">
+                        <option value="">Unassigned</option>
+                        {trucks.map(t => <option key={t.id} value={t.id}>{t.licensePlate} ({t.model})</option>)}
+                    </select>
+                    <select name="status" value={formData.status} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm">
+                        <option value="Idle">Idle</option>
+                        <option value="On Route">On Route</option>
+                        <option value="On Break">On Break</option>
+                        <option value="In Shop">In Shop</option>
+                    </select>
+                </div>
+                <div className="p-4 bg-background flex justify-end gap-2"><button type="button" onClick={onClose}>Cancel</button><button type="submit">Save</button></div>
+            </form>
+        </Modal>
+    );
+}
 
 const FleetPage: React.FC = () => {
     const { trucks, setTrucks, drivers, setDrivers } = useAppContext();
@@ -125,77 +195,5 @@ const FleetPage: React.FC = () => {
         </div>
     );
 };
-
-// Truck Form Modal
-const TruckFormModal: React.FC<{ truck: TruckType | null; onSave: (truck: TruckType) => void; onClose: () => void; }> = ({ truck, onSave, onClose }) => {
-    const [formData, setFormData] = useState<Omit<TruckType, 'id'>>(truck || { licensePlate: '', model: '', capacity: 1000, status: 'Idle' });
-    
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({...prev, [e.target.name]: e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value}));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave({ ...formData, id: truck?.id || '' });
-    };
-
-    return (
-        <Modal title={truck ? 'Edit Truck' : 'Add New Truck'} onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div className="p-6 space-y-4">
-                    <input type="text" name="licensePlate" placeholder="License Plate" value={formData.licensePlate} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-                    <input type="text" name="model" placeholder="Model (e.g., Ford Transit)" value={formData.model} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-                    <input type="number" name="capacity" placeholder="Capacity (kg)" value={formData.capacity} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-                    <select name="status" value={formData.status} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm">
-                        <option value="Idle">Idle</option>
-                        <option value="Loading">Loading</option>
-                        <option value="On Route">On Route</option>
-                        <option value="Maintenance">Maintenance</option>
-                    </select>
-                </div>
-                <div className="p-4 bg-background flex justify-end gap-2"><button type="button" onClick={onClose}>Cancel</button><button type="submit">Save</button></div>
-            </form>
-        </Modal>
-    );
-}
-
-// Driver Form Modal
-const DriverFormModal: React.FC<{ driver: DriverType | null; onSave: (driver: DriverType) => void; onClose: () => void; }> = ({ driver, onSave, onClose }) => {
-    const { trucks } = useAppContext();
-    const [formData, setFormData] = useState<Omit<DriverType, 'id'>>(driver || { name: '', licenseNumber: '', phone: '', status: 'Idle' });
-    
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData(prev => ({...prev, [e.target.name]: e.target.value}));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave({ ...formData, id: driver?.id || '' });
-    };
-
-    return (
-        <Modal title={driver ? 'Edit Driver' : 'Add New Driver'} onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div className="p-6 space-y-4">
-                    <input type="text" name="name" placeholder="Driver's Full Name" value={formData.name} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-                    <input type="text" name="licenseNumber" placeholder="Driver's License Number" value={formData.licenseNumber} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-                    <input type="tel" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} required className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-                    <select name="assignedTruckId" value={formData.assignedTruckId || ''} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm">
-                        <option value="">Unassigned</option>
-                        {trucks.map(t => <option key={t.id} value={t.id}>{t.licensePlate} ({t.model})</option>)}
-                    </select>
-                    <select name="status" value={formData.status} onChange={handleChange} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm">
-                        <option value="Idle">Idle</option>
-                        <option value="On Route">On Route</option>
-                        <option value="On Break">On Break</option>
-                        <option value="In Shop">In Shop</option>
-                    </select>
-                </div>
-                <div className="p-4 bg-background flex justify-end gap-2"><button type="button" onClick={onClose}>Cancel</button><button type="submit">Save</button></div>
-            </form>
-        </Modal>
-    );
-}
-
 
 export default FleetPage;
