@@ -14,6 +14,8 @@ const STATIC_ASSETS = [
   'https://unpkg.com/clsx@1.2.1/dist/clsx.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js',
+  'https://aistudiocdn.com/@google/genai@^0.23.0',
+  'https://aistudiocdn.com/@supabase/supabase-js@^2.45.0',
   'https://aistudiocdn.com/recharts@^3.3.0',
   'https://aistudiocdn.com/react@^19.2.0',
   'https://aistudiocdn.com/react@^19.2.0/jsx-runtime',
