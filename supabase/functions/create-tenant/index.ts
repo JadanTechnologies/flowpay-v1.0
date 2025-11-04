@@ -1,7 +1,9 @@
 // supabase/functions/create-tenant/index.ts
 
-// FIX: Aligned Deno API types version to v1.28.0 which corresponds to the release of std@0.168.0.
-/// <reference types="https://deno.land/api@v1.28.0.d.ts" />
+// Aligned Deno API types version to v1.28.0 which corresponds to the release of std@0.168.0.
+// FIX: This reference can cause errors in non-Deno TypeScript environments. It is commented out
+// as the Deno runtime provides these globals automatically.
+// /// <reference types="https://deno.land/api@v1.28.0.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -12,6 +14,13 @@ const managerPermissions = ['manage_pos', 'manage_inventory', 'view_reports', 'p
 const accountantPermissions = ['view_reports', 'manage_invoicing', 'manage_credit', 'view_activity_log'];
 const cashierPermissions = ['manage_pos', 'process_returns'];
 
+// FIX: Add a minimal type declaration for the Deno global to satisfy TypeScript
+// in environments where Deno's globals are not recognized.
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 
 serve(async (req) => {
   try {

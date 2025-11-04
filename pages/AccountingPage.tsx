@@ -33,7 +33,6 @@ const EndOfDayReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, cu
 
 const AccountingPage: React.FC = () => {
   const { currency, products, branches: allBranches, recentSales } = useAppContext();
-  const [sales, setSales] = useState<Sale[]>(recentSales);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,14 +43,10 @@ const AccountingPage: React.FC = () => {
 
   const [reportData, setReportData] = useState<Sale[] | null>(null);
 
-  useEffect(() => {
-    setSales(recentSales);
-  }, [recentSales]);
-
-  const branches = useMemo(() => [...new Set(sales.map(s => s.branch))], [sales]);
+  const branches = useMemo(() => [...new Set(recentSales.map(s => s.branch))], [recentSales]);
 
   const handleGenerateReport = useCallback(() => {
-    let filtered = [...sales];
+    let filtered = [...recentSales];
     if (selectedBranch !== 'all') filtered = filtered.filter(sale => sale.branch === selectedBranch);
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
@@ -67,11 +62,11 @@ const AccountingPage: React.FC = () => {
         });
     }
     setReportData(filtered);
-  }, [sales, selectedBranch, startDate, endDate]);
+  }, [recentSales, selectedBranch, startDate, endDate]);
 
   useEffect(() => {
-    if (sales.length > 0 && !reportData) handleGenerateReport();
-  }, [sales, reportData, handleGenerateReport]);
+    if (recentSales.length > 0 && !reportData) handleGenerateReport();
+  }, [recentSales, reportData, handleGenerateReport]);
 
   const renderContent = () => {
     if (loading) return <div className="flex justify-center items-center h-96"><Loader className="animate-spin text-primary" size={40} /></div>;
