@@ -121,260 +121,11 @@ interface AppContextType {
   setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
   invoiceTemplates: InvoiceTemplate[];
   setInvoiceTemplates: React.Dispatch<React.SetStateAction<InvoiceTemplate[]>>;
-  // FIX: Add emailSmsTemplates to the context type for use in TemplatesPage.
   emailSmsTemplates: EmailSmsTemplate[];
   setEmailSmsTemplates: React.Dispatch<React.SetStateAction<EmailSmsTemplate[]>>;
 }
 
-
-const defaultNotificationPrefs: NotificationPrefs = {
-    salesEmail: true,
-    salesPush: true,
-    refundsEmail: true,
-    lowStockEmail: true,
-    lowStockSms: false,
-    outOfStockEmail: true,
-    creditReminderEmail: true,
-};
-
-export const AppContext = createContext<AppContextType>({} as AppContextType);
-
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Auth state from Supabase
-  const [session, setSession] = useState<AuthSession | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Data states, initialized with mock data to ensure app stability
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockPurchaseOrders);
-  const [stockCounts, setStockCounts] = useState<StockCount[]>(mockStockCounts);
-  const [branches, setBranches] = useState<Branch[]>(mockBranches);
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
-  const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>(mockInventoryAdjustmentLogs);
-  const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>(mockScheduledJobs);
-  const [settings, setSettings] = useState<SystemSettings | null>(mockSettingsData);
-  const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(mockTenantSettings);
-  const [blockRules, setBlockRules] = useState<BlockRule[]>(mockBlockRules);
-  const [staff, setStaff] = useState<Staff[]>(mockStaff);
-  const [tenantRoles, setTenantRoles] = useState<TenantRole[]>(mockTenantRoles);
-  const [approvedDevices, setApprovedDevices] = useState<Device[]>(mockApprovedDevices);
-  const [pendingDevices, setPendingDevices] = useState<Device[]>(mockPendingDevices);
-  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(mockUserSubscription);
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>(mockSubscriptionPlans);
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
-  const [trucks, setTrucks] = useState<Truck[]>(mockTrucks);
-  const [drivers, setDrivers] = useState<Driver[]>(mockDrivers);
-  const [consignments, setConsignments] = useState<Consignment[]>(mockConsignments);
-  const [recentSales, setRecentSales] = useState<Sale[]>(mockRecentSales);
-  const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
-  const [invoiceTemplates, setInvoiceTemplates] = useState<InvoiceTemplate[]>(mockInvoiceTemplates);
-  // FIX: Add state for emailSmsTemplates.
-  const [emailSmsTemplates, setEmailSmsTemplates] = useState<EmailSmsTemplate[]>(mockEmailSmsTemplates);
-
-  // Local preferences
-  const [language, setLanguage] = useState<Language>('en');
-  const [currency, setCurrency] = useState<Currency>('USD');
-  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs);
-  const [currentBranchId, _setCurrentBranchId] = useState<string>('br_1');
-
-  // Notifications
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-  
-  const removeNotification = useCallback((id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  }, []);
-
-  const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
-    const id = `notif_${Date.now()}`;
-    const newNotification = { id, ...notification };
-    setNotifications(prev => [...prev, newNotification]);
-    setNotificationHistory(prev => [newNotification, ...prev].slice(0, 20));
-    setHasUnreadNotifications(true);
-    const duration = notification.duration || 5000;
-    setTimeout(() => removeNotification(id), duration);
-  }, [removeNotification]);
-
-  // Supabase Auth listener
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-        // Only trigger timeout if loading is still true, which it wouldn't be if auth state changed quickly.
-        if (loading) {
-            console.warn("Auth state check timed out after 5 seconds. Forcing UI to render.");
-            addNotification({
-                message: "Authentication service is slow to respond. Proceeding with limited functionality.",
-                type: 'warning',
-                duration: 10000
-            });
-            setLoading(false);
-        }
-    }, 5000);
-
-    try {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            clearTimeout(timer);
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
-    
-        return () => {
-          clearTimeout(timer);
-          subscription?.unsubscribe();
-        };
-    } catch (error) {
-        clearTimeout(timer);
-        console.error("Failed to initialize Supabase auth listener. This might be due to missing environment variables.", error);
-        addNotification({
-            message: "Error connecting to authentication service. Please check your configuration.",
-            type: 'error',
-            duration: 10000
-        });
-        setLoading(false);
-    }
-    // CRITICAL FIX: Removed `loading` from the dependency array. Including it caused an infinite loop
-    // where the effect would re-run every time setLoading was called inside it.
-  }, [addNotification]);
-  
-  // Data Fetching based on session (Currently disabled to use mock data)
-  const fetchAllData = useCallback(async () => {
-    // In a real app, you might fetch these in parallel with Promise.all
-    console.log("Fetching all data from Supabase...");
-    
-    // NOTE: This assumes Row Level Security is set up in Supabase
-    // to only return data for the currently authenticated user's tenant.
-    // The table names are assumed to be snake_case.
-
-    const { data: productsData } = await supabase.from('products').select('*, variants:product_variants(*)');
-    setProducts((productsData as any) || []);
-    
-    // Fetch other data... (examples)
-    const { data: branchesData } = await supabase.from('branches').select('*');
-    setBranches((branchesData as any) || []);
-
-    const { data: staffData } = await supabase.from('staff').select('*');
-    setStaff((staffData as any) || []);
-
-    const { data: rolesData } = await supabase.from('tenant_roles').select('*');
-    setTenantRoles((rolesData as any) || []);
-
-    const { data: salesData } = await supabase.from('sales').select('*, items:sale_items(*)');
-    setRecentSales((salesData as any) || []);
-
-     // Add other fetch calls here for suppliers, customers, etc.
-     // For brevity in this example, only a few are shown.
-  }, []);
-
-  useEffect(() => {
-    if (session) {
-        // fetchAllData(); // NOTE: Disabled to rely on complete mock data for stability.
-    } else {
-        // Clear data on logout if needed, but mock data will repopulate for now.
-    }
-  }, [session, fetchAllData]);
-
-  const login = async (email: string, pass: string) => {
-    // FIX: Corrected to use `signInWithPassword` which is the correct Supabase v2 method for email/password auth.
-    return await supabase.auth.signInWithPassword({ email, password: pass });
-  };
-
-  const logout = async () => {
-    // FIX: Corrected to use the standard `signOut` method without type casting.
-    await supabase.auth.signOut();
-  };
-
-  // Example of a mutation function that writes to Supabase
-  const saveProduct = async (productData: Product) => {
-    // This is a simplified example. A real implementation would handle errors,
-    // transactions, and relationships more robustly.
-    const { id, variants, isFavorite, variantOptions, ...productFields } = productData;
-    
-    // 1. Upsert the main product
-    const { data: savedProduct, error: productError } = await supabase
-        .from('products')
-        .upsert({ id, is_favorite: isFavorite, ...productFields })
-        .select()
-        .single();
-    
-    if (productError) {
-        addNotification({ message: `Error saving product: ${productError.message}`, type: 'error' });
-        return;
-    }
-
-    // 2. Upsert variants
-    const variantsToSave = variants.map(v => ({
-        id: v.id.startsWith('new_') ? undefined : v.id,
-        product_id: savedProduct.id,
-        sku: v.sku,
-        price: v.price,
-        cost_price: v.costPrice,
-        stock_by_branch: v.stockByBranch,
-        low_stock_threshold: v.lowStockThreshold,
-        options: v.options,
-    }));
-    
-    const { error: variantsError } = await supabase.from('product_variants').upsert(variantsToSave);
-
-    if (variantsError) {
-        addNotification({ message: `Error saving variants: ${variantsError.message}`, type: 'error' });
-        return;
-    }
-    
-    addNotification({ message: 'Product saved successfully!', type: 'success' });
-    // Refetch data to update UI
-    // await fetchAllData(); // Disabled for mock data stability
-  };
-  
-  const currentUserPermissions = useMemo(() => {
-    const roleName = session?.user?.app_metadata?.role;
-    if (roleName && tenantRoles.length > 0) {
-        const role = tenantRoles.find(r => r.name === roleName);
-        if (role) {
-            return new Set(role.permissions as TenantPermission[]);
-        }
-    }
-    return new Set<TenantPermission>();
-  }, [session, tenantRoles]);
-
-  
-  const setCurrentBranchId = (branchId: string) => {
-    // TODO: Persist this preference in Supabase user_profile table.
-    _setCurrentBranchId(branchId);
-  };
-
-  const markNotificationsAsRead = () => {
-    setHasUnreadNotifications(false);
-  };
-  
-  const impersonateStaff = useCallback((staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => {
-    // This functionality would require a secure backend implementation and is mocked here.
-    alert(`Impersonation is a backend feature. Simulating login for ${staff.name}.`);
-    navigate('/app/dashboard', { replace: true });
-  }, []);
-
-  const value = {
-      session, user, loading, login, logout, language, setLanguage, currency, setCurrency,
-      notificationPrefs, setNotificationPrefs, products, setProducts, saveProduct, suppliers, setSuppliers,
-      purchaseOrders, setPurchaseOrders, stockCounts, setStockCounts, branches, setBranches,
-      currentBranchId, setCurrentBranchId, stockTransfers, setStockTransfers, inventoryAdjustmentLogs,
-      setInventoryAdjustmentLogs, scheduledJobs, setScheduledJobs, settings, setSettings,
-      tenantSettings, setTenantSettings, blockRules, setBlockRules, staff, setStaff, tenantRoles,
-      setTenantRoles, currentUserPermissions, approvedDevices, setApprovedDevices, pendingDevices,
-      setPendingDevices, notifications, addNotification, removeNotification, notificationHistory,
-      markNotificationsAsRead, userSubscription, setUserSubscription, subscriptionPlans, setSubscriptionPlans,
-      hasUnreadNotifications, customers, setCustomers, trucks, setTrucks, drivers, setDrivers,
-      consignments, setConsignments, impersonateStaff, recentSales, setRecentSales, pendingReturns, setPendingReturns,
-      invoices, setInvoices, invoiceTemplates, setInvoiceTemplates, emailSmsTemplates, setEmailSmsTemplates,
-  };
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
+export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const useAppContext = () => {
     const context = useContext(AppContext);
@@ -382,4 +133,208 @@ export const useAppContext = () => {
         throw new Error('useAppContext must be used within an AppProvider');
     }
     return context;
-}
+};
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [session, setSession] = useState<AuthSession | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const [language, setLanguage] = useState<Language>('en');
+    const [currency, setCurrency] = useState<Currency>('USD');
+    const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>({
+        salesEmail: true, salesPush: false, refundsEmail: true,
+        lowStockEmail: true, lowStockSms: false, outOfStockEmail: false,
+        creditReminderEmail: true
+    });
+
+    const [products, setProducts] = useState<Product[]>(mockProducts);
+    const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
+    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockPurchaseOrders);
+    const [stockCounts, setStockCounts] = useState<StockCount[]>(mockStockCounts);
+    const [branches, setBranches] = useState<Branch[]>(mockBranches);
+    const [currentBranchId, _setCurrentBranchId] = useState<string>(mockBranches[0]?.id || '');
+    const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(mockStockTransfers);
+    const [inventoryAdjustmentLogs, setInventoryAdjustmentLogs] = useState<InventoryAdjustmentLog[]>(mockInventoryAdjustmentLogs);
+    const [scheduledJobs, setScheduledJobs] = useState<ScheduledJob[]>(mockScheduledJobs);
+    const [settings, setSettings] = useState<SystemSettings | null>(mockSettingsData);
+    const [tenantSettings, setTenantSettings] = useState<TenantSettings | null>(mockTenantSettings);
+    const [blockRules, setBlockRules] = useState<BlockRule[]>(mockBlockRules);
+    const [staff, setStaff] = useState<Staff[]>(mockStaff);
+    const [tenantRoles, setTenantRoles] = useState<TenantRole[]>(mockTenantRoles);
+    const [approvedDevices, setApprovedDevices] = useState<Device[]>(mockApprovedDevices);
+    const [pendingDevices, setPendingDevices] = useState<Device[]>(mockPendingDevices);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+    const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(mockUserSubscription);
+    const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>(mockSubscriptionPlans);
+    const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+    const [trucks, setTrucks] = useState<Truck[]>(mockTrucks);
+    const [drivers, setDrivers] = useState<Driver[]>(mockDrivers);
+    const [consignments, setConsignments] = useState<Consignment[]>(mockConsignments);
+    const [recentSales, setRecentSales] = useState<Sale[]>(mockRecentSales);
+    const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+    const [emailSmsTemplates, setEmailSmsTemplates] = useState<EmailSmsTemplate[]>(mockEmailSmsTemplates);
+    const [invoiceTemplates, setInvoiceTemplates] = useState<InvoiceTemplate[]>(mockInvoiceTemplates);
+    
+
+    const setCurrentBranchId = (branchId: string) => {
+        localStorage.setItem('currentBranchId', branchId);
+        _setCurrentBranchId(branchId);
+    };
+
+    useEffect(() => {
+        const savedBranchId = localStorage.getItem('currentBranchId');
+        if (savedBranchId && branches.some(b => b.id === savedBranchId)) {
+            _setCurrentBranchId(savedBranchId);
+        }
+    }, [branches]);
+
+    // Supabase Auth
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session)
+            setUser(session?.user ?? null)
+            setLoading(false)
+        })
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+
+        return () => {
+            authListener.subscription.unsubscribe();
+        };
+    }, []);
+
+    const login = async (email: string, pass: string) => {
+        // FIX: Use signInWithPassword which is the correct v2 method
+        return supabase.auth.signInWithPassword({ email, password: pass });
+    };
+
+    const logout = async () => {
+        // FIX: Use signOut which is the correct v2 method
+        await supabase.auth.signOut();
+        // Clear impersonation on logout
+        localStorage.removeItem('impersonation_data');
+    };
+
+     const impersonateStaff = (staff: Staff, navigate: (path: string, options?: { replace?: boolean }) => void) => {
+        if (!session) return;
+        const impersonationData = {
+            original_user: {
+                id: session.user.id,
+                email: session.user.email,
+                app_metadata: session.user.app_metadata
+            },
+            impersonated_user: {
+                id: staff.id,
+                email: staff.email,
+                app_metadata: {
+                    ...session.user.app_metadata, // Keep tenant_id
+                    role: tenantRoles.find(r => r.id === staff.roleId)?.name || 'Cashier'
+                }
+            }
+        };
+        localStorage.setItem('impersonation_data', JSON.stringify(impersonationData));
+        window.location.reload();
+    };
+
+    // Product save logic
+    const saveProduct = async (productData: Product) => {
+        const existingIndex = products.findIndex(p => p.id === productData.id);
+        if (existingIndex > -1) {
+            setProducts(currentProducts => {
+                const updatedProducts = [...currentProducts];
+                updatedProducts[existingIndex] = productData;
+                return updatedProducts;
+            });
+            addNotification({ message: 'Product updated successfully.', type: 'success' });
+        } else {
+            setProducts(currentProducts => [productData, ...currentProducts]);
+            addNotification({ message: 'Product added successfully.', type: 'success' });
+        }
+    };
+
+    // Permissions
+    const currentUserPermissions = useMemo(() => {
+        if (!session || !tenantRoles) return new Set<TenantPermission>();
+        const userRoleName = session.user?.app_metadata?.role;
+        const role = tenantRoles.find(r => r.name === userRoleName);
+        return new Set(role?.permissions || []);
+    }, [session, tenantRoles]);
+
+    // Notifications
+    const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
+        const id = `notif_${Date.now()}`;
+        const newNotification = { ...notification, id };
+        setNotifications(prev => [...prev, newNotification]);
+        setNotificationHistory(prev => [newNotification, ...prev].slice(0, 20)); // Keep last 20
+        setHasUnreadNotifications(true);
+
+        setTimeout(() => {
+            removeNotification(id);
+        }, notification.duration || 5000);
+    }, []);
+
+    const removeNotification = (id: string) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
+
+    const markNotificationsAsRead = () => {
+        setHasUnreadNotifications(false);
+    };
+
+    const value = {
+        session,
+        user,
+        loading,
+        login,
+        logout,
+        language, setLanguage,
+        currency, setCurrency,
+        notificationPrefs, setNotificationPrefs,
+        products, setProducts,
+        saveProduct,
+        suppliers, setSuppliers,
+        purchaseOrders, setPurchaseOrders,
+        stockCounts, setStockCounts,
+        branches, setBranches,
+        currentBranchId, setCurrentBranchId,
+        stockTransfers, setStockTransfers,
+        inventoryAdjustmentLogs, setInventoryAdjustmentLogs,
+        scheduledJobs, setScheduledJobs,
+        settings, setSettings,
+        tenantSettings, setTenantSettings,
+        blockRules, setBlockRules,
+        staff, setStaff,
+        tenantRoles, setTenantRoles,
+        currentUserPermissions,
+        approvedDevices, setApprovedDevices,
+        pendingDevices, setPendingDevices,
+        notifications, addNotification, removeNotification, notificationHistory,
+        userSubscription, setUserSubscription,
+        subscriptionPlans, setSubscriptionPlans,
+        markNotificationsAsRead, hasUnreadNotifications,
+        customers, setCustomers,
+        trucks, setTrucks,
+        drivers, setDrivers,
+        consignments, setConsignments,
+        impersonateStaff,
+        recentSales, setRecentSales,
+        pendingReturns, setPendingReturns,
+        invoices, setInvoices,
+        invoiceTemplates, setInvoiceTemplates,
+        emailSmsTemplates, setEmailSmsTemplates,
+    };
+
+    return (
+        <AppContext.Provider value={value}>
+            {children}
+        </AppContext.Provider>
+    );
+};
