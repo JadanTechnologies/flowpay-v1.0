@@ -174,22 +174,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  
+  const removeNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
+    const id = `notif_${Date.now()}`;
+    const newNotification = { id, ...notification };
+    setNotifications(prev => [...prev, newNotification]);
+    setNotificationHistory(prev => [newNotification, ...prev].slice(0, 20));
+    setHasUnreadNotifications(true);
+    const duration = notification.duration || 5000;
+    setTimeout(() => removeNotification(id), duration);
+  }, [removeNotification]);
 
   // Supabase Auth listener
   useEffect(() => {
-    // onAuthStateChange is the recommended way to handle auth state.
-    // It's called on initial load with the current session, and on any auth event (login, logout).
-    // This avoids race conditions with manual getSession() calls.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    setLoading(true);
+    try {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+    
+        return () => {
+          subscription?.unsubscribe();
+        };
+    } catch (error) {
+        console.error("Failed to initialize Supabase auth listener. This might be due to missing environment variables.", error);
+        addNotification({
+            message: "Error connecting to authentication service. Please check your configuration.",
+            type: 'error',
+            duration: 10000
+        });
         setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+    }
+  }, [addNotification]);
   
   // Data Fetching based on session (Currently disabled to use mock data)
   const fetchAllData = useCallback(async () => {
@@ -290,19 +312,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return new Set<TenantPermission>();
   }, [session, tenantRoles]);
 
-  const addNotification = (notification: Omit<Notification, 'id'>) => {
-    const id = `notif_${Date.now()}`;
-    const newNotification = { id, ...notification };
-    setNotifications(prev => [...prev, newNotification]);
-    setNotificationHistory(prev => [newNotification, ...prev].slice(0, 20));
-    setHasUnreadNotifications(true);
-    const duration = notification.duration || 5000;
-    setTimeout(() => removeNotification(id), duration);
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
   
   const setCurrentBranchId = (branchId: string) => {
     // TODO: Persist this preference in Supabase user_profile table.

@@ -1,7 +1,8 @@
 // supabase/functions/create-tenant/index.ts
 
 // FIX: Corrected the types reference to a valid URL to resolve Deno environment type errors. This ensures the 'Deno.env' object is recognized.
-/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
+// Corrected the path from /src/ to /dist/ in the types reference URL.
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/dist/edge-runtime.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
