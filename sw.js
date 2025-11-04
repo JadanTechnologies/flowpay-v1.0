@@ -12,6 +12,8 @@ const STATIC_ASSETS = [
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://unpkg.com/clsx@1.2.1/dist/clsx.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.min.js',
   'https://aistudiocdn.com/recharts@^3.3.0',
   'https://aistudiocdn.com/react@^19.2.0',
   'https://aistudiocdn.com/react@^19.2.0/jsx-runtime',
