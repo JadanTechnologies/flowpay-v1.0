@@ -1,7 +1,7 @@
 // supabase/functions/create-tenant/index.ts
 
-// FIX: Aligned the Deno API types version with the version of the 'std' library being used (std@0.168.0 corresponds to Deno v1.28.3). This resolves type resolution errors.
-/// <reference types="https://deno.land/api@v1.28.3.d.ts" />
+// FIX: Aligned Deno API types version to v1.28.0 which corresponds to the release of std@0.168.0.
+/// <reference types="https://deno.land/api@v1.28.0.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
