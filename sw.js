@@ -14,7 +14,8 @@ const STATIC_ASSETS = [
   'https://unpkg.com/clsx@1.2.1/dist/clsx.min.js',
   'https://aistudiocdn.com/recharts@^3.3.0',
   'https://aistudiocdn.com/react@^19.2.0',
-  'https://aistudiocdn.com/react-dom@^19.2.0',
+  'https://aistudiocdn.com/react@^19.2.0/jsx-runtime',
+  'https://aistudiocdn.com/react-dom@^19.2.0/client',
   'https://aistudiocdn.com/lucide-react@^0.552.0',
   'https://aistudiocdn.com/react-router-dom@^6.25.1',
 ];
@@ -26,8 +27,9 @@ self.addEventListener('install', event => {
     caches.open(STATIC_CACHE_NAME)
       .then(cache => {
         console.log('[SW] Precaching static assets');
-        // Use addAll with a catch to prevent installation failure if one asset fails
-        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { mode: 'no-cors' }))).catch(error => {
+        // Use addAll with a catch to prevent installation failure if one asset fails.
+        // Removed `no-cors` as it's not suitable for these CDN assets which support CORS.
+        return cache.addAll(STATIC_ASSETS).catch(error => {
           console.error('[SW] Failed to precache some static assets:', error);
         });
       })
