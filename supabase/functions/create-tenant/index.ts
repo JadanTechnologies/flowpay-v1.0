@@ -1,7 +1,7 @@
 // supabase/functions/create-tenant/index.ts
 
-// FIX: Replaced the local `deno.ns` lib reference with a full URL-based type reference. This is a robust workaround for TypeScript environments that are not configured to recognize the built-in Deno libraries, resolving errors about missing Deno types.
-/// <reference types="https://deno.land/x/deno/cli/tsc/dts/lib.deno.d.ts" />
+// FIX: Replaced the local deno.ns lib reference with a full URL-based type reference. This is a robust workaround for TypeScript environments that are not configured to recognize the built-in Deno libraries, resolving errors about missing Deno types.
+/// <reference types="https://deno.land/api@v1.44.4.d.ts" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'

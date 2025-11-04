@@ -192,17 +192,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Supabase Auth listener
   useEffect(() => {
     setLoading(true);
+    const timer = setTimeout(() => {
+        if (loading) {
+            console.warn("Auth state change timed out after 5 seconds. Forcing UI to render.");
+            addNotification({
+                message: "Authentication service is slow to respond. Proceeding with limited functionality.",
+                type: 'warning',
+                duration: 10000
+            });
+            setLoading(false);
+        }
+    }, 5000);
+
     try {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            clearTimeout(timer);
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
         });
     
         return () => {
+          clearTimeout(timer);
           subscription?.unsubscribe();
         };
     } catch (error) {
+        clearTimeout(timer);
         console.error("Failed to initialize Supabase auth listener. This might be due to missing environment variables.", error);
         addNotification({
             message: "Error connecting to authentication service. Please check your configuration.",
@@ -211,7 +226,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
         setLoading(false);
     }
-  }, [addNotification]);
+  }, [addNotification, loading]);
   
   // Data Fetching based on session (Currently disabled to use mock data)
   const fetchAllData = useCallback(async () => {

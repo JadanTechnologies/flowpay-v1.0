@@ -8,6 +8,7 @@ const API_URL_PART = '/api/'; // A string to identify API calls
 const STATIC_ASSETS = [
   // Core files
   '/',
+  '/index.html',
   '/manifest.json',
   '/vite.svg',
   '/index.tsx',
