@@ -295,30 +295,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
 
-    // Product save logic
-    const saveProduct = async (productData: Product) => {
-        const existingIndex = products.findIndex(p => p.id === productData.id);
-        if (existingIndex > -1) {
-            setProducts(currentProducts => {
-                const updatedProducts = [...currentProducts];
-                updatedProducts[existingIndex] = productData;
-                return updatedProducts;
-            });
-            addNotification({ message: 'Product updated successfully.', type: 'success' });
-        } else {
-            setProducts(currentProducts => [productData, ...currentProducts]);
-            addNotification({ message: 'Product added successfully.', type: 'success' });
-        }
-    };
-
-    // Permissions
-    const currentUserPermissions = useMemo(() => {
-        if (!session || !tenantRoles) return new Set<TenantPermission>();
-        const userRoleName = session.user?.app_metadata?.role;
-        const role = tenantRoles.find(r => r.name === userRoleName);
-        return new Set(role?.permissions || []);
-    }, [session, tenantRoles]);
-
     // Notifications
     const removeNotification = useCallback((id: string) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
@@ -335,6 +311,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             removeNotification(id);
         }, notification.duration || 5000);
     }, [removeNotification]);
+
+    // Product save logic
+    const saveProduct = useCallback(async (productData: Product) => {
+        const existingIndex = products.findIndex(p => p.id === productData.id);
+        if (existingIndex > -1) {
+            setProducts(currentProducts => {
+                const updatedProducts = [...currentProducts];
+                updatedProducts[existingIndex] = productData;
+                return updatedProducts;
+            });
+            addNotification({ message: 'Product updated successfully.', type: 'success' });
+        } else {
+            setProducts(currentProducts => [productData, ...currentProducts]);
+            addNotification({ message: 'Product added successfully.', type: 'success' });
+        }
+    }, [products, addNotification]);
+
+
+    // Permissions
+    const currentUserPermissions = useMemo(() => {
+        if (!session || !tenantRoles) return new Set<TenantPermission>();
+        const userRoleName = session.user?.app_metadata?.role;
+        const role = tenantRoles.find(r => r.name === userRoleName);
+        return new Set(role?.permissions || []);
+    }, [session, tenantRoles]);
 
     const markNotificationsAsRead = () => {
         setHasUnreadNotifications(false);
