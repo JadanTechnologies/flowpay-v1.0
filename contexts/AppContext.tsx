@@ -320,6 +320,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, [session, tenantRoles]);
 
     // Notifications
+    const removeNotification = useCallback((id: string) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    }, []);
+
     const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
         const id = `notif_${Date.now()}`;
         const newNotification = { ...notification, id };
@@ -330,11 +334,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTimeout(() => {
             removeNotification(id);
         }, notification.duration || 5000);
-    }, []);
-
-    const removeNotification = (id: string) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
-    };
+    }, [removeNotification]);
 
     const markNotificationsAsRead = () => {
         setHasUnreadNotifications(false);
