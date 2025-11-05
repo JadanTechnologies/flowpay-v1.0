@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, MoreVertical, Edit, Trash2, Eye, EyeOff, UserCheck, Shield, PlusCircle } from 'lucide-react';
-import { Staff, TenantPermission, TenantRole } from '../../types';
+import { Staff, TenantPermission, TenantRole } from '../types';
 import Table, { Column } from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
 import { staff as mockStaff, branches as mockBranches } from '../data/mockData';

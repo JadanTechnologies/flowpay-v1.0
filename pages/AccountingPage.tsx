@@ -22,14 +22,6 @@ const getStatusBadge = (status: Sale['status']) => {
   }
 };
 
-const CreditSalesReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
-    return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">Credit Sales Report coming soon.</div>;
-};
-
-const EndOfDayReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
-    return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">End of Day Report coming soon.</div>;
-};
-
 const SalesSummaryReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
     const summary = useMemo(() => {
         const paidSales = sales.filter(s => s.status === 'Paid');
@@ -68,6 +60,14 @@ const SalesSummaryReport: React.FC<{sales: Sale[], currency: string}> = ({ sales
             </div>
         </div>
     );
+};
+
+const CreditSalesReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
+    return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">Credit Sales Report coming soon.</div>;
+};
+
+const EndOfDayReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
+    return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">End of Day Report coming soon.</div>;
 };
 
 const AccountingPage: React.FC = () => {

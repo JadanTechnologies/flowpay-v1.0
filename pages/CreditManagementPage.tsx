@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Handshake, User, DollarSign, CreditCard, Mail, UserPlus } from 'lucide-react';
-import { Customer, CreditTransaction } from '../../types';
+import { Customer, CreditTransaction } from '../types';
 import Table, { Column } from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
 import DashboardCard from '../components/dashboard/DashboardCard';
