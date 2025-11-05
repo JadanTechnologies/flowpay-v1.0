@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Receipt, PlusCircle, MoreVertical, Eye, CheckCircle, Trash2, DollarSign, Download, Repeat } from 'lucide-react';
-import { Invoice, InvoiceItem, InvoiceTemplate } from '../types';
+import { Invoice, InvoiceItem, InvoiceTemplate } from '../../types';
 import Table, { Column } from '../components/ui/Table';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import Modal from '../components/ui/Modal';
