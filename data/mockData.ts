@@ -431,9 +431,9 @@ export const tenantRoles: TenantRole[] = [
 ];
 
 export const invoices: Invoice[] = [
-    { id: 'inv_1001', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid', isRecurring: true, recurringFrequency: 'monthly', recurringEndDate: '2024-10-01', items: [{ description: 'Monthly Retainer', quantity: 1, unitPrice: 1200 }], notes: 'Thank you for your continued partnership.' },
-    { id: 'inv_1002', customerName: 'Local Blooms', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 750.50, status: 'Due', items: [{ description: 'Website Development', quantity: 1, unitPrice: 750.50 }], notes: '' },
-    { id: 'inv_1003', customerName: 'Gadget Galaxy', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450.00, status: 'Overdue', items: [{ description: 'Hardware Repair', quantity: 3, unitPrice: 150 }], notes: 'Payment is overdue.' },
+    { id: 'inv_1001', customerId: 'cust_1', customerName: 'Innovate Inc.', issueDate: '2023-10-15', dueDate: '2023-11-14', amount: 1200.00, status: 'Paid', isRecurring: true, recurringFrequency: 'monthly', recurringEndDate: '2024-10-01', items: [{ description: 'Monthly Retainer', quantity: 1, unitPrice: 1200 }], notes: 'Thank you for your continued partnership.' },
+    { id: 'inv_1002', customerId: 'cust_2', customerName: 'Local Blooms', issueDate: '2023-10-20', dueDate: '2023-11-19', amount: 750.50, status: 'Due', items: [{ description: 'Website Development', quantity: 1, unitPrice: 750.50 }], notes: '' },
+    { id: 'inv_1003', customerId: 'cust_3', customerName: 'Gadget Galaxy', issueDate: '2023-09-05', dueDate: '2023-10-05', amount: 450.00, status: 'Overdue', items: [{ description: 'Hardware Repair', quantity: 3, unitPrice: 150 }], notes: 'Payment is overdue.' },
 ];
 
 export const customers: Customer[] = [
@@ -445,6 +445,8 @@ export const customers: Customer[] = [
 
 export const creditTransactions: CreditTransaction[] = [
     { id: 'ctx_1', customerId: 'cust_3', date: '2023-10-25', type: 'Sale', amount: 8.50, saleId: 'sale_6' },
+    { id: 'ctx_2', customerId: 'cust_1', date: '2023-10-22', type: 'Sale', amount: 250, saleId: 'sale_7' },
+    { id: 'ctx_3', customerId: 'cust_1', date: '2023-10-28', type: 'Payment', amount: -250 },
 ];
 
 export const activityLogs: ActivityLog[] = [

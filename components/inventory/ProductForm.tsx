@@ -24,7 +24,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSave, onClose }) =
     const [supplierId, setSupplierId] = useState(product?.supplier || '');
     const [imageUrl, setImageUrl] = useState(product?.imageUrl || '');
     const [hasVariants, setHasVariants] = useState(product ? product.variantOptions.length > 0 : false);
-    const [variantOptions, setVariantOptions] = useState(product?.variantOptions.map(opt => ({...opt, values: opt.values.join(', ')})) || [{ name: 'Size', values: 'S, M, L' }]);
+    const [variantOptions, setVariantOptions] = useState(product?.variantOptions?.map(opt => ({...opt, values: opt.values.join(', ')})) || [{ name: 'Size', values: 'S, M, L' }]);
     const [variants, setVariants] = useState<ProductVariant[]>(product?.variants || []);
     const [isUploading, setIsUploading] = useState(false);
     

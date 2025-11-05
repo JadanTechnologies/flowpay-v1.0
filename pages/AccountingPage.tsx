@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer } from 'lucide-react';
-import { Sale, Payment } from '../../types';
+// FIX: Import the Handshake icon from lucide-react.
+import { FileText, Calendar, Store, Loader, DollarSign, ShoppingCart, BarChart2, ListChecks, Printer, AlertTriangle, Handshake } from 'lucide-react';
+import { Sale, Payment, Customer, CreditTransaction } from '../../types';
 import Table, { Column } from '../components/ui/Table';
 import DashboardCard from '../components/dashboard/DashboardCard';
 import { useAppContext } from '../contexts/AppContext';
@@ -51,7 +52,7 @@ const SalesSummaryReport: React.FC<{sales: Sale[], currency: string}> = ({ sales
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <DashboardCard title="Total Revenue (Paid)" value={formatCurrency(summary.totalRevenue, currency)} change={`${summary.paidSalesCount} paid sales`} icon={<DollarSign className="text-green-500" />} />
                 <DashboardCard title="Total Sales" value={`${summary.totalSales}`} change={`incl. ${summary.creditSales} on credit`} icon={<ShoppingCart className="text-blue-500" />} />
-                <DashboardCard title="Payment Methods" value={formatCurrency(paymentMethodBreakdown['Card'] || 0, currency)} change="Card transactions" icon={<BarChart2 className="text-yellow-500" />} />
+                <DashboardCard title="Card/Transfer Payments" value={formatCurrency((paymentMethodBreakdown['Card'] || 0) + (paymentMethodBreakdown['Bank Transfer'] || 0), currency)} change="processed" icon={<BarChart2 className="text-yellow-500" />} />
                 <DashboardCard title="Refunds" value={`${summary.refundedSales}`} change="processed" icon={<ListChecks className="text-red-500" />} />
             </div>
              <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
@@ -62,16 +63,118 @@ const SalesSummaryReport: React.FC<{sales: Sale[], currency: string}> = ({ sales
     );
 };
 
-const CreditSalesReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
-    return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">Credit Sales Report coming soon.</div>;
+const CreditSalesReport: React.FC<{sales: Sale[], currency: string, customers: Customer[], creditTransactions: CreditTransaction[]}> = ({ sales, currency, customers, creditTransactions }) => {
+    const customerCreditData = useMemo(() => {
+        const creditSalesByCustomer: Record<string, { customerName: string; totalCredit: number; salesCount: number; }> = {};
+
+        sales.filter(s => s.status === 'Credit').forEach(sale => {
+            const customerId = sale.customerId || sale.customerName;
+            if (!creditSalesByCustomer[customerId]) {
+                creditSalesByCustomer[customerId] = {
+                    customerName: sale.customerName,
+                    totalCredit: 0,
+                    salesCount: 0,
+                };
+            }
+            creditSalesByCustomer[customerId].totalCredit += sale.amount;
+            creditSalesByCustomer[customerId].salesCount++;
+        });
+
+        return Object.values(creditSalesByCustomer).map(data => {
+            const customer = customers.find(c => c.name === data.customerName);
+            const payments = creditTransactions.filter(t => t.customerId === customer?.id && t.type === 'Payment').reduce((sum, t) => sum + t.amount, 0);
+            return {
+                ...data,
+                paymentsReceived: Math.abs(payments),
+                outstanding: (customer?.creditBalance || 0),
+            };
+        });
+    }, [sales, customers, creditTransactions]);
+
+    type CustomerCreditRow = (typeof customerCreditData)[0] & { id: string };
+
+    const columns: Column<CustomerCreditRow>[] = [
+        { header: 'Customer', accessor: 'customerName', sortable: true },
+        { header: 'Credit Sales', accessor: 'salesCount', sortable: true, render: row => `${row.salesCount} sale(s)` },
+        { header: 'Total Credit Extended', accessor: 'totalCredit', sortable: true, render: row => formatCurrency(row.totalCredit, currency) },
+        { header: 'Payments Received', accessor: 'paymentsReceived', sortable: true, render: row => formatCurrency(row.paymentsReceived, currency) },
+        { header: 'Current Outstanding', accessor: 'outstanding', sortable: true, render: row => formatCurrency(row.outstanding, currency) },
+    ];
+
+    const totalCreditExtended = customerCreditData.reduce((sum, d) => sum + d.totalCredit, 0);
+
+    return (
+        <div className="space-y-6">
+            <DashboardCard title="Total Credit Extended" value={formatCurrency(totalCreditExtended, currency)} change={`Across ${customerCreditData.length} customers`} icon={<Handshake className="text-blue-500" />} />
+            <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">
+                <h2 className="text-xl font-semibold text-text-primary mb-4">Credit Sales by Customer</h2>
+                <Table columns={columns} data={customerCreditData.map(d => ({...d, id: d.customerName}))} />
+            </div>
+        </div>
+    );
 };
 
-const EndOfDayReport: React.FC<{sales: Sale[], currency: string}> = ({ sales, currency }) => {
-    return <div className="bg-surface border border-border rounded-xl p-6 shadow-lg">End of Day Report coming soon.</div>;
+const EndOfDayReport: React.FC<{sales: Sale[], currency: string, isSingleDay: boolean}> = ({ sales, currency, isSingleDay }) => {
+    const [openingFloat, setOpeningFloat] = useState('100.00');
+    const [actualCash, setActualCash] = useState('');
+    
+    const eodData = useMemo(() => {
+        const paymentBreakdown = sales.flatMap(s => s.payments).reduce((acc, p) => {
+            acc[p.method] = (acc[p.method] || 0) + p.amount;
+            return acc;
+        }, {} as Record<string, number>);
+
+        const cashSales = paymentBreakdown['Cash'] || 0;
+        const cardSales = paymentBreakdown['Card'] || 0;
+        const transferSales = paymentBreakdown['Bank Transfer'] || 0;
+        const creditSales = paymentBreakdown['Credit'] || 0;
+        
+        const float = parseFloat(openingFloat) || 0;
+        const counted = parseFloat(actualCash) || null;
+        const expectedCash = float + cashSales;
+        const difference = counted !== null ? counted - expectedCash : null;
+
+        return { cashSales, cardSales, transferSales, creditSales, expectedCash, difference };
+    }, [sales, openingFloat, actualCash]);
+    
+    if (!isSingleDay) {
+        return (
+            <div className="bg-surface border border-border rounded-xl p-12 shadow-lg text-center">
+                <AlertTriangle className="mx-auto text-yellow-400" size={40}/>
+                <h3 className="mt-4 text-xl font-semibold">Invalid Date Range</h3>
+                <p className="text-text-secondary mt-2">The End of Day report can only be generated for a single day. Please adjust your date filters.</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-lg space-y-4">
+                <h2 className="text-xl font-semibold text-text-primary">Sales & Payment Summary</h2>
+                <div className="space-y-2">
+                    <div className="flex justify-between p-2 bg-background rounded"><span>Total Sales</span> <span className="font-bold">{formatCurrency(sales.reduce((sum, s) => sum + s.amount, 0), currency)}</span></div>
+                    <div className="flex justify-between p-2 bg-background rounded"><span>Cash Sales</span> <span className="font-bold">{formatCurrency(eodData.cashSales, currency)}</span></div>
+                    <div className="flex justify-between p-2 bg-background rounded"><span>Card Sales</span> <span className="font-bold">{formatCurrency(eodData.cardSales, currency)}</span></div>
+                    <div className="flex justify-between p-2 bg-background rounded"><span>Bank Transfers</span> <span className="font-bold">{formatCurrency(eodData.transferSales, currency)}</span></div>
+                    <div className="flex justify-between p-2 bg-background rounded"><span>Credit Sales</span> <span className="font-bold">{formatCurrency(eodData.creditSales, currency)}</span></div>
+                </div>
+            </div>
+             <div className="md:col-span-1 bg-surface border border-border rounded-xl p-6 shadow-lg space-y-4">
+                <h2 className="text-xl font-semibold text-text-primary">Cash Reconciliation</h2>
+                <div><label className="text-sm">Opening Float</label><input type="number" value={openingFloat} onChange={e => setOpeningFloat(e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" /></div>
+                <div><label className="text-sm">Expected in Drawer</label><input type="text" value={formatCurrency(eodData.expectedCash, currency)} readOnly className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-text-secondary" /></div>
+                <div><label className="text-sm">Actual Cash Counted</label><input type="number" value={actualCash} onChange={e => setActualCash(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" /></div>
+                 <div className={`p-3 rounded text-center font-bold ${eodData.difference === null ? 'bg-background' : eodData.difference === 0 ? 'bg-green-900/80' : 'bg-red-900/80'}`}>
+                    <p className="text-sm">Difference</p>
+                    <p className="text-2xl">{eodData.difference !== null ? formatCurrency(eodData.difference, currency) : '-'}</p>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const AccountingPage: React.FC = () => {
-  const { currency, products, branches: allBranches, recentSales } = useAppContext();
+  const { currency, products, branches: allBranches, recentSales, customers, creditTransactions } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,7 +216,7 @@ const AccountingPage: React.FC = () => {
       <>
         <div className="flex items-center gap-2 p-1 rounded-lg bg-surface border border-border w-full md:w-auto mb-6">
             {(['sales_summary', 'detailed_sales', 'credit_sales', 'end_of_day'] as const).map(type => (
-                <button key={type} onClick={() => { setReportType(type); setReportData(null); }} className={`px-4 py-2 text-sm rounded-md transition-colors w-full flex items-center justify-center gap-2 ${reportType === type ? 'bg-primary text-white' : 'hover:bg-border/50 text-text-secondary'}`}>
+                <button key={type} onClick={() => { setReportType(type); }} className={`px-4 py-2 text-sm rounded-md transition-colors w-full flex items-center justify-center gap-2 ${reportType === type ? 'bg-primary text-white' : 'hover:bg-border/50 text-text-secondary'}`}>
                     {type.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase())}
                 </button>
             ))}
@@ -131,27 +234,26 @@ const AccountingPage: React.FC = () => {
 
         <div className="mt-8">
             {reportData ? (
-                 reportData.length > 0 ? (
+                 reportData.length > 0 || reportType === 'end_of_day' ? (
                     <>
                         {reportType === 'sales_summary' && <SalesSummaryReport sales={reportData} currency={currency} />}
                         {reportType === 'detailed_sales' && <DetailedSalesReport sales={reportData} products={products} currency={currency} branches={allBranches} />}
-                        {reportType === 'credit_sales' && <CreditSalesReport sales={reportData} currency={currency} />}
-                        {reportType === 'end_of_day' && <EndOfDayReport sales={reportData} currency={currency} />}
+                        {reportType === 'credit_sales' && <CreditSalesReport sales={reportData} currency={currency} customers={customers} creditTransactions={creditTransactions} />}
+                        {/* FIX: Complete the component by adding the EndOfDayReport, fallback UI, and closing tags. */}
+                        {reportType === 'end_of_day' && <EndOfDayReport sales={reportData} currency={currency} isSingleDay={startDate === endDate} />}
                     </>
-                 ) : (
-                    <div className="bg-surface border border-border rounded-xl shadow-lg p-12 text-center text-text-secondary">No data found for the selected filters.</div>
-                 )
-            ) : (
-                <div className="bg-surface border border-border rounded-xl shadow-lg p-12 text-center text-text-secondary">Please select filters and click "Generate Report".</div>
-            )}
+                ) : (
+                    <div className="text-center py-12 text-text-secondary">No sales data found for the selected filters.</div>
+                )
+            ) : null}
         </div>
       </>
     );
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-text-primary">Reports</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-text-primary">Accounting & Reports</h1>
       {renderContent()}
     </div>
   );

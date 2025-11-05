@@ -2,7 +2,8 @@ import React, { createContext, useState, useMemo, useContext, useEffect, useCall
 // FIX: Changed to a type import, which can help with module resolution issues. The error indicates User and Session are not found.
 import type { User as AuthUser, Session as AuthSession } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest, Invoice, InvoiceTemplate, EmailSmsTemplate } from '../types';
+// FIX: Add CreditTransaction to type imports
+import { Product, Supplier, PurchaseOrder, StockCount, Branch, StockTransfer, SystemSettings, Tenant, InventoryAdjustmentLog, ScheduledJob, TenantSettings, BlockRule, Staff, TenantRole, Device, Notification, UserSubscription, Customer, Truck, Driver, Consignment, SubscriptionPlan, TenantPermission, ProductVariant, UserRole, Sale, PendingReturnRequest, Invoice, InvoiceTemplate, EmailSmsTemplate, CreditTransaction } from '../types';
 import { 
     systemSettings as mockSettingsData, 
     invoices as mockInvoices,
@@ -29,6 +30,8 @@ import {
     recentSales as mockRecentSales,
     invoiceTemplates as mockInvoiceTemplates,
     emailSmsTemplates as mockEmailSmsTemplates,
+    // FIX: Import mock data for credit transactions
+    creditTransactions as mockCreditTransactions,
 } from '../data/mockData';
 
 
@@ -116,6 +119,9 @@ interface AppContextType {
   setRecentSales: React.Dispatch<React.SetStateAction<Sale[]>>;
   pendingReturns: PendingReturnRequest[];
   setPendingReturns: React.Dispatch<React.SetStateAction<PendingReturnRequest[]>>;
+  // FIX: Add creditTransactions to context type
+  creditTransactions: CreditTransaction[];
+  setCreditTransactions: React.Dispatch<React.SetStateAction<CreditTransaction[]>>;
   invoices: Invoice[];
   setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
   invoiceTemplates: InvoiceTemplate[];
@@ -177,6 +183,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [consignments, setConsignments] = useState<Consignment[]>(mockConsignments);
     const [recentSales, setRecentSales] = useState<Sale[]>(mockRecentSales);
     const [pendingReturns, setPendingReturns] = useState<PendingReturnRequest[]>([]);
+    // FIX: Add state for credit transactions
+    const [creditTransactions, setCreditTransactions] = useState<CreditTransaction[]>(mockCreditTransactions);
     const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
     const [emailSmsTemplates, setEmailSmsTemplates] = useState<EmailSmsTemplate[]>(mockEmailSmsTemplates);
     const [invoiceTemplates, setInvoiceTemplates] = useState<InvoiceTemplate[]>(mockInvoiceTemplates);
@@ -370,6 +378,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         impersonateStaff,
         recentSales, setRecentSales,
         pendingReturns, setPendingReturns,
+        // FIX: Provide credit transactions state in context
+        creditTransactions, setCreditTransactions,
         invoices, setInvoices,
         invoiceTemplates, setInvoiceTemplates,
         emailSmsTemplates, setEmailSmsTemplates,

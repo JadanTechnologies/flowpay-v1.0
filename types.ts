@@ -235,6 +235,7 @@ export interface InvoiceItem {
 export interface Invoice {
     id: string;
     customerName: string;
+    customerId?: string;
     issueDate: string;
     dueDate: string;
     amount: number;
